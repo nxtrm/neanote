@@ -72,7 +72,7 @@ return (
 
             </div>
             {createPortal (<DragOverlay>
-                {activeColumn && <ColumnContainer deleteTask={deleteTask} tasks={tasks} createTask={createTask} column={activeColumn} updateColumn={updateColumn} deleteColumn={deleteColumn}/> }
+                {activeColumn && <ColumnContainer deleteTask={deleteTask} tasks={tasks.filter((task) => task.columnId === activeColumn.id)} createTask={createTask} column={activeColumn} updateColumn={updateColumn} deleteColumn={deleteColumn}/> }
             </DragOverlay>, document.body)}
         </DndContext>
     </div>
