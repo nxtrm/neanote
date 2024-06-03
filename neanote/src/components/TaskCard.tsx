@@ -1,6 +1,8 @@
 import { FaTrash } from "react-icons/fa"
 import { Id, Task } from "../types"
 import { useState } from "react"
+import { useSortable } from "@dnd-kit/sortable"
+import {CSS} from "@dnd-kit/utilities"
 
 interface Props{
     task: Task
@@ -15,6 +17,33 @@ function TaskCard({task, deleteTask,updateTask}:Props) {
       setEditMode(!editMode)
       setMouseIsOver(false)
     }
+    const {setNodeRef, attributes, listeners,transform,transition,isDragging} = useSortable({
+      id: task.id,
+      data:{
+          type:"Task",
+          task,
+      },
+      disabled:editMode
+  })
+    const style={
+      transition,
+      transform:CSS.Transform.toString(transform)
+  }
+  if (isDragging) {
+    <div
+    ref={setNodeRef}
+    style={style}
+    className="   opacity-30 bg-mainBackgroundColor 
+    p-2 h-[100px] min-h-[100px] 
+    items-center flex 
+    text-left rounded-xl hover:ring-2 
+    hover:ring-insert border-accentColor
+    cursor-grab
+    justify-between">
+      dragging
+    </div>
+  }
+
   if (editMode) {
     return <div 
     className="
@@ -25,7 +54,12 @@ function TaskCard({task, deleteTask,updateTask}:Props) {
     hover:ring-insert hover:ring-secondaryColor 
     cursor-grab
     justify-between
-    ">
+    "
+    ref={setNodeRef}
+    style={style}
+    {...attributes}
+    {...listeners}>
+   
         <textarea
         className="
         h-[90%]
@@ -51,7 +85,11 @@ function TaskCard({task, deleteTask,updateTask}:Props) {
 
 
   return (
-    <div 
+    <div
+    ref={setNodeRef}
+    style={style}
+    {...attributes}
+    {...listeners} 
     onClick={toggleEditMode}
     onMouseEnter={()=> setMouseIsOver(true)} onMouseLeave={() => setMouseIsOver(false)} className="
     bg-mainBackgroundColor 
@@ -68,7 +106,7 @@ function TaskCard({task, deleteTask,updateTask}:Props) {
     h-[90%]
     w-full
     overflow-y-auto
-    overflow-x-auto
+    overflow-x-hidden
     whitespace-pre-wrap">
 
         {task.content}
