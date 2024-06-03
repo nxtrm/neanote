@@ -29,6 +29,7 @@ function TaskCard({task, deleteTask,updateTask}:Props) {
       transition,
       transform:CSS.Transform.toString(transform)
   }
+  
   if (isDragging) {
     <div
     ref={setNodeRef}
