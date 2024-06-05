@@ -1,5 +1,5 @@
 import { FaTrash } from "react-icons/fa"
-import { Id, Task } from "../types"
+import { Id, Task } from "../../../src/types"
 import { useState } from "react"
 import { useSortable } from "@dnd-kit/sortable"
 import {CSS} from "@dnd-kit/utilities"

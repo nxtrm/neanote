@@ -1,5 +1,5 @@
 import { SortableContext, useSortable } from "@dnd-kit/sortable";
-import { Column, Id, Task } from "../types"
+import { Column, Id, Task } from "../../../src/types"
 import { FaPlusCircle, FaTrash } from "react-icons/fa";
 import {CSS} from "@dnd-kit/utilities"
 import { useMemo, useState } from "react";

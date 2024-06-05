@@ -1,15 +1,21 @@
 import { useState } from 'react'
-import './App.css';
-// import "./output.css"
-import KanbanBoard from './components/KanbanBoard'
+import './App.css'
+import Layout from '../components/Layout/Layout'
+import { ThemeProvider } from 'next-themes'
 
 function App() {
-  const [count, setCount] = useState(0)
 
   return (
-    <>
-      <KanbanBoard/>
-    </>
+    <ThemeProvider 
+    attribute='class'
+    defaultTheme='system'
+    enableSystem={true}
+    disableTransitionOnChange={true}
+    >
+      <Layout>
+         hi
+      </Layout>
+    </ThemeProvider>
   )
 }
 

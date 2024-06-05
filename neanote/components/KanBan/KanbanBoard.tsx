@@ -3,7 +3,7 @@ import { SortableContext, arrayMove } from "@dnd-kit/sortable";
 import { useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { FaPlusCircle } from "react-icons/fa";
-import { Column, Id, Task } from "../types";
+import { Column, Id, Task } from "../../types";
 import ColumnContainer from "./ColumnContainer";
 import TaskCard from "./TaskCard";
 
