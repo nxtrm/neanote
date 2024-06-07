@@ -5,8 +5,8 @@ function Layout({children}: {children: React.ReactNode}) {
     <div className='flex flex-col min-h-screen min-w-full bg-background'
     >
       <nav>
-        <Logo/>
-        <ThemeSwitcher/>
+        {/* <Logo/>
+        <ThemeSwitcher/> */}
       </nav>
       <main className='flex w-full flex-grow'>
       {children}
