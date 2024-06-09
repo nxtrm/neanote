@@ -1,13 +1,11 @@
-import { ThemeProvider } from "../components/providers/theme-provider"
-import Layout  from "../components/Layout/Layout"
+import React from 'react';
+
 
 function App() {
   return (
-    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-      <Layout>
-        hi
-      </Layout>
-    </ThemeProvider>
+   <div>
+    hi
+   </div>
   )
 }
 
