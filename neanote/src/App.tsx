@@ -1,19 +1,11 @@
-import { useState } from 'react'
-import './App.css'
-import Layout from '../components/Layout/Layout'
-import { ThemeProvider } from 'next-themes'
+import { ThemeProvider } from "../components/providers/theme-provider"
+import Layout  from "../components/Layout/Layout"
 
 function App() {
-
   return (
-    <ThemeProvider 
-    attribute='class'
-    defaultTheme='system'
-    enableSystem={true}
-    disableTransitionOnChange={true}
-    >
+    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
       <Layout>
-         hi
+        hi
       </Layout>
     </ThemeProvider>
   )
