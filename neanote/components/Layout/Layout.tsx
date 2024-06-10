@@ -14,10 +14,10 @@ return (
                 </div>
 
                 <div className='flex flex-col flex-grow'>
-                    <nav className='p-3  h-[50px]'>
+                    <nav className='p-3 h-15'>
                         <NavBar/>
                     </nav>
-                    <main className='p-3 pt-[17px] flex flex-w-full flex-grow' >
+                    <main className='p-3 pt-0 flex flex-w-full flex-grow' >
                             <Outlet/>
                     </main>
                 </div>
