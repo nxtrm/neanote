@@ -4,10 +4,13 @@ import {
     CardContent,
     CardHeader
 } from "../@/ui/card"
+import ThemeSwitcher from './ThemeSwitcher/ThemeSwitcher'
 
 function NavBar() {
   return (
-    <Card className='p-2 flex rounded-xl border-[2px]'>NavBar</Card>
+    <div className='p-2 flex rounded-xl border-[2px]'>
+      <ThemeSwitcher/>
+    </div>
   )
 }
 

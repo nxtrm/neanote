@@ -9,15 +9,15 @@ return (
     <div className='flex flex-col min-h-screen min-w-full bg-background max-h-screen'>
  
             <div className="flex flex-row">
-                <div className='p-3 ' >
+                <div className='pt-3 pl-3 pb-3' >
                     <Sidebar/>
                 </div>
 
                 <div className='flex flex-col flex-grow'>
-                    <nav className='p-[15px] h-[50px]'>
+                    <nav className='p-3  h-[50px]'>
                         <NavBar/>
                     </nav>
-                    <main className='p-[15px] flex flex-w-full flex-grow' >
+                    <main className='p-3 pt-[17px] flex flex-w-full flex-grow' >
                             <Outlet/>
                     </main>
                 </div>
