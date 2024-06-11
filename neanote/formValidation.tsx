@@ -1,0 +1,25 @@
+import { zodResolver } from "@hookform/resolvers/zod"
+import { z } from "zod"
+ 
+export const registerFormSchema = z.object({
+  username: z.string().min(4, {
+    message: "Username must be at least 4 characters.",
+  }),
+  password: z.string().min(8, {
+    message: "Password must be at least 6 characters.",
+}).regex(
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
+    "Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character."
+),
+email: z.string().email({
+    message: "Invalid email address.",
+}),
+})
+
+export const loginFormSchema = z.object({
+    username: z.string().min(4, {
+      message: "Username must be at least 4 characters.",
+    }),
+    password: z.string().min(8, {
+      message: "Password must be at least 6 characters.",
+    })})

@@ -6,7 +6,8 @@ import {
     createBrowserRouter,
     RouterProvider,
   } from "react-router-dom";
-import Dashboard from "./assets/Pages/Dashboard/Dashboard.tsx";
+import Dashboard from "./Pages/Dashboard/Dashboard.tsx";
+import Login from "./Pages/Login/Login.tsx";
 
 const router = createBrowserRouter([
     {
@@ -14,9 +15,12 @@ const router = createBrowserRouter([
       element: <Layout/>,
       children: [
         { index: true, element: <Dashboard /> },
-        { path: "login", element: <div>Login</div>}
       ]
     },
+    {
+      path: "/login" ,
+      element: <Login/>
+    }
     ]);
 
 export default router
