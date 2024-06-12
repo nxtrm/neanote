@@ -1,15 +1,24 @@
-import create from 'zustand';
-import { z } from 'zod';
-import { loginFormSchema } from '../../../formValidation';
 
-type FormState = z.infer<typeof loginFormSchema>;
+import { create } from 'zustand'
 
-type FormStore = {
-  formState: FormState;
-  setFormState: (formState: FormState) => void;
-};
+export let useLogin = create((set,get)=>({
 
-export const useFormStore = create<FormStore>((set) => ({
-  formState: { username: '', password: ''},
-  setFormState: (formState) => set({ formState }),
-}));
+  form:{login:'',password:''},
+  
+  formHandler:(form)=>{
+      set({form})
+  },
+    
+  login:async ()=>{
+      let {form}=get()
+      let response = await api.login(form)
+      if(response){
+          
+          // let updateDBResponse = await frontDB.getState().updateDB('*')
+          // if(updateDBResponse) window.location.href='/workorders'
+  
+      } 
+      
+  }
+      
+  }))
