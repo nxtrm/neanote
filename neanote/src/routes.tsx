@@ -1,13 +1,12 @@
-import Layout from "../components/Layout/Layout";
-import App from './App.tsx'
 import React from 'react';
+import Layout from "../components/Layout/Layout";
 
 import {
-    createBrowserRouter,
-    RouterProvider,
-  } from "react-router-dom";
+  createBrowserRouter
+} from "react-router-dom";
 import Dashboard from "./Pages/Dashboard/Dashboard.tsx";
 import Login from "./Pages/Login/Login.tsx";
+import Register from "./Pages/Register/Register.tsx";
 
 const router = createBrowserRouter([
     {
@@ -20,6 +19,10 @@ const router = createBrowserRouter([
     {
       path: "/login" ,
       element: <Login/>
+    },
+    {
+      path: "/register" ,
+      element: <Register/>
     }
     ]);
 

@@ -1,9 +1,18 @@
-
+import api from '../../api'
 import { create } from 'zustand'
 
-export let useLogin = create((set,get)=>({
+type LoginState = {
+  form: {
+    username: string;
+    password: string;
+  };
+  formHandler: (form) => void;
+  login: () => Promise<void>;
+};
 
-  form:{login:'',password:''},
+export let useLogin = create<LoginState>((set,get)=>({
+
+  form:{username:'',password:''},
   
   formHandler:(form)=>{
       set({form})

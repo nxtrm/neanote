@@ -6,31 +6,32 @@ import { Button } from "../../../components/@/ui/button";
 import { Form, FormControl, FormField, FormItem, FormMessage } from '../../../components/@/ui/form';
 import { Input } from "../../../components/@/ui/input";
 import { Label } from "../../../components/@/ui/label";
-import { loginFormSchema } from '../../formValidation';
-import { useLogin } from './useLogin';
+import { registerFormSchema } from '../../formValidation';
 import { Link } from 'react-router-dom';
+// import { useLogin } from './useLogin';
 
+// const {formHandler, login} = useLogin()
 
-function Login() {
-  const {formHandler, login} = useLogin()
+function Register() {
   // Defines the form
-  const form = useForm<z.infer<typeof loginFormSchema>>({
-    resolver: zodResolver(loginFormSchema),
+  const form = useForm<z.infer<typeof registerFormSchema>>({
+    resolver: zodResolver(registerFormSchema),
     defaultValues: {
       username: "",
-      password: ""
+      password: "",
+      email: ""
     },
   })
   //Defines the form submit
-  function onSubmit(values: z.infer<typeof loginFormSchema>) {
-    formHandler(values)
-    login()
+  function onSubmit(values: z.infer<typeof registerFormSchema>) {
+    // formHandler(values)
+    // login()
   }
 
 return (
   <div className=' p-3 '>
           <div className='justify-center items-center flex-col flex min-h-screen min-w-full bg-background max-h-screen rounded-xl border-[2px]'>
-            <h1 className='text-2xl pt-4 pb-3 font-bold'>Login</h1>
+            <h1 className='text-2xl pt-4 pb-3 font-bold'>Register</h1>
             <Form {...form}>
 
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 w-[250px]">
@@ -52,8 +53,23 @@ return (
                 <div className='space-y-1'>
                   <FormField
                     control={form.control}
-                  name="password"
-                render={({ field }) => (
+                    name="email"
+                    render={({ field }) => (
+                  <FormItem>
+                      <Label>Email</Label>
+                      <FormControl>
+                      <Input
+                        {...field}
+                      />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>)}/>
+                </div>
+                <div className='space-y-1'>
+                  <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
                   <FormItem>
                       <Label>Password</Label>
                       <FormControl>
@@ -64,11 +80,12 @@ return (
                       <FormMessage />
                     </FormItem>)}/>
                 </div>
+                
               {/* Add more form fields here... */}
-              <Link to="/register">
-                        <text className='text-sm text-foreground'>Already have an account? Register</text>
-              </Link>
-              <Button type="submit">Submit</Button>
+                <Link to="/login">
+                        <text className='text-sm text-foreground'>Already have an account? Log in</text>
+                </Link>
+                <Button type="submit">Submit</Button>
             </form>
             </Form>
           </div>
@@ -77,4 +94,4 @@ return (
 }
 
 
-export default Login
+export default Register
