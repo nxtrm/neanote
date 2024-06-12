@@ -8,11 +8,11 @@ import { Input } from "../../../components/@/ui/input";
 import { Label } from "../../../components/@/ui/label";
 import { registerFormSchema } from '../../formValidation';
 import { Link } from 'react-router-dom';
-// import { useLogin } from './useLogin';
+import { useRegister } from './useRegister';
 
-// const {formHandler, login} = useLogin()
 
 function Register() {
+  const {formHandler, register} = useRegister()
   // Defines the form
   const form = useForm<z.infer<typeof registerFormSchema>>({
     resolver: zodResolver(registerFormSchema),
@@ -24,8 +24,9 @@ function Register() {
   })
   //Defines the form submit
   function onSubmit(values: z.infer<typeof registerFormSchema>) {
-    // formHandler(values)
-    // login()
+    console.log(values)
+    formHandler(values)
+    register()
   }
 
 return (
@@ -83,7 +84,7 @@ return (
                 
               {/* Add more form fields here... */}
                 <Link to="/login">
-                        <text className='text-sm text-foreground'>Already have an account? Log in</text>
+                        <p className='text-sm text-foreground'>Already have an account? Log in</p>
                 </Link>
                 <Button type="submit">Submit</Button>
             </form>

@@ -66,7 +66,7 @@ return (
                 </div>
               {/* Add more form fields here... */}
               <Link to="/register">
-                        <text className='text-sm text-foreground'>Already have an account? Register</text>
+                        <p className='text-sm text-foreground'>Already have an account? Register</p>
               </Link>
               <Button type="submit">Submit</Button>
             </form>
