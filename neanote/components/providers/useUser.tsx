@@ -1,18 +1,27 @@
-import create from 'zustand';
+import {create }from 'zustand';
 
 type User = {
   username: string;
-  isLoggedIn: boolean;
+  // Add more fields as needed
 };
 
 type UserStore = {
-  user: User;
-  login: (username: string) => void;
+  user: User | null;
+  isLoggedIn: boolean;
+  loginUser: (username: string) => void;
   logout: () => void;
+  updateUser: (user: User) => void;
 };
 
 export const useUser = create<UserStore>((set) => ({
-  user: { username: '', isLoggedIn: false },
-  login: (username: string) => set({ user: { username, isLoggedIn: true } }),
-  logout: () => set({ user: { username: '', isLoggedIn: false } }),
+  user: null,
+  isLoggedIn: false,
+  loginUser: (username: string) =>     set((state) => {
+    console.log('Current state before loginUser:', state);
+    const newState = { ...state, user: { username }, isLoggedIn: true };
+    console.log('New state after loginUser:', newState);
+    return newState;
+  }),
+  logout: () => set({ user: null, isLoggedIn: false }),
+  updateUser: (user: User) => set((state) => ({ ...state, user })),
 }));

@@ -1,5 +1,8 @@
 import api from '../../api'
 import { create } from 'zustand'
+import { useUser } from '../../../components/providers/useUser';
+
+
 
 type LoginState = {
   form: {
@@ -7,26 +10,25 @@ type LoginState = {
     password: string;
   };
   formHandler: (form) => void;
-  login: () => Promise<void>;
+  login: () => Promise<boolean>;
 };
 
 export let useLogin = create<LoginState>((set,get)=>({
-
   form:{username:'',password:''},
   
   formHandler:(form)=>{
       set({form})
   },
     
-  login:async ()=>{
+  login:async ()=> {
       let {form}=get()
       let response = await api.login(form)
       if(response){
-          
-          // let updateDBResponse = await frontDB.getState().updateDB('*')
-          // if(updateDBResponse) window.location.href='/workorders'
-  
+        return true
       } 
+      else {
+        return false
+      }
       
   }
       

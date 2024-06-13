@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useForm } from "react-hook-form";
 import { z } from 'zod';
 import { Button } from "../../../components/@/ui/button";
@@ -9,10 +9,12 @@ import { Label } from "../../../components/@/ui/label";
 import { loginFormSchema } from '../../formValidation';
 import { useLogin } from './useLogin';
 import { Link } from 'react-router-dom';
+import { useUser } from '../../../components/providers/useUser';
 
 
 function Login() {
   const {formHandler, login} = useLogin()
+  const {loginUser, user, isLoggedIn} = useUser()
   // Defines the form
   const form = useForm<z.infer<typeof loginFormSchema>>({
     resolver: zodResolver(loginFormSchema),
@@ -21,10 +23,23 @@ function Login() {
       password: ""
     },
   })
-  //Defines the form submit
-  function onSubmit(values: z.infer<typeof loginFormSchema>) {
-    formHandler(values)
-    login()
+
+  useEffect(() => {
+    if (user && isLoggedIn) {
+      window.location.href = '/';
+      console.log(isLoggedIn);
+    }
+  }, [user]);
+  
+  // ...
+  
+  async function onSubmit(values: z.infer<typeof loginFormSchema>) {
+    formHandler(values);
+    login().then(loginResult => {
+      if (loginResult) {
+        loginUser(values.username);
+      }
+    })
   }
 
 return (
