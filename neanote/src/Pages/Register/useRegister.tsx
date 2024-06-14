@@ -24,8 +24,7 @@ export let useRegister = create<RegisterState>((set,get)=>({
       let response = await api.register(form)
       if(response){
           console.log("Success")
-          // let updateDBResponse = await frontDB.getState().updateDB('*')
-          // if(updateDBResponse) window.location.href='/workorders'
+          
   
       } 
       

@@ -9,6 +9,7 @@ import Dashboard from "./Pages/Dashboard/Dashboard.tsx";
 import Login from "./Pages/Login/Login.tsx";
 import Register from "./Pages/Register/Register.tsx";
 import withTokenCheck from '../components/providers/token-check.tsx';
+import Landing from './Pages/Landing/Landing.tsx';
 
 const CheckedLayout = withTokenCheck(Layout);
 
@@ -22,7 +23,7 @@ const AppRouter = () => (
       </Route>
       <Route path="login" element={<Login />} />
       <Route path="register" element={<Register />} />
-      <Route path="get-started" element={<div>Get Started</div>} />
+      <Route path="get-started" element={<Landing/>} />
     </Routes>
   </Router>
 );

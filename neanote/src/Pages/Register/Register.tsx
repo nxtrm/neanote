@@ -31,7 +31,13 @@ function Register() {
 
 return (
   <div className=' p-3 '>
-          <div className='justify-center items-center flex-col flex min-h-screen min-w-full bg-background max-h-screen rounded-xl border-[2px]'>
+          <div className='items-center flex-col flex min-h-screen min-w-full bg-background max-h-screen rounded-xl border-[2px]'>
+            <Link to="/get-started">
+              <h1 className="text-4xl pb-40 pt-5 font-extrabold ">
+                      Neanote
+              </h1>
+            </Link>
+            
             <h1 className='text-2xl pt-4 pb-3 font-bold'>Register</h1>
             <Form {...form}>
 
@@ -84,7 +90,7 @@ return (
                 
               {/* Add more form fields here... */}
                 <Link to="/login">
-                        <p className='text-sm text-foreground'>Already have an account? Log in</p>
+                        <p className='text-sm text-foreground'>New to Neanote? Log in</p>
                 </Link>
                 <Button type="submit">Submit</Button>
             </form>

@@ -1,5 +1,6 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
+from flask_jwt_extended import JWTManager, create_access_token
 from flask_mysqldb import MySQL
 import jwt
 
@@ -7,6 +8,7 @@ app = Flask(__name__)
 
 CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
 mysql = MySQL(app)
+jwt = JWTManager(app)
 
 # MySQL configurations
 app.config['MYSQL_HOST'] = 'localhost'
@@ -29,12 +31,18 @@ def login():
 
         if user:
             #Creating the user access token
-            userId = user[0]
-            token = jwt.sign({'userId': userId}, app.config['JWT_SECRET_KEY'],{'7d'})
+            print('user:', user)
+            userId = str(user[0])
+            print('userId:', userId)
+            try:
+                access_token = create_access_token(identity=userId)
+            except Exception as e:
+                print(e)
+            print('access_token:', access_token)    
             
             # Adding token to a cookie
             response = jsonify({'message': 'Login successful'})
-            response.set_cookie('token', token)
+            response.set_cookie('token', access_token)
             return response, 200
         else:
             return jsonify({'message': 'User not found'}), 401
@@ -55,12 +63,15 @@ def register():
 
     if existing_user:
         return jsonify({'message': 'User with this username or email already exists'}), 400
-    id = str(1)
+    userId = id(object())
     cur.execute("INSERT INTO users (id, username, email, password) VALUES (%s, %s, %s, %s)", (id, username, email, password))
     mysql.connection.commit()
     cur.close()
 
-    return jsonify({'message': 'User created successfully'})
+    access_token = create_access_token(identity=str(userId))
+    response.set_cookie('token', access_token)
+    response = jsonify({'message': 'User created successfully'})
+    return response
 
 if __name__ == '__main__':
     app.run(debug=True)
