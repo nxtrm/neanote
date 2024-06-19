@@ -16,7 +16,7 @@ a.interceptors.request.use((request) => {
 	}
 
 	//if user doesnt have a token
-	if (request.url != '/api/login' && !Cookies.get('token')) {
+	if ((request.url !== '/api/login' && request.url !== '/api/register') && !Cookies.get('token')) {
 		window.location.href = '/get-started';
 		throw new Error('No token');
 	}

@@ -63,8 +63,10 @@ def register():
 
     if existing_user:
         return jsonify({'message': 'User with this username or email already exists'}), 400
-    userId = id(object())
-    cur.execute("INSERT INTO users (id, username, email, password) VALUES (%s, %s, %s, %s)", (id, username, email, password))
+    cur.execute("INSERT INTO users ( username, email, password) VALUES ( %s, %s, %s)", ( username, email, password))
+    cur.execute("SELECT LAST_INSERT_ID()")
+    userId = cur.fetchone()[0]
+
     mysql.connection.commit()
     cur.close()
 
