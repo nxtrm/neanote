@@ -1,10 +1,11 @@
 import React from 'react'
+import PageContainer from '../../../components/PageContainer/PageContainer'
 
 function Dashboard() {
   return (
-    <div className='p-2 w-full rounded-xl border-[2px]'>
+    <PageContainer>
       Dashboard
-      </div>
+    </PageContainer>
   )
 }
 

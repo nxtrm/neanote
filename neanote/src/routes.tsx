@@ -10,6 +10,8 @@ import Login from "./Pages/Login/Login.tsx";
 import Register from "./Pages/Register/Register.tsx";
 import withTokenCheck from '../components/providers/token-check.tsx';
 import Landing from './Pages/Landing/Landing.tsx';
+import Notes from './Pages/Notes/Notes.tsx';
+import Tasks from './Pages/Tasks/Tasks.tsx';
 
 const CheckedLayout = withTokenCheck(Layout);
 
@@ -20,7 +22,8 @@ const AppRouter = () => (
       <Route path="/" element={<CheckedLayout />}> 
         <Route index element={<Dashboard />} />
         <Route path="account" element={<div>Account</div>} />
-        <Route path="notes" element={<div>Notes</div>} />
+        <Route path="notes" element={<Notes />}/>
+        <Route path="tasks" element={<Tasks/>} />
       </Route>
       <Route path="login" element={<Login />} />
       <Route path="register" element={<Register />} />

@@ -6,11 +6,11 @@ import { Button } from "../@/ui/button"
 
 export const modules = [
     {link: 'notes', text: 'Notes', disabled: false},
-    {link: 'memory', text: 'Memory', disabled: false},
+    {link: 'memory', text: 'Memory', disabled: true},
     {link: 'tasks', text: 'Tasks', disabled: false},
-    {link: 'goals', text: 'Goals', disabled: false},
-    {link: 'habits', text: 'Habits', disabled: false},
-    {link: 'events', text: 'Events', disabled: false},
+    {link: 'goals', text: 'Goals', disabled: true},
+    {link: 'habits', text: 'Habits', disabled: true},
+    {link: 'events', text: 'Events', disabled: true},
     {link: 'projects', text: 'Projects', disabled: true},
     {link: 'archive', text: 'Archive', disabled: true},
     {link: 'tags', text: 'Tags', disabled: false},
@@ -30,7 +30,6 @@ function Sidebar() {
                 <ModuleLink key={module.link} link={module.link} text={module.text} disabled={module.disabled} />
                 // <Button>toyota</Button>
               ))}
-              <div>Tags</div>
             </div>
 
         </div>
