@@ -20,6 +20,7 @@ const AppRouter = () => (
       <Route path="/" element={<CheckedLayout />}> 
         <Route index element={<Dashboard />} />
         <Route path="account" element={<div>Account</div>} />
+        <Route path="notes" element={<div>Notes</div>} />
       </Route>
       <Route path="login" element={<Login />} />
       <Route path="register" element={<Register />} />

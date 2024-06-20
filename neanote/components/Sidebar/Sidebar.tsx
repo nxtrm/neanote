@@ -1,6 +1,20 @@
 import Title from "./Title"
 import React from 'react'
 import {Separator }from "../@/ui/separator"
+import ModuleLink from "./ModuleLink"
+import { Button } from "../@/ui/button"
+
+export const modules = [
+    {link: 'notes', text: 'Notes', disabled: false},
+    {link: 'memory', text: 'Memory', disabled: false},
+    {link: 'tasks', text: 'Tasks', disabled: false},
+    {link: 'goals', text: 'Goals', disabled: false},
+    {link: 'habits', text: 'Habits', disabled: false},
+    {link: 'events', text: 'Events', disabled: false},
+    {link: 'projects', text: 'Projects', disabled: true},
+    {link: 'archive', text: 'Archive', disabled: true},
+    {link: 'tags', text: 'Tags', disabled: false},
+]
 
 function Sidebar() {
   return (
@@ -8,9 +22,17 @@ function Sidebar() {
         <div className=" ">
             <Title/>
             
-        <div className="w-full pt-2">
+        <div className="w-full pt-2 ">
             <Separator />
-            content
+            <div className="flex flex-col pt-5 gap-4">
+              <div>Calendar</div>
+              {modules.map((module) => (
+                <ModuleLink key={module.link} link={module.link} text={module.text} disabled={module.disabled} />
+                // <Button>toyota</Button>
+              ))}
+              <div>Tags</div>
+            </div>
+
         </div>
         </div>
     </div>

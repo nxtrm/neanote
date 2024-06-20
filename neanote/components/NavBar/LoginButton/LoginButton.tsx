@@ -2,18 +2,16 @@ import React, { useEffect } from 'react'
 import { FaRegUser } from "react-icons/fa";
 import { LuLogIn } from "react-icons/lu";
 import { useUser } from '../../providers/useUser';
-import {Link} from 'react-router-dom'
+import {Link, useNavigate} from 'react-router-dom'
+import { Button } from '../../@/ui/button';
 
 function LoginButton() {
 
+  const navigate = useNavigate()
   return (
-    <div className='bg-secondary rounded-xl border-[2px] w-10 h-10 flex items-center justify-center'>
-      <Link to="/account">
-          <FaRegUser />
-      </Link> 
-
-        
-    </div>
+      <Button className='rounded-xl border-[2px]' variant="secondary" onClick={() => navigate("/login")} size="icon">
+        <FaRegUser />
+      </Button>
 
   )
 }
