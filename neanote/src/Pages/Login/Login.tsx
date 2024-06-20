@@ -10,11 +10,10 @@ import { loginFormSchema } from '../../formValidation';
 import { useLogin } from './useLogin';
 import { Link } from 'react-router-dom';
 import { useUser } from '../../../components/providers/useUser';
-
+import Cookies from 'js-cookie';
 
 function Login() {
   const {formHandler, login} = useLogin()
-  const {loginUser, user, isLoggedIn} = useUser()
   // Defines the form
   const form = useForm<z.infer<typeof loginFormSchema>>({
     resolver: zodResolver(loginFormSchema),
@@ -24,20 +23,13 @@ function Login() {
     },
   })
 
-  useEffect(() => {
-    if (user && isLoggedIn) {
-      window.location.href = '/';
-      console.log(isLoggedIn);
-    }
-  }, [user]);
-  
-  // ...
+
   
   async function onSubmit(values: z.infer<typeof loginFormSchema>) {
     formHandler(values);
     login().then(loginResult => {
       if (loginResult) {
-        loginUser(values.username);
+        console.log("Login successful")
       }
     })
   }

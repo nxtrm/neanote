@@ -9,8 +9,10 @@ import { Textarea } from "../../../components/@/ui/textarea";
 import { Input } from "../../../components/@/ui/input";
 import { TagsDropdownMenu } from '../Tags/components/TagsDropdownMenu';
 import { FaRegTrashAlt } from "react-icons/fa";
+import { useToast } from '../../../components/@/ui/use-toast';
 
 function Tasks() {
+  const {toast} = useToast();
     let {
         taskTitle,
         textField,
@@ -100,7 +102,9 @@ let createTask = (
                         Add Subtask
                       </div>
                     </Button>
-                    <Button onClick={handleSaveTask}>
+                    <Button onClick={handleSaveTask
+                    }
+                      >
                         Save
                     </Button>
                 </div>

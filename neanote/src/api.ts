@@ -47,6 +47,24 @@ let api = {
 		  return false;
 		}
 	  },
+	tasks : {
+		create: async (userId, taskTitle, tags, textField, subtasks) => {
+			try {
+				let response = await a.post('/api/tasks', {
+					userId,
+					taskTitle,
+					tags,
+					textField,
+					subtasks
+				});
+
+				return response.data;
+			} catch (error) {
+				console.log(error);
+				return false;
+			}
+		}
+	}
 }
 
 export default api

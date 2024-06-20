@@ -21,13 +21,12 @@ export function TagsDropdownMenu() {
   const [showPanel, setShowPanel] = React.useState<Checked>(false)
 
   return (
-    <DropdownMenu>
+    <DropdownMenu >
       <DropdownMenuTrigger asChild>
         <Button variant="secondary">Tags</Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-56">
-        <DropdownMenuLabel>Appearance</DropdownMenuLabel>
-        <DropdownMenuSeparator />
+      <DropdownMenuContent side="left" className="w-40">
+
         <DropdownMenuCheckboxItem
           checked={showStatusBar}
           onCheckedChange={setShowStatusBar}

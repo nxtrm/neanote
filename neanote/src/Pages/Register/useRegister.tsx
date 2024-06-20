@@ -1,3 +1,4 @@
+import { useUser } from '../../../components/providers/useUser';
 import api from '../../api'
 import { create } from 'zustand'
 
@@ -24,7 +25,7 @@ export let useRegister = create<RegisterState>((set,get)=>({
       let response = await api.register(form)
       if(response){
           console.log("Success")
-          
+          useUser.getState().setUserId(response.userId)
   
       } 
       

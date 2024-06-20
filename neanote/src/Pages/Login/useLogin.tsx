@@ -1,6 +1,6 @@
-import api from '../../api'
-import { create } from 'zustand'
+import { create } from 'zustand';
 import { useUser } from '../../../components/providers/useUser';
+import api from '../../api';
 
 
 
@@ -24,6 +24,7 @@ export let useLogin = create<LoginState>((set,get)=>({
       let {form}=get()
       let response = await api.login(form)
       if(response){
+        useUser.getState().setUserId(response.userId)
         return true
       } 
       else {
