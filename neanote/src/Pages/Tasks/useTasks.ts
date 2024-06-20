@@ -70,11 +70,14 @@ export let useTasks = create<TaskState>((set, get) => {
   handleSaveTask : async() => {
     let {
         taskTitle,
-        tags, //repolace with tag ids when tags module is done
+        tags, //replace with tag ids when tags module is done
         textField,
         subtasks, 
     } = get()
-    const userId = useUser.getState().userId
+    // const userId = useUser.getState().userId
+    const userId = 1 //FIX THIS
+    
+
 
     let response = api.tasks.create(userId, taskTitle,tags,textField, subtasks)
     if (!await response) {

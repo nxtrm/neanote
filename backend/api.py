@@ -86,7 +86,7 @@ def register():
 def create_task():
     data = request.get_json()
     userId = data['userId']
-    title = data['taskTitle']
+    title = data['taskTitle'] #FIX FIELDS DUPLICATED IN NOTE AND TASK TABLES, FIX NOTES NOT ADDED
     tags = data['tags']
     textField = data['textField']
     subtasks = data['subtasks']
@@ -102,18 +102,21 @@ def create_task():
         cur.execute("SELECT LAST_INSERT_ID()")
         noteId = cur.fetchone()[0]
 
-        cur.execute(
-            "INSERT INTO Tasks (note_id, description, completed) VALUES (%s, %s, %s)",
-            (noteId, textField, False)
-        )
+        if textField is not None and isinstance(textField, str):
+            cur.execute(
+                "INSERT INTO Tasks (note_id, description, completed) VALUES (%s, %s, %s)",
+                (noteId, textField, False)
+            )
+        
         cur.execute("SELECT LAST_INSERT_ID()")
+    
         taskId = cur.fetchone()[0]
 
         if subtasks:
             for i in subtasks:
                 cur.execute(
                     "INSERT INTO Subtasks (task_id, description, completed) VALUES (%s, %s, %s)",
-                    (taskId, i['description'], False)
+                    (taskId, i['text'], False)
                 )
 
         if tags:
@@ -122,7 +125,7 @@ def create_task():
                 tagResult = cur.fetchone()
                 if tagResult is None:
                     cur.execute(
-                        "INSERT INTO Tags (name) VALUES (%s) RETURNING id",
+                        "INSERT INTO Tags (name) VALUES (%s)",
                         (tagName,)  # Default color
                     )
                     cur.execute("SELECT LAST_INSERT_ID()")
@@ -133,11 +136,12 @@ def create_task():
                     "INSERT INTO NoteTags (note_id, tag_id) VALUES (%s, %s)",
                     (noteId, tagId)
                 )
+        return jsonify({'message': 'Task created successfully'}), 200
     except Exception as error:
-            mysql.connection.rollback()
-            cur.close()
-            print('Error during transaction', error)
-            return jsonify({'message': 'Error creating task'}), 500
+        mysql.connection.rollback()
+        cur.close()
+        print('Error during transaction', error)
+        return jsonify({'message': 'Error creating task'}), 500
 
 if __name__ == '__main__':
-    app.run(debug=True)
+        app.run(debug=True)
