@@ -1,6 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useForm } from "react-hook-form";
+import { Link, useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 import { Button } from "../../../components/@/ui/button";
 import { Form, FormControl, FormField, FormItem, FormMessage } from '../../../components/@/ui/form';
@@ -8,12 +9,11 @@ import { Input } from "../../../components/@/ui/input";
 import { Label } from "../../../components/@/ui/label";
 import { loginFormSchema } from '../../formValidation';
 import { useLogin } from './useLogin';
-import { Link } from 'react-router-dom';
-import { useUser } from '../../../components/providers/useUser';
 import Cookies from 'js-cookie';
 
 function Login() {
   const {formHandler, login} = useLogin()
+  const navigate = useNavigate()
   // Defines the form
   const form = useForm<z.infer<typeof loginFormSchema>>({
     resolver: zodResolver(loginFormSchema),
@@ -26,13 +26,17 @@ function Login() {
 
   
   async function onSubmit(values: z.infer<typeof loginFormSchema>) {
-    formHandler(values);
-    login().then(loginResult => {
-      if (loginResult) {
-        console.log("Login successful")
-      }
-    })
-  }
+    if (!Cookies.get('token')) {
+
+      formHandler(values);
+      login().then(loginResult => {
+        if (loginResult) {
+          console.log("Login successful")
+          navigate("/")
+        }
+      })
+    }
+    }
 
 return (
   <div className=' p-3 '>

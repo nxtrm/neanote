@@ -86,11 +86,12 @@ def register():
 def create_task():
     data = request.get_json()
     userId = data['userId']
-    title = data['taskTitle'] #FIX FIELDS DUPLICATED IN NOTE AND TASK TABLES, FIX NOTES NOT ADDED
+    title = data['taskTitle'] # AND TASK TABLES, FIX NOTES NOT ADDED
     tags = data['tags']
     textField = data['textField']
     subtasks = data['subtasks']
 
+    
     cur = mysql.connection.cursor()
 
     try:
@@ -102,10 +103,10 @@ def create_task():
         cur.execute("SELECT LAST_INSERT_ID()")
         noteId = cur.fetchone()[0]
 
-        if textField is not None and isinstance(textField, str):
+        if textField is not None:
             cur.execute(
-                "INSERT INTO Tasks (note_id, description, completed) VALUES (%s, %s, %s)",
-                (noteId, textField, False)
+                "INSERT INTO Tasks (note_id, completed) VALUES (%s, %s)",
+                (noteId, False)
             )
         
         cur.execute("SELECT LAST_INSERT_ID()")
@@ -136,6 +137,7 @@ def create_task():
                     "INSERT INTO NoteTags (note_id, tag_id) VALUES (%s, %s)",
                     (noteId, tagId)
                 )
+        mysql.connection.commit()
         return jsonify({'message': 'Task created successfully'}), 200
     except Exception as error:
         mysql.connection.rollback()

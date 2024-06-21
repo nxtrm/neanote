@@ -1,9 +1,8 @@
 import { create } from 'zustand';
-import { immer } from 'zustand/middleware/immer';
-import api from '../../api';
-import Cookies from 'js-cookie';
-import { jwtDecode } from 'jwt-decode';
+
 import { useUser } from '../../../components/providers/useUser';
+import api from '../../api';
+import { useToast } from '../../../components/@/ui/use-toast';
 
 type Subtask = {
   id: number;
@@ -32,6 +31,7 @@ type TaskState = {
 
 export let useTasks = create<TaskState>((set, get) => {
   const updateState = (key: keyof TaskState, value: any) => set({ [key]: value })
+  ;
   return {
 
   section: 'all tasks',
@@ -67,6 +67,7 @@ export let useTasks = create<TaskState>((set, get) => {
       set((state) => ({ tags: [...state.tags,  newTag] }));
     }
   },
+
   handleSaveTask : async() => {
     let {
         taskTitle,
@@ -74,22 +75,18 @@ export let useTasks = create<TaskState>((set, get) => {
         textField,
         subtasks, 
     } = get()
-    // const userId = useUser.getState().userId
-    const userId = 1 //FIX THIS
+    const userId = useUser.getState().userId
+    // const userId = 1 //FIX THIS
     
+    let response = await api.tasks.create(userId, taskTitle,tags,textField, subtasks)
 
-
-    let response = api.tasks.create(userId, taskTitle,tags,textField, subtasks)
-    if (!await response) {
-        set({
-            taskTitle: '',
-            tags: [],
-            textField: '',
-            subtasks: [],
-            section: 'all tasks',
-          });
-
-    }
+    set({
+      taskTitle: '',
+      tags: [],
+      textField: '',
+      subtasks: [],
+      section: 'all tasks',
+    });
   },
   
   }}

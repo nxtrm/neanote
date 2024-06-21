@@ -1,15 +1,15 @@
 import * as React from "react";
 import * as ReactDOM from "react-dom/client";
-import { BrowserRouter as Router } from "react-router-dom";
-import { ThemeProvider } from '../components/providers/theme-provider.tsx'
-import withTokenCheck from "../components/providers/token-check.tsx";
-import './index.css'
-import router from './routes.tsx'
+import { ToastContainer } from "react-toastify";
+import { ThemeProvider } from '../components/providers/theme-provider.tsx';
+import './index.css';
 import AppRouter from "./routes.tsx";
+import 'react-toastify/dist/ReactToastify.css';
 
 const App = () => (
   <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
       <AppRouter/>
+      <ToastContainer/>
   </ThemeProvider>
 );
 

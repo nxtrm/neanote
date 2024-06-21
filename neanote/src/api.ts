@@ -1,5 +1,6 @@
 import axios from 'axios';
 import Cookies from 'js-cookie';
+import { showToast } from '../components/Toast';
 
 let a = axios.create({
 	baseURL: "http://localhost:5000",
@@ -57,6 +58,13 @@ let api = {
 					textField,
 					subtasks
 				});
+				showToast('s', 'Task has been created successfully');
+				// if (response.status === 200) {
+				// 	showToast('s', 'Task has been created successfully');
+				// } else {
+				// 	showToast('e', 'There was an error creating the task')
+				// }
+
 
 				return response.data;
 			} catch (error) {

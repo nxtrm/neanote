@@ -12,10 +12,12 @@ import withTokenCheck from '../components/providers/token-check.tsx';
 import Landing from './Pages/Landing/Landing.tsx';
 import Notes from './Pages/Notes/Notes.tsx';
 import Tasks from './Pages/Tasks/Tasks.tsx';
+import { ToastContainer } from 'react-toastify';
 
 const CheckedLayout = withTokenCheck(Layout);
 
 const AppRouter = () => (
+
   <Router>
     <Routes>
       // Wrap the Layout component with the withTokenCheck HOC
