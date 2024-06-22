@@ -86,7 +86,18 @@ let api = {
 				showToast('e', error);
 				return false;
 			}
+		},
+		getAll : async (userId) => {
+			try {
+				let response = await a.get(`/api/tasks/${userId}`);
+
+				return response.data;
+			} catch (error) {
+				showToast('e', error);
+				return false;
+			}
 		}
+		
 	}
 }
 

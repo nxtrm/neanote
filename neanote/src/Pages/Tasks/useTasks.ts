@@ -3,6 +3,7 @@ import { create } from 'zustand';
 import { useUser } from '../../../components/providers/useUser';
 import api from '../../api';
 import { useToast } from '../../../components/@/ui/use-toast';
+import Cookies from 'js-cookie';
 
 type Subtask = {
   id: number;
@@ -13,13 +14,14 @@ type Subtask = {
 type TaskState = {
   section: string;
   taskTitle: string;
-  dueDate: Date;
+  dueDate: Date | undefined;
   dueTime: string;
   tags: string[];
+  tasks: [];
   textField: string;
   subtasks: Subtask[];
   setSection: (section: string) => void;
-  setDate: (date: Date) => void;
+  setDate: (date: Date | undefined) => void;
   setTime: (time: string) => void;
   setTaskTitle: (title: string) => void;
   setTags: (tags: string[]) => void;
@@ -30,6 +32,7 @@ type TaskState = {
   handleSubtaskChange: (index: number, field: keyof Subtask, value: any) => void;
   handleTagAdd: () => void;
   handleSaveTask: () => void;
+  fetchTasks: () => void;
 };
 
 
@@ -39,19 +42,30 @@ export let useTasks = create<TaskState>((set, get) => {
   return {
 
   section: 'all tasks',
-  dueDate: new Date(),
+  dueDate: undefined,
   dueTime: '',
   taskTitle: '',
   tags: [],
   textField: '',
   subtasks: [],
+  tasks: [],
   setSection: (section) => updateState('section', section),
   setTaskTitle: (title) => updateState('taskTitle', title),
   setTags: (tags) => updateState('tags', tags),
   setTextField: (text) => updateState('textField', text),
   setSubtasks: (subtasks) => updateState('subtasks', subtasks),
 
-  setDate: (date: Date) => {
+
+  fetchTasks: async () => {
+    const userId = useUser.getState().userId;
+    const fetchedTasks = await api.tasks.getAll(userId);
+    if (fetchedTasks) {
+      set({ tasks: fetchedTasks });
+      console.log(fetchedTasks);
+    }
+  },
+
+  setDate: (date: Date | undefined) => {
     updateState('dueDate', date);
   },
   setTime: (time: string) => updateState('dueTime', time),
@@ -89,7 +103,8 @@ export let useTasks = create<TaskState>((set, get) => {
         textField,
         subtasks, 
     } = get()
-    const userId = useUser.getState().userId
+    const userId = Cookies.get('userId')
+    // console.log(userId)
     // const userId = 1 //FIX THIS
     
     let response = await api.tasks.create(userId, taskTitle,tags,textField, subtasks, dueDate, dueTime)
@@ -97,6 +112,8 @@ export let useTasks = create<TaskState>((set, get) => {
     set({
       taskTitle: '',
       tags: [],
+      dueDate: undefined,
+      dueTime: '',
       textField: '',
       subtasks: [],
       section: 'all tasks',

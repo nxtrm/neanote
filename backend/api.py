@@ -2,6 +2,7 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager, create_access_token
 from flask_mysqldb import MySQL
+from datetime import datetime
 import jwt
 
 app = Flask(__name__)
@@ -81,6 +82,8 @@ def register():
         cur.close()
         print('Error during user creation', error)
         return jsonify({'message': 'Error creating user'}), 500
+    
+
 
 @app.route('/api/tasks', methods=['POST'])
 def create_task():
@@ -92,7 +95,8 @@ def create_task():
     subtasks = data['subtasks']
     dueDate = data['dueDate']
     dueTime = data['dueTime']
-    
+    print(data)
+   
     cur = mysql.connection.cursor()
 
     try:
@@ -104,10 +108,18 @@ def create_task():
         cur.execute("SELECT LAST_INSERT_ID()")
         noteId = cur.fetchone()[0]
 
+        if dueDate:
+            due_date_obj = datetime.fromisoformat(dueDate.rstrip("Z"))
+            # Default dueTime to "08:00" if it's undefined
+            if dueTime is None:
+                dueTime = "08:00"
+            # Combine dueDate and dueTime
+            due_datetime = due_date_obj.strftime('%Y-%m-%d') + ' ' + dueTime + ':00'
+
         if textField is not None:
             cur.execute(
-                "INSERT INTO Tasks (note_id, completed, due_date, due_time) VALUES (%s, %s, %s, %s)",
-                (noteId, False, dueDate, dueTime)
+                "INSERT INTO Tasks (note_id, completed, due_date) VALUES (%s, %s, %s)",
+                (noteId, False, due_datetime)
             )
         
         cur.execute("SELECT LAST_INSERT_ID()")
@@ -146,6 +158,70 @@ def create_task():
         cur.close()
         print('Error during transaction', error)
         return jsonify({'message': 'Error creating task'}), 500
+    
+@app.route('/api/tasks/<userId>', methods=['GET'])
+def getAll(userId): #split into multiple functions, FIX VULNERABILITY WITH USER ID BEING SENT INSTEAD OF TOKEN, DECODE TOKEN HERE
+    if userId:
+        cur = mysql.connection.cursor()
+
+        cur.execute(""" 
+            SELECT n.id AS note_id, n.title AS note_title, n.content AS note_content, n.created_at AS task_created_at, n.type AS note_type, 
+                t.id AS task_id, t.completed AS task_completed, 
+                 t.due_date AS task_due_date, 
+                st.id AS subtask_id, st.description AS subtask_description, st.completed AS subtask_completed, 
+                tg.id AS tag_id, tg.name AS tag_name, tg.color AS tag_color
+            FROM Notes n
+            LEFT JOIN Tasks t ON n.id = t.note_id
+            LEFT JOIN Subtasks st ON t.id = st.task_id
+            LEFT JOIN NoteTags nt ON n.id = nt.note_id
+            LEFT JOIN Tags tg ON nt.tag_id = tg.id
+            WHERE n.user_id = %s
+        """, (userId,)) #THIS DOESNT WORK, FIX IT
+        rows = cur.fetchall()
+
+        tasks = {}
+        for row in rows:
+            note_id = row['note_id']
+            if note_id not in tasks:
+                tasks[note_id] = {
+                    'note': {
+                        'id': row['note_id'],
+                        'title': row['note_title'],
+                        'content': row['note_content'],
+                        'type': row['note_type'],
+                    },
+                    'task': {
+                        'id': row['task_id'],
+                        'completed': row['task_completed'],
+                        'created_at': row['task_created_at'],
+                        'due_date': row['task_due_date'],
+                        'subtasks': [],
+                    },
+                    'tags': []
+                }
+            
+            # Append subtasks if they exist
+            if row['subtask_id'] and row['subtask_description'] not in [subtask['description'] for subtask in tasks[note_id]['task']['subtasks']]:
+                tasks[note_id]['task']['subtasks'].append({
+                    'id': row['subtask_id'],
+                    'description': row['subtask_description'],
+                    'completed': row['subtask_completed']
+                })
+
+            # Append tags if they exist
+            if row['tag_id'] and row['tag_name'] not in [tag['name'] for tag in tasks[note_id]['tags']]:
+                tasks[note_id]['tags'].append({
+                    'id': row['tag_id'],
+                    'name': row['tag_name'],
+                    'color': row['tag_color']
+                })
+
+        cur.close()
+        # Convert tasks dictionary to a list to match expected output format
+        tasks_list = [value for key, value in tasks.items()]
+        return jsonify(tasks_list)
+    else:
+        return jsonify({'message': 'User ID not provided'}), 400
 
 if __name__ == '__main__':
         app.run(debug=True)

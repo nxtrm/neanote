@@ -1,16 +1,15 @@
-import React, { useState } from 'react';
-import PageContainer from '../../../components/PageContainer/PageContainer';
-import { useTasks } from './useTasks';
-import { Button } from '../../../components/@/ui/button';
+import React, { useEffect } from 'react';
+import { FaRegTrashAlt } from "react-icons/fa";
 import { FaPlus } from "react-icons/fa6";
 import { MdCancel } from "react-icons/md";
+import { Button } from '../../../components/@/ui/button';
+import { Input } from "../../../components/@/ui/input";
 import { Separator } from "../../../components/@/ui/separator";
 import { Textarea } from "../../../components/@/ui/textarea";
-import { Input } from "../../../components/@/ui/input";
+import PageContainer from '../../../components/PageContainer/PageContainer';
 import { TagsDropdownMenu } from '../Tags/components/TagsDropdownMenu';
-import { FaRegTrashAlt } from "react-icons/fa";
 import { DatePicker } from './DatePicker/DatePicker';
-
+import { useTasks } from './useTasks';
 
 function Tasks() {
   
@@ -22,6 +21,7 @@ function Tasks() {
         textField,
         subtasks,
         tags,
+        tasks, fetchTasks,
         section,
         setSection,
         setTaskTitle,
@@ -36,6 +36,10 @@ function Tasks() {
 
     } = useTasks();
 
+    useEffect(() => {
+        fetchTasks();
+      }, [fetchTasks]);
+
 
     let allTasks = (
         <div className='p-1'>
@@ -48,6 +52,10 @@ function Tasks() {
             <div className='pt-2'>
                 <Separator />
             </div>
+            {tasks.map(task => (
+            <div key={task.id}> {/* Assuming each task has a unique id */}
+            {/* Display task details */}
+            </div>))}
         </div>
     );
     let createTask = (

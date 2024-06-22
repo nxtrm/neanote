@@ -7,5 +7,8 @@ type UserState = {
 
 export let useUser = create<UserState>((set) => ({
   userId: null,
-  setUserId: (userId) => set({ userId }),
+  setUserId: (userId) => 
+    set({ userId }
+      
+    ),
 }))

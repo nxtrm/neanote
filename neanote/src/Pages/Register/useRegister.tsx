@@ -1,6 +1,7 @@
 import { useUser } from '../../../components/providers/useUser';
 import api from '../../api'
 import { create } from 'zustand'
+import Cookies from 'js-cookie'
 
 type RegisterState = {
   form: {
@@ -25,7 +26,7 @@ export let useRegister = create<RegisterState>((set,get)=>({
       let response = await api.register(form)
       if(response){
           console.log("Success")
-          useUser.getState().setUserId(response.userId)
+          Cookies.set('userId', response.userId, { expires: 7 })
   
       } 
       
