@@ -13,10 +13,14 @@ type Subtask = {
 type TaskState = {
   section: string;
   taskTitle: string;
+  dueDate: Date;
+  dueTime: string;
   tags: string[];
   textField: string;
   subtasks: Subtask[];
   setSection: (section: string) => void;
+  setDate: (date: Date) => void;
+  setTime: (time: string) => void;
   setTaskTitle: (title: string) => void;
   setTags: (tags: string[]) => void;
   setTextField: (text: string) => void;
@@ -35,6 +39,8 @@ export let useTasks = create<TaskState>((set, get) => {
   return {
 
   section: 'all tasks',
+  dueDate: new Date(),
+  dueTime: '',
   taskTitle: '',
   tags: [],
   textField: '',
@@ -44,6 +50,12 @@ export let useTasks = create<TaskState>((set, get) => {
   setTags: (tags) => updateState('tags', tags),
   setTextField: (text) => updateState('textField', text),
   setSubtasks: (subtasks) => updateState('subtasks', subtasks),
+
+  setDate: (date: Date) => {
+    updateState('dueDate', date);
+  },
+  setTime: (time: string) => updateState('dueTime', time),
+
   handleAddSubtask: () => {
     set((state) => ({
       subtasks: [...state.subtasks, { id: state.subtasks.length + 1, text: '', completed: false }],
@@ -54,12 +66,12 @@ export let useTasks = create<TaskState>((set, get) => {
       subtasks: state.subtasks.filter((subtask) => subtask.id !== subtaskId),
     }));
   },
-  handleSubtaskChange: (index, field, value) => {
-    set((state) => {
-      const newSubtasks = [...state.subtasks];
-      newSubtasks[index][field] = value;
-      return { subtasks: newSubtasks };
-    });
+  handleSubtaskChange: (index: number, field: keyof Subtask, value: Subtask[keyof Subtask]) => {
+      set((state) => {
+          const newSubtasks = [...state.subtasks];
+          newSubtasks[index][field] = value;
+          return { subtasks: newSubtasks };
+      });
   },
   handleTagAdd: () => {
     const newTag = prompt("Enter new tag:");
@@ -72,13 +84,15 @@ export let useTasks = create<TaskState>((set, get) => {
     let {
         taskTitle,
         tags, //replace with tag ids when tags module is done
+        dueDate,
+        dueTime,
         textField,
         subtasks, 
     } = get()
     const userId = useUser.getState().userId
     // const userId = 1 //FIX THIS
     
-    let response = await api.tasks.create(userId, taskTitle,tags,textField, subtasks)
+    let response = await api.tasks.create(userId, taskTitle,tags,textField, subtasks, dueDate, dueTime)
 
     set({
       taskTitle: '',

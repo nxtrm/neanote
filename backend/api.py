@@ -90,7 +90,8 @@ def create_task():
     tags = data['tags']
     textField = data['textField']
     subtasks = data['subtasks']
-
+    dueDate = data['dueDate']
+    dueTime = data['dueTime']
     
     cur = mysql.connection.cursor()
 
@@ -105,8 +106,8 @@ def create_task():
 
         if textField is not None:
             cur.execute(
-                "INSERT INTO Tasks (note_id, completed) VALUES (%s, %s)",
-                (noteId, False)
+                "INSERT INTO Tasks (note_id, completed, due_date, due_time) VALUES (%s, %s, %s, %s)",
+                (noteId, False, dueDate, dueTime)
             )
         
         cur.execute("SELECT LAST_INSERT_ID()")
@@ -137,6 +138,7 @@ def create_task():
                     "INSERT INTO NoteTags (note_id, tag_id) VALUES (%s, %s)",
                     (noteId, tagId)
                 )
+            
         mysql.connection.commit()
         return jsonify({'message': 'Task created successfully'}), 200
     except Exception as error:

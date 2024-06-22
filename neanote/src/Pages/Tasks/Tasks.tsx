@@ -9,12 +9,16 @@ import { Textarea } from "../../../components/@/ui/textarea";
 import { Input } from "../../../components/@/ui/input";
 import { TagsDropdownMenu } from '../Tags/components/TagsDropdownMenu';
 import { FaRegTrashAlt } from "react-icons/fa";
+import { DatePicker } from './DatePicker/DatePicker';
 
 
 function Tasks() {
   
     let {
         taskTitle,
+        dueTime,
+        setDate,
+        setTime,
         textField,
         subtasks,
         tags,
@@ -46,16 +50,30 @@ function Tasks() {
             </div>
         </div>
     );
-
-let createTask = (
-  <div className='p-1'>
-{/* Navbar */}
+    let createTask = (
+    <div className='p-1'>
+    {/* Navbar */}
       <div className='flex flex-row justify-between'>
+
                 <p className='pl-1 text-2xl font-bold'>Create Task</p>
-                <Button size="icon" onClick={() => setSection("all tasks")}>
-                    <MdCancel size={15} />
-                </Button>
+                {/* Date Picker */}
+                <div className='flex flex-row gap-2'>
+                    <DatePicker onDateChange={setDate}/>
+                    {/* Time Picker */}
+                    <Input 
+                        type="time" 
+                        value={dueTime} 
+                        onChange={(e) => setTime(e.target.value)} 
+                        className="w-19" 
+                        />
+                    <Button size="icon" onClick={() => setSection("all tasks")}>
+                        <MdCancel size={15} />
+                    </Button>
+                </div>
+
+                
             </div>
+
             <div className='py-3'>
                 <Separator />
             </div>
