@@ -5,6 +5,8 @@ from flask_jwt_extended import (JWTManager, create_access_token,
                                 get_jwt_identity, jwt_required)
 from MySQLdb.cursors import DictCursor
 
+from utils import decodeToken, generateToken
+
 
 def register_routes(app, mysql, jwt):
     @app.route('/api/login', methods=['POST'])
@@ -61,7 +63,11 @@ def register_routes(app, mysql, jwt):
             mysql.connection.commit()
             cur.close()
 
-            access_token = create_access_token(identity=str(userId))
+            try:
+                access_token = create_access_token(identity=userId)
+            except Exception as e:
+                print(e)
+
             response.set_cookie('token', access_token)
             response = jsonify({'message': 'User created successfully', 'userId': userId})
             return response
@@ -78,7 +84,7 @@ def register_routes(app, mysql, jwt):
     def create_task():
         try:
             token = request.cookies.get('token')
-            userId = jwt.decode_token(token)['userId']
+            userId = jwt.decode_token(token)['identity']
         except:
             return jsonify({'message': 'User not authenticated'}), 401
 
@@ -158,7 +164,8 @@ def register_routes(app, mysql, jwt):
     def getAllPreviews(): #split into multiple functions, FIX VULNERABILITY WITH USER ID BEING SENT INSTEAD OF TOKEN, DECODE TOKEN HERE
             try:
                     token = request.cookies.get('token')
-                    userId = jwt.decode_token(token)['userId']
+                    userId = decodeToken(token)
+                    print(userId)
             except:
                     return jsonify({'message': 'User not authenticated'}), 401
             cur = mysql.connection.cursor(cursorclass=DictCursor)
@@ -192,6 +199,7 @@ def register_routes(app, mysql, jwt):
             tasks = {}
             for row in rows:
                 note_id = row['note_id']
+                print(row)
                 if note_id not in tasks:
                     tasks[note_id] = {
                         'id': row['note_id'],
@@ -201,15 +209,20 @@ def register_routes(app, mysql, jwt):
                         'due_date': row['task_due_date'],
                         'subtasks': [],
                         'tags': []
-                        },
-                
+                        }
                 # Append subtasks if they exist
-                if row['subtask_id'] and row['subtask_description'] not in [subtask['description'] for subtask in tasks[note_id]['task']['subtasks']]:
-                    tasks[note_id]['subtasks'].append({
+                is_subtask_present = row['subtask_id'] and any(
+                subtask['description'] == row['subtask_description'] for subtask in tasks[note_id]['subtasks']
+                )
+
+                # If the subtask is not already present, append it to the subtasks list
+                if not is_subtask_present:
+                    new_subtask = {
                         'id': row['subtask_id'],
                         'description': row['subtask_description'],
                         'completed': row['subtask_completed']
-                    })
+                    }
+                    tasks[note_id]['subtasks'].append(new_subtask)
 
                 # Append tags if they exist
                 if row['tag_id'] and row['tag_name'] not in [tag['name'] for tag in tasks[note_id]['tags']]:
