@@ -1,8 +1,8 @@
 import { create } from 'zustand';
 
 import Cookies from 'js-cookie';
-import api from '../../api/api';
-import { Subtask } from '../../api/types/taskTypes';
+import tasks from '../../api/tasks';
+import { Subtask, TaskPreview } from '../../api/types/taskTypes';
 
 
 type TaskState = {
@@ -11,7 +11,7 @@ type TaskState = {
   dueDate: Date | undefined;
   dueTime: string;
   tags: string[];
-  tasks: [];
+  tasks: TaskPreview[];
   textField: string;
   subtasks: Subtask[];
   setSection: (section: string) => void;
@@ -52,22 +52,11 @@ export let useTasks = create<TaskState>((set, get) => {
 
   fetchTasks: async () => {
     const userId = Cookies.get('userId')
-    const fetchedTasks = await api.tasks.getAll(userId);
-    if (fetchedTasks) {
-      // Transform the fetched tasks to match the expected format
-      const transformedTasks = fetchedTasks.map(task => ({
-        ...task.note,
-        ...task.task,
-        completed: !!task.task.completed, // Convert to boolean if necessary
-        subtasks: task.task.subtasks.map(subtask => ({
-          ...subtask,
-          completed: !!subtask.completed, // Convert to boolean
-        })),
-        tags: task.tags, // Assuming tags are already in the correct format
-      }));
+    const fetchedTasks = await tasks.getAll(userId);
+    if (fetchedTasks)  {
 
-      set({ tasks: transformedTasks });
-      console.log(transformedTasks);
+      set({ tasks: fetchedTasks.data });
+      console.log(fetchedTasks);
     }
   },
 
@@ -88,7 +77,7 @@ export let useTasks = create<TaskState>((set, get) => {
   },
   handleSubtaskChange: (index: number, field: keyof Subtask, value: Subtask[keyof Subtask]) => {
       set((state) => {
-          const newSubtasks = [...state.subtasks];
+          const newSubtasks: Subtask[] = [...state.subtasks];
           newSubtasks[index][field] = value;
           return { subtasks: newSubtasks };
       });
@@ -113,7 +102,7 @@ export let useTasks = create<TaskState>((set, get) => {
     // console.log(userId)
     // const userId = 1 //FIX THIS
     
-    let response = await api.tasks.create(userId, taskTitle,tags,textField, subtasks, dueDate, dueTime)
+    let response = await tasks.create(userId, taskTitle,tags,textField, subtasks, dueDate, dueTime)
 
     set({
       taskTitle: '',

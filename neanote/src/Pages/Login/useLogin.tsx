@@ -1,7 +1,8 @@
 import { create } from 'zustand';
 import { useUser } from '../../../components/providers/useUser';
-import api from '../../api';
+import api from '../../api/api';
 import Cookies from 'js-cookie'
+import users from '../../api/users';
 
 
 type LoginState = {
@@ -22,7 +23,7 @@ export let useLogin = create<LoginState>((set,get)=>({
     
   login:async ()=> {
       let {form}=get()
-      let response = await api.login(form)
+      let response = await users.login(form)
       if(response){
         Cookies.set('userId', response.userId, { expires: 7 })
         return true

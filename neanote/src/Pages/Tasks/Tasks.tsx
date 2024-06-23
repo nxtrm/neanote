@@ -54,8 +54,8 @@ function Tasks() {
             </div>
                 {tasks.map((task, index) => (
                 <div key={index} className="task">
-                    <h3>{task.title}</h3>
-                    <p>{task.textField}</p>
+                    <h3>{task.taskTitle}</h3>
+                    <p>{task.content}</p>
                     {/* Display other task details as needed */}
                     <div className="tags">
                         {task.tags.map((tag, tagIndex) => (
@@ -66,7 +66,7 @@ function Tasks() {
                         {task.subtasks.map((subtask, subtaskIndex) => (
                         <div key={subtaskIndex}>
                             <input type="checkbox" checked={subtask.completed} readOnly />
-                            <label>{subtask.title}</label>
+                            <label>{subtask.text}</label>
                         </div>
                         ))}
                     </div>

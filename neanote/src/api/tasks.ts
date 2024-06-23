@@ -1,10 +1,11 @@
 import { showToast } from "../../components/Toast";
-import { a } from './api'
+import a from './api'
+import { TaskResponse } from "./types/taskTypes";
 
 const tasks = {
     create: async (userId, taskTitle, tags, textField, subtasks,dueDate, dueTime) => {
         try {
-            let response = await a.post(`/api/tasks/${userId}`, {
+            let response = await a.post<TaskResponse>(`/api/tasks/${userId}`, {
                 userId,
                 taskTitle,
                 tags,
@@ -28,7 +29,7 @@ const tasks = {
     },
     getAll : async (userId) => {
         try {
-            let response = await a.get(`/api/tasks/${userId}`);
+            let response = await a.get<TaskResponse>(`/api/tasks/${userId}`);
 
             return response.data;
         } catch (error) {
@@ -38,3 +39,5 @@ const tasks = {
     }
     
 }
+
+export default tasks;
