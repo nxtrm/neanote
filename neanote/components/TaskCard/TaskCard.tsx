@@ -4,26 +4,37 @@ import { TaskPreview } from '../../src/api/types/taskTypes'
 
 
 function TaskCard({ task }: { task: TaskPreview }) {
-    const formatDate = (date: Date | undefined) => {
-      if (!date) return 'No due date';
-      return new Intl.DateTimeFormat('en-US', { dateStyle: 'medium' }).format(date);
-    };
+    function formatDate(dateInput: string | Date | undefined): string {
+        if (!dateInput) return 'No due date';
+        let date: Date;
+        if (typeof dateInput === 'string') {
+          date = new Date(dateInput);
+        } else if (dateInput instanceof Date) {
+          date = dateInput;
+        } else {
+          return 'Invalid date';
+        }
+        return new Intl.DateTimeFormat('en-US', { dateStyle: 'medium' }).format(date);
+      }
   
-    const isOverdue = (date: Date | undefined) => {
-      return date ? date < new Date() : false;
-    };
+      const isOverdue = (dateString: string | undefined) => {
+        if (!dateString) return false;
+        // Parse the dateString into a Date object
+        const date = new Date(dateString);
+        return date < new Date();
+      };
   
     return (
       <div className={`p-4 w-full flex flex-col rounded-xl border-[2px]`}>
-        <h3 className="text-xl font-bold">{task.taskTitle}</h3>
+        <h3 className="text-xl font-bold">{task.title}</h3>
         <p className="text-sm">{task.content}</p>
-        <div className={`text-xs ${isOverdue(task.dueDate) ? 'text-red-400' : 'text-gray-500'}`}>
-          {task.dueDate && `Due Date: ${formatDate(task.dueDate)}`}
+        <div className={`text-xs ${isOverdue(formatDate(task.due_date)) ? 'text-red-400' : 'text-gray-500'}`}>
+          {task.due_date && `Due Date: ${formatDate(task.due_date)}`}
         </div>
         <ul className="list-disc pl-5">
           {task.subtasks.map((subtask) => (
             <li key={subtask.id} className={`${subtask.completed ? 'text-green-500' : 'text-gray-700'}`}>
-              {subtask.text}
+              {subtask.description}
             </li>
           ))}
         </ul>

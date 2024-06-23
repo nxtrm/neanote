@@ -114,8 +114,8 @@ function Tasks() {
                       <div key={subtask.id} className='flex pt-3 gap-2 items-center'>
                             <Input 
                                 type='text' 
-                                value={subtask.text} 
-                                onChange={(e) => handleSubtaskChange(index, 'text', e.target.value)} 
+                                value={subtask.description} 
+                                onChange={(e) => handleSubtaskChange(index, 'description', e.target.value)} 
                                 />
                             <Button onClick={() => handleRemoveSubtask(subtask.id)} variant="secondary" size="icon">
                               <FaRegTrashAlt/>

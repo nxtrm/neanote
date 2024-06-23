@@ -1,16 +1,16 @@
 
 export interface Subtask {
     id: number;
-    text: string;
+    description: string;
     completed: boolean;
   };
 
 export interface TaskPreview {
     id: number;
-    taskTitle: string;
+    title: string;
     content: string;
     completed: boolean;
-    dueDate: Date | undefined;
+    due_date: Date | undefined;
     subtasks: Subtask[];
     tags: string[];
   };

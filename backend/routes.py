@@ -78,8 +78,8 @@ def register_routes(app, mysql, jwt):
     @jwt_required()
     def create_task():
         try:
-            token = request.cookies.get('token')
-            userId = jwt.decode_token(token)['identity']
+                token = request.cookies.get('token')
+                userId = decodeToken(token)
         except:
             return jsonify({'message': 'User not authenticated'}), 401
 
@@ -160,7 +160,6 @@ def register_routes(app, mysql, jwt):
             try:
                     token = request.cookies.get('token')
                     userId = decodeToken(token)
-                    print(userId)
             except:
                     return jsonify({'message': 'User not authenticated'}), 401
             cur = mysql.connection.cursor(cursorclass=DictCursor)
@@ -194,7 +193,6 @@ def register_routes(app, mysql, jwt):
             tasks = {}
             for row in rows:
                 note_id = row['note_id']
-                print(row)
                 if note_id not in tasks:
                     tasks[note_id] = {
                         'id': row['note_id'],

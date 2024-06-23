@@ -66,7 +66,7 @@ export let useTasks = create<TaskState>((set, get) => {
 
   handleAddSubtask: () => {
     set((state) => ({
-      subtasks: [...state.subtasks, { id: state.subtasks.length + 1, text: '', completed: false }],
+      subtasks: [...state.subtasks, { id: state.subtasks.length + 1, description: '', completed: false }],
     }));
   },
   handleRemoveSubtask: (subtaskId) => {
