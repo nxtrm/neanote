@@ -2,7 +2,7 @@ import Title from "./Title"
 import React from 'react'
 import {Separator }from "../@/ui/separator"
 import ModuleLink from "./ModuleLink"
-import { Button } from "../@/ui/button"
+
 
 export const modules = [
     {link: 'notes', text: 'Notes', disabled: false},

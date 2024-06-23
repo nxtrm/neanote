@@ -1,4 +1,5 @@
-from datetime import datetime
+from datetime import datetime, timedelta
+
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from flask_jwt_extended import (JWTManager, create_access_token,
@@ -21,15 +22,9 @@ def register_routes(app, mysql, jwt):
             cur.close()
 
             if user:
-                #Creating the user access token
-
                 userId = str(user[0])
-                try:
-                    access_token = create_access_token(identity=userId)
-                except Exception as e:
-                    print(e)
-                
-                # Adding token to a cookie
+                access_token = create_access_token(identity=userId, expires_delta=timedelta(days=1))
+
                 response = jsonify({'message': 'Login successful', 'userId': userId})
                 response.set_cookie('token', access_token)
                 return response, 200
@@ -64,7 +59,7 @@ def register_routes(app, mysql, jwt):
             cur.close()
 
             try:
-                access_token = create_access_token(identity=userId)
+                access_token = create_access_token(exp=(datetime.datetime.utcnow() + datetime.timedelta(days=1)),identity=userId)
             except Exception as e:
                 print(e)
 

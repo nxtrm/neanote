@@ -10,6 +10,7 @@ import PageContainer from '../../../components/PageContainer/PageContainer';
 import { TagsDropdownMenu } from '../Tags/components/TagsDropdownMenu';
 import { DatePicker } from './DatePicker/DatePicker';
 import { useTasks } from './useTasks';
+import TaskCard from '../../../components/TaskCard/TaskCard';
 
 function Tasks() {
   
@@ -53,23 +54,8 @@ function Tasks() {
                 <Separator />
             </div>
                 {tasks.map((task, index) => (
-                <div key={index} className="task">
-                    <h3>{task.taskTitle}</h3>
-                    <p>{task.content}</p>
-                    {/* Display other task details as needed */}
-                    <div className="tags">
-                        {task.tags.map((tag, tagIndex) => (
-                        <span key={tagIndex}>{tag}</span>
-                        ))}
-                    </div>
-                    <div className="subtasks">
-                        {task.subtasks.map((subtask, subtaskIndex) => (
-                        <div key={subtaskIndex}>
-                            <input type="checkbox" checked={subtask.completed} readOnly />
-                            <label>{subtask.text}</label>
-                        </div>
-                        ))}
-                    </div>
+                <div key={index} className="py-2">
+                    <TaskCard task={task} />
                 </div>
                 ))}
             </div>
