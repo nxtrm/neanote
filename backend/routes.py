@@ -1,19 +1,19 @@
+from datetime import datetime
 from flask import Flask, jsonify, request
 from flask_cors import CORS
-from flask_jwt_extended import JWTManager, create_access_token
-from flask_mysqldb import MySQL
-from datetime import datetime
+from flask_jwt_extended import (JWTManager, create_access_token,
+                                get_jwt_identity, jwt_required)
 from MySQLdb.cursors import DictCursor
-import jwt
 
-def register_routes(app):
+
+def register_routes(app, mysql, jwt):
     @app.route('/api/login', methods=['POST'])
     def login():
         try: 
             username = request.json['username']
             password = request.json['password']
 
-            cur = app.mysql.connection.cursor()
+            cur = mysql.connection.cursor()
             cur.execute("SELECT * FROM users WHERE username = %s AND password = %s", (username, password))
             user = cur.fetchone()
             cur.close()
@@ -34,7 +34,7 @@ def register_routes(app):
             else:
                 return jsonify({'message': 'User not found'}), 401
         except Exception as error:
-            app.mysql.connection.rollback()
+            mysql.connection.rollback()
             cur.close()
             print('Error during user login', error)
             return jsonify({'message': 'Error logging the user in'}), 500
@@ -46,7 +46,7 @@ def register_routes(app):
             email = request.json['email']
             password = request.json['password']
 
-            cur = app.mysql.connection.cursor()
+            cur = mysql.connection.cursor()
 
             cur.execute("SELECT * FROM users WHERE username = %s OR email = %s", (username, email))
             existing_user = cur.fetchone()
@@ -58,7 +58,7 @@ def register_routes(app):
             cur.execute("SELECT LAST_INSERT_ID()")
             userId = cur.fetchone()[0]
 
-            app.mysql.connection.commit()
+            mysql.connection.commit()
             cur.close()
 
             access_token = create_access_token(identity=str(userId))
@@ -66,18 +66,24 @@ def register_routes(app):
             response = jsonify({'message': 'User created successfully', 'userId': userId})
             return response
         except Exception as error:
-            app.mysql.connection.rollback()
+            mysql.connection.rollback()
             cur.close()
             print('Error during user creation', error)
             return jsonify({'message': 'Error creating user'}), 500
         
 
 
-    @app.route('/api/tasks', methods=['POST'])
+    @app.route('/api/tasks/create', methods=['POST'])
+    @jwt_required()
     def create_task():
+        try:
+            token = request.cookies.get('token')
+            userId = jwt.decode_token(token)['userId']
+        except:
+            return jsonify({'message': 'User not authenticated'}), 401
+
         data = request.get_json()
-        userId = data['userId']
-        title = data['taskTitle'] # AND TASK TABLES, FIX NOTES NOT ADDED
+        title = data['taskTitle']
         tags = data['tags']
         textField = data['textField']
         subtasks = data['subtasks']
@@ -85,7 +91,7 @@ def register_routes(app):
         dueTime = data['dueTime']
         print(data)
     
-        cur = app.mysql.connection.cursor()
+        cur = mysql.connection.cursor()
 
         try:
             # Insert into Notes table
@@ -139,18 +145,23 @@ def register_routes(app):
                         (noteId, tagId)
                     )
                 
-            app.mysql.connection.commit()
-            return jsonify({'message': 'Task created successfully'}), 200
+            mysql.connection.commit()
+            return jsonify({'message': 'Task created successfully', 'data': None}), 200
         except Exception as error:
-            app.mysql.connection.rollback()
+            mysql.connection.rollback()
             cur.close()
             print('Error during transaction', error)
-            return jsonify({'message': 'Error creating task'}), 500
+            return jsonify({'message': 'Error creating task', 'data': None}), 500
             
-    @app.route('/api/tasks/<userId>', methods=['GET'])
-    def getAllPreviews(userId): #split into multiple functions, FIX VULNERABILITY WITH USER ID BEING SENT INSTEAD OF TOKEN, DECODE TOKEN HERE
-        if userId:
-            cur = app.mysql.connection.cursor(cursorclass=DictCursor)
+    @app.route('/api/tasks/', methods=['GET'])
+    @jwt_required()
+    def getAllPreviews(): #split into multiple functions, FIX VULNERABILITY WITH USER ID BEING SENT INSTEAD OF TOKEN, DECODE TOKEN HERE
+            try:
+                    token = request.cookies.get('token')
+                    userId = jwt.decode_token(token)['userId']
+            except:
+                    return jsonify({'message': 'User not authenticated'}), 401
+            cur = mysql.connection.cursor(cursorclass=DictCursor)
 
             cur.execute(""" 
                 SELECT 
@@ -211,6 +222,4 @@ def register_routes(app):
             cur.close()
             # Convert tasks dictionary to a list to match expected output format
             tasks_list = [value for key, value in tasks.items()]
-            return jsonify(tasks_list)
-        else:
-            return jsonify({'message': 'User ID not provided'}), 400
+            return jsonify({"data": tasks_list, 'message': "Tasks fetched successfully"}), 200

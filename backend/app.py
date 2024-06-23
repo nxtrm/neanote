@@ -11,13 +11,13 @@ from routes import register_routes
 app = Flask(__name__)
 app.config.from_object(Config)
 
-CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
+CORS(app, resources={r"/api/*": {"origins": ["http://localhost:5173"]}} , supports_credentials=True)
 mysql = MySQL(app)
 jwt = JWTManager(app)
 
 #Registering routes
-register_routes(app)
+register_routes(app, mysql, jwt)
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, port=5000)

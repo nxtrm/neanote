@@ -3,10 +3,9 @@ import a from './api'
 import { TaskResponse } from "./types/taskTypes";
 
 const tasks = {
-    create: async (userId, taskTitle, tags, textField, subtasks,dueDate, dueTime) => {
+    create: async (taskTitle, tags, textField, subtasks,dueDate, dueTime) => {
         try {
-            let response = await a.post<TaskResponse>(`/api/tasks/${userId}`, {
-                userId,
+            let response = await a.post<TaskResponse>(`/api/tasks/create`, {
                 taskTitle,
                 tags,
                 textField,
@@ -27,9 +26,9 @@ const tasks = {
             return false;
         }
     },
-    getAll : async (userId) => {
+    getAll : async () => {
         try {
-            let response = await a.get<TaskResponse>(`/api/tasks/${userId}`);
+            let response = await a.get<TaskResponse>(`/api/tasks/`);
 
             return response.data;
         } catch (error) {

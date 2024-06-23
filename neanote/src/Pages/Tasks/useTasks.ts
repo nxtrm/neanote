@@ -51,8 +51,7 @@ export let useTasks = create<TaskState>((set, get) => {
 
 
   fetchTasks: async () => {
-    const userId = Cookies.get('userId')
-    const fetchedTasks = await tasks.getAll(userId);
+    const fetchedTasks = await tasks.getAll();
     if (fetchedTasks)  {
 
       set({ tasks: fetchedTasks.data });
@@ -98,11 +97,9 @@ export let useTasks = create<TaskState>((set, get) => {
         textField,
         subtasks, 
     } = get()
-    const userId = Cookies.get('userId')
-    // console.log(userId)
-    // const userId = 1 //FIX THIS
+
     
-    let response = await tasks.create(userId, taskTitle,tags,textField, subtasks, dueDate, dueTime)
+    let response = await tasks.create(taskTitle,tags,textField, subtasks, dueDate, dueTime)
 
     set({
       taskTitle: '',
