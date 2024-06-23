@@ -65,7 +65,7 @@ let api = {
 	tasks : {
 		create: async (userId, taskTitle, tags, textField, subtasks,dueDate, dueTime) => {
 			try {
-				let response = await a.post('/api/tasks', {
+				let response = await a.post(`/api/tasks/${userId}`, {
 					userId,
 					taskTitle,
 					tags,

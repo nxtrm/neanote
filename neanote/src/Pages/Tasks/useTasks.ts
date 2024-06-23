@@ -57,11 +57,23 @@ export let useTasks = create<TaskState>((set, get) => {
 
 
   fetchTasks: async () => {
-    const userId = useUser.getState().userId;
+    const userId = Cookies.get('userId')
     const fetchedTasks = await api.tasks.getAll(userId);
     if (fetchedTasks) {
-      set({ tasks: fetchedTasks });
-      console.log(fetchedTasks);
+      // Transform the fetched tasks to match the expected format
+      const transformedTasks = fetchedTasks.map(task => ({
+        ...task.note,
+        ...task.task,
+        completed: !!task.task.completed, // Convert to boolean if necessary
+        subtasks: task.task.subtasks.map(subtask => ({
+          ...subtask,
+          completed: !!subtask.completed, // Convert to boolean
+        })),
+        tags: task.tags, // Assuming tags are already in the correct format
+      }));
+
+      set({ tasks: transformedTasks });
+      console.log(transformedTasks);
     }
   },
 

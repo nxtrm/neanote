@@ -52,11 +52,27 @@ function Tasks() {
             <div className='pt-2'>
                 <Separator />
             </div>
-            {tasks.map(task => (
-            <div key={task.id}> {/* Assuming each task has a unique id */}
-            {/* Display task details */}
-            </div>))}
-        </div>
+                {tasks.map((task, index) => (
+                <div key={index} className="task">
+                    <h3>{task.title}</h3>
+                    <p>{task.textField}</p>
+                    {/* Display other task details as needed */}
+                    <div className="tags">
+                        {task.tags.map((tag, tagIndex) => (
+                        <span key={tagIndex}>{tag}</span>
+                        ))}
+                    </div>
+                    <div className="subtasks">
+                        {task.subtasks.map((subtask, subtaskIndex) => (
+                        <div key={subtaskIndex}>
+                            <input type="checkbox" checked={subtask.completed} readOnly />
+                            <label>{subtask.title}</label>
+                        </div>
+                        ))}
+                    </div>
+                </div>
+                ))}
+            </div>
     );
     let createTask = (
     <div className='p-1'>

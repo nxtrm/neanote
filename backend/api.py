@@ -3,6 +3,7 @@ from flask_cors import CORS
 from flask_jwt_extended import JWTManager, create_access_token
 from flask_mysqldb import MySQL
 from datetime import datetime
+from MySQLdb.cursors import DictCursor
 import jwt
 
 app = Flask(__name__)
@@ -160,23 +161,34 @@ def create_task():
         return jsonify({'message': 'Error creating task'}), 500
     
 @app.route('/api/tasks/<userId>', methods=['GET'])
-def getAll(userId): #split into multiple functions, FIX VULNERABILITY WITH USER ID BEING SENT INSTEAD OF TOKEN, DECODE TOKEN HERE
+def getAllPreviews(userId): #split into multiple functions, FIX VULNERABILITY WITH USER ID BEING SENT INSTEAD OF TOKEN, DECODE TOKEN HERE
     if userId:
-        cur = mysql.connection.cursor()
+        cur = mysql.connection.cursor(cursorclass=DictCursor)
 
         cur.execute(""" 
-            SELECT n.id AS note_id, n.title AS note_title, n.content AS note_content, n.created_at AS task_created_at, n.type AS note_type, 
-                t.id AS task_id, t.completed AS task_completed, 
-                 t.due_date AS task_due_date, 
-                st.id AS subtask_id, st.description AS subtask_description, st.completed AS subtask_completed, 
-                tg.id AS tag_id, tg.name AS tag_name, tg.color AS tag_color
+            SELECT 
+                n.id AS note_id, 
+                n.title AS note_title, 
+                n.content AS note_content, 
+                n.created_at AS task_created_at, 
+                n.type AS note_type, 
+                t.id AS task_id, 
+                t.completed AS task_completed, 
+                t.due_date AS task_due_date, 
+                st.id AS subtask_id, 
+                st.description AS subtask_description, 
+                st.completed AS subtask_completed, 
+                tg.id AS tag_id, 
+                tg.name AS tag_name, 
+                tg.color AS tag_color
             FROM Notes n
             LEFT JOIN Tasks t ON n.id = t.note_id
             LEFT JOIN Subtasks st ON t.id = st.task_id
             LEFT JOIN NoteTags nt ON n.id = nt.note_id
             LEFT JOIN Tags tg ON nt.tag_id = tg.id
             WHERE n.user_id = %s
-        """, (userId,)) #THIS DOESNT WORK, FIX IT
+        """, (userId,)) 
+
         rows = cur.fetchall()
 
         tasks = {}
