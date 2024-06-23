@@ -1,15 +1,9 @@
 import { create } from 'zustand';
 
-import { useUser } from '../../../components/providers/useUser';
-import api from '../../api';
-import { useToast } from '../../../components/@/ui/use-toast';
 import Cookies from 'js-cookie';
+import api from '../../api/api';
+import { Subtask } from '../../api/types/taskTypes';
 
-type Subtask = {
-  id: number;
-  text: string;
-  completed: boolean;
-};
 
 type TaskState = {
   section: string;

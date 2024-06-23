@@ -196,25 +196,19 @@ def getAllPreviews(userId): #split into multiple functions, FIX VULNERABILITY WI
             note_id = row['note_id']
             if note_id not in tasks:
                 tasks[note_id] = {
-                    'note': {
-                        'id': row['note_id'],
-                        'title': row['note_title'],
-                        'content': row['note_content'],
-                        'type': row['note_type'],
-                    },
-                    'task': {
-                        'id': row['task_id'],
-                        'completed': row['task_completed'],
-                        'created_at': row['task_created_at'],
-                        'due_date': row['task_due_date'],
-                        'subtasks': [],
-                    },
+                    'id': row['note_id'],
+                    'title': row['note_title'],
+                    'content': row['note_content'],
+                    'completed': row['task_completed'],
+                    'created_at': row['task_created_at'],
+                    'due_date': row['task_due_date'],
+                    'subtasks': [],
                     'tags': []
-                }
+                    },
             
             # Append subtasks if they exist
             if row['subtask_id'] and row['subtask_description'] not in [subtask['description'] for subtask in tasks[note_id]['task']['subtasks']]:
-                tasks[note_id]['task']['subtasks'].append({
+                tasks[note_id]['subtasks'].append({
                     'id': row['subtask_id'],
                     'description': row['subtask_description'],
                     'completed': row['subtask_completed']
