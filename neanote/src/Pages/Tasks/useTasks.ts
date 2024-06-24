@@ -27,6 +27,8 @@ type TaskState = {
   handleTagAdd: () => void;
   handleSaveTask: () => void;
   fetchTasks: () => void;
+  toggleTaskCompleted: (taskId: number) => void;
+  toggleSubtaskCompleted: (subtaskId: number) => void;
 };
 
 
@@ -81,6 +83,24 @@ export let useTasks = create<TaskState>((set, get) => {
           return { subtasks: newSubtasks };
       });
   },
+
+  toggleTaskCompleted: (taskId: number) => {
+    set((state) => ({
+        tasks: state.tasks.map(task => 
+            task.id === taskId ? { ...task, completed: !task.completed } : task
+        ),
+    }));
+  },
+
+  toggleSubtaskCompleted: (subtaskId: number) => {
+      set((state) => ({
+          subtasks: state.subtasks.map(subtask => 
+              subtask.id === subtaskId ? { ...subtask, completed: !subtask.completed } : subtask
+          ),
+      }));
+  },
+
+
   handleTagAdd: () => {
     const newTag = prompt("Enter new tag:");
     if (newTag) {

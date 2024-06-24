@@ -3,16 +3,16 @@ import {Button} from "../@/ui/button"
 import { MdCheckBox, MdCheckBoxOutlineBlank} from "react-icons/md";
 
 interface Props {
-    onClick: () => void
+    checked: boolean;
+    onChange: () => void;
 }
 
-function CheckBox({onClick}: Props) {
-  const [checked, setChecked] = React.useState(false)
-  return (
-    <Button variant={"secondary"} size={"icon"} onClick={() => setChecked(!checked)}>
-        {checked ? <MdCheckBox /> : <MdCheckBoxOutlineBlank />}
-    </Button>
-  )
+function CheckBox({ checked, onChange }: Props) {
+    return (
+        <Button variant={"secondary"} size={"icon"} onClick={onChange}>
+            {checked ? <MdCheckBox /> : <MdCheckBoxOutlineBlank />}
+        </Button>
+    );
 }
 
 export default CheckBox

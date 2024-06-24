@@ -3,10 +3,19 @@ import { TaskPreview } from '../../src/api/types/taskTypes'
 import CheckBox from '../CheckBox/CheckBox';
 import SubTaskCard from './SubTaskCard';
 import { Separator } from "../@/ui/separator";
+import { Button } from '../@/ui/button';
+import { FaEdit } from 'react-icons/fa';
+import { useTasks } from '../../src/Pages/Tasks/useTasks';
 
 
 
 function TaskCard({ task }: { task: TaskPreview }) {
+    
+    const toggleTaskCompleted = () => {
+        useTasks.getState().toggleTaskCompleted(task.id);
+    };
+
+    
     function formatDate(dateInput: string | Date | undefined): string {
         if (!dateInput) return 'No due date';
         let date: Date;
@@ -31,12 +40,15 @@ function TaskCard({ task }: { task: TaskPreview }) {
       <div className='p-4 w-full rounded-xl border-[2px]'>
         <div className='flex flex-row items-center gap-3 justify-between'>
           <div className='flex flex-row items-center gap-3'>
-            <CheckBox onClick={() => console.log('clicked')}/>
+            <CheckBox checked={task.completed} onChange={toggleTaskCompleted} />
             <h3 className="text-xl font-bold">{task.title}</h3>
           </div>
-          {task.due_date &&<div className={`text-xs p-1 rounded-md mt-1 ${isOverdue(formatDate(task.due_date)) ? 'bg-red-400' : 'bg-secondary'}`}>
+          <div className='flex flex-row items-center gap-3'>
+            {task.due_date &&<div className={`text-xs p-1 rounded-md mt-1 ${isOverdue(formatDate(task.due_date)) ? 'bg-red-400' : 'bg-secondary'}`}>
              Due: {formatDate(task.due_date)}
-          </div>}
+            </div>}
+            <Button variant="ghost" size={"icon"}><FaEdit/></Button>
+          </div>
         </div>
         <p className="text-md pl-1 pt-2">{task.content}</p>
         <div className='pt-2'>
