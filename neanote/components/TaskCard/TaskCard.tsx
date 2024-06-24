@@ -1,5 +1,8 @@
 import React from 'react'
 import { TaskPreview } from '../../src/api/types/taskTypes'
+import CheckBox from '../CheckBox/CheckBox';
+import SubTaskCard from './SubTaskCard';
+import { Separator } from "../@/ui/separator";
 
 
 
@@ -25,26 +28,34 @@ function TaskCard({ task }: { task: TaskPreview }) {
       };
   
     return (
-      <div className={`p-4 w-full flex flex-col rounded-xl border-[2px]`}>
-        <h3 className="text-xl font-bold">{task.title}</h3>
-        <p className="text-sm">{task.content}</p>
-        <div className={`text-xs ${isOverdue(formatDate(task.due_date)) ? 'text-red-400' : 'text-gray-500'}`}>
-          {task.due_date && `Due Date: ${formatDate(task.due_date)}`}
+      <div className='p-4 w-full rounded-xl border-[2px]'>
+        <div className='flex flex-row items-center gap-3 justify-between'>
+          <div className='flex flex-row items-center gap-3'>
+            <CheckBox onClick={() => console.log('clicked')}/>
+            <h3 className="text-xl font-bold">{task.title}</h3>
+          </div>
+          {task.due_date &&<div className={`text-xs p-1 rounded-md mt-1 ${isOverdue(formatDate(task.due_date)) ? 'bg-red-400' : 'bg-secondary'}`}>
+             Due: {formatDate(task.due_date)}
+          </div>}
         </div>
-        <ul className="list-disc pl-5">
-          {task.subtasks.map((subtask) => (
-            <li key={subtask.id} className={`${subtask.completed ? 'text-green-500' : 'text-gray-700'}`}>
-              {subtask.description}
-            </li>
-          ))}
-        </ul>
-        <div className="flex flex-wrap gap-2 mt-2">
+        <p className="text-md pl-1 pt-2">{task.content}</p>
+        <div className='pt-2'>
+            <Separator />
+        </div>
+
+        {task.subtasks.map((subtask) => (
+            <div className='pt-2' key={subtask.id}>
+              <SubTaskCard subtask={subtask} />
+            </div>
+        ))}
+
+        {/* <div className="flex flex-wrap gap-2 mt-2">
           {task.tags.map((tag, index) => (
             <span key={index} className="bg-blue-200 text-blue-800 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded">
               {tag}
             </span>
           ))}
-        </div>
+        </div> */}
       </div>
     );
   }
