@@ -5,6 +5,10 @@ export interface Subtask {
     completed: boolean;
   };
 
+export interface TaskUpdate extends TaskPreview {
+    updateType: 'add' | 'update' | 'delete';
+  }
+
 export interface TaskPreview {
     id: number;
     title: string;
@@ -25,6 +29,7 @@ export interface TaskPreview {
   //   tags: string[];
   //   //add any other needed fields
   // };
+
 
   export interface TaskResponse {
     data: TaskPreview[] | undefined;

@@ -1,8 +1,8 @@
 import { showToast } from "../../components/Toast";
 import a from './api'
-import { TaskResponse } from "./types/taskTypes";
+import { TaskPreview, TaskResponse } from "./types/taskTypes";
 
-const tasks = {
+const tasksApi = {
     create: async (taskTitle, tags, textField, subtasks,dueDate, dueTime) => {
         try {
             let response = await a.post<TaskResponse>(`/api/tasks/create`, {
@@ -35,8 +35,24 @@ const tasks = {
             showToast('e', error);
             return false;
         }
+    },
+
+    batchUpdate: async (taskUpdates: TaskPreview[]) => {
+        try {
+            const response = await a.put(`/api/tasks/batch-update`, taskUpdates);
+            if (response.status === 200) {
+                showToast('s', 'Tasks have been updated successfully');
+            } else {
+                showToast('e', 'There was an error updating the tasks');
+            }
+            return true;
+        } catch (error) {
+            showToast('e', error);
+            return false;
+        }
     }
+
     
 }
 
-export default tasks;
+export default tasksApi;

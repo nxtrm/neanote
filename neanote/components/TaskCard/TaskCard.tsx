@@ -10,9 +10,13 @@ import { useTasks } from '../../src/Pages/Tasks/useTasks';
 
 
 function TaskCard({ task }: { task: TaskPreview }) {
+    const {
+      toggleTaskCompleted
+    } = useTasks()
     
-    const toggleTaskCompleted = () => {
-        useTasks.getState().toggleTaskCompleted(task.id);
+    const toggleCompleted = () => {
+        toggleTaskCompleted(task.id);
+        console.log(task.completed)
     };
 
     
@@ -40,7 +44,7 @@ function TaskCard({ task }: { task: TaskPreview }) {
       <div className='p-4 w-full rounded-xl border-[2px]'>
         <div className='flex flex-row items-center gap-3 justify-between'>
           <div className='flex flex-row items-center gap-3'>
-            <CheckBox checked={task.completed} onChange={toggleTaskCompleted} />
+            <CheckBox checked={task.completed} onChange={toggleCompleted} />
             <h3 className="text-xl font-bold">{task.title}</h3>
           </div>
           <div className='flex flex-row items-center gap-3'>
@@ -57,7 +61,7 @@ function TaskCard({ task }: { task: TaskPreview }) {
 
         {task.subtasks.map((subtask) => (
             <div className='pt-2' key={subtask.id}>
-              <SubTaskCard subtask={subtask} />
+              <SubTaskCard subtask={subtask} taskId={task.id}/>
             </div>
         ))}
 

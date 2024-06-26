@@ -198,7 +198,7 @@ def register_routes(app, mysql, jwt):
                         'id': row['note_id'],
                         'title': row['note_title'],
                         'content': row['note_content'],
-                        'completed': row['task_completed'],
+                        'completed': True if row['task_completed'] == 1 else False,
                         'due_date': row['task_due_date'],
                         'subtasks': [],
                         'tags': []
@@ -213,7 +213,7 @@ def register_routes(app, mysql, jwt):
                     new_subtask = {
                         'id': row['subtask_id'],
                         'description': row['subtask_description'],
-                        'completed': row['subtask_completed']
+                        'completed': True if row['subtask_completed'] == 1 else False
                     }
                     tasks[note_id]['subtasks'].append(new_subtask)
 
