@@ -153,6 +153,42 @@ def register_routes(app, mysql, jwt):
             cur.close()
             print('Error during transaction', error)
             return jsonify({'message': 'Error creating task', 'data': None}), 500
+        
+    @app.route('/api/tasks/batch-update', methods=['GET'])
+    @jwt_required()
+    def update_tasks():
+
+        task_dict = request.get_json()
+
+        cur = mysql.connection.cursor()
+        try:
+            for task_id, task_details in task_dict.items():
+
+                query = """
+                UPDATE Tasks
+                SET title = %s, description = %s, due_date = %s, completed = %s
+                WHERE id = %s
+                """
+                # Execute the query with values from task_details
+                cur.execute(query, (task_details['title'], task_details['description'], task_details['due_date'], task_details['completed'], task_id))
+                
+            cur.execute("DELETE FROM Subtasks WHERE task_id = %s", (task_id,))
+            for subtask in task_details['subtasks']:
+                cur.execute("INSERT INTO Subtasks (task_id, description) VALUES (%s, %s)", (task_id, subtask['description']))
+            
+            # Update tags
+            cur.execute("DELETE FROM TaskTags WHERE task_id = %s", (task_id,))
+            for tag in task_details['tags']:
+                cur.execute("INSERT INTO TaskTags (task_id, tag) VALUES (%s, %s)", (task_id, tag))
+        
+            # Commit the changes to the database
+            mysql.connection.commit()
+        except Exception as e:
+            mysql.connection.rollback()
+            print(f"An error occurred: {e}")
+        finally:
+            # Close the cursor
+            cur.close()
             
     @app.route('/api/tasks/', methods=['GET'])
     @jwt_required()

@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import tasksApi from '../../api/tasks';
+import tasksApi from '../../api/tasksApi';
 import { Subtask, TaskPreview } from '../../api/types/taskTypes';
 
 
@@ -29,7 +29,7 @@ type TaskState = {
   toggleTaskCompleted: (taskId: number) => void;
   toggleSubtaskCompleted: (subtaskId: number, taskId: number) => void;
   sendUpdatesToServer: () => Promise<void>;
-  pendingUpdates: [taskId:number] | [];
+  pendingUpdates: {[taskId :number] : TaskPreview[]};
 };
 
 
@@ -46,7 +46,7 @@ export let useTasks = create<TaskState>((set, get) => {
   textField: '',
   subtasks: [],
   tasks: [],
-  pendingUpdates: [],
+  pendingUpdates: {},
   setSection: (section) => updateState('section', section),
   setTaskTitle: (title) => updateState('taskTitle', title),
   setTags: (tags) => updateState('tags', tags),
@@ -103,13 +103,7 @@ export let useTasks = create<TaskState>((set, get) => {
         return task;
       });
   
-      // Only update state if a change was actually made
-      if (taskUpdated) {
-        // Mark the task as pending update
-        const newPendingUpdates = { ...state.pendingUpdates, taskId };
-        return { ...state, tasks: newTasks, pendingUpdates: newPendingUpdates };
-      }
-      return state;
+      return taskUpdated ? { ...state, tasks: newTasks } : state;
     });
   },
   
@@ -124,14 +118,17 @@ export let useTasks = create<TaskState>((set, get) => {
         return task;
       });
   
-      if (taskUpdated) {
-        // Assuming all tasks have a 'completed' property and optionally 'subtasks'
+    if (taskUpdated) {
+        // Update pendingUpdates with the new state of the task
+        const updatedTask = newTasks.find((task) => task.id === taskId);
         const newPendingUpdates = {
           ...state.pendingUpdates,
-          taskId
+          [taskId]: updatedTask, // Use task ID as key for easy update/overwrite
         };
+        console.log(newPendingUpdates)
         return { ...state, tasks: newTasks, pendingUpdates: newPendingUpdates };
       }
+      
       return state;
     });
   },
@@ -143,7 +140,7 @@ export let useTasks = create<TaskState>((set, get) => {
       try {
         let response = await tasksApi.batchUpdate(updates);
         if (response) {
-          set({ pendingUpdates: [] }); //when tasks sent to server, clear pending updates
+          set({ pendingUpdates: {} }); //when tasks sent to server, clear pending updates
         } else {
 
         }
