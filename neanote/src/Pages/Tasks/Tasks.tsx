@@ -19,6 +19,7 @@ function Tasks() {
     let {
         taskTitle,
         dueTime,
+        handleSubtaskChange,
         pendingUpdates,
         setDate,
         setTime,
@@ -34,13 +35,12 @@ function Tasks() {
         setSubtasks,
         handleAddSubtask,
         handleRemoveSubtask,
-        handleSubtaskChange,
+        onTaskUpdate,
         sendUpdatesToServer,
         handleTagAdd,
         handleSaveTask,
 
     } = useTasks();
-    useEffect(() => {sendUpdatesToServer()}, [pendingUpdates]);
 
     useEffect(() => {
         fetchTasks();
@@ -120,7 +120,7 @@ function Tasks() {
                             <Input 
                                 type='text' 
                                 value={subtask.description} 
-                                onChange={(e) => handleSubtaskChange(index, 'description', e.target.value)} 
+                                onChange={(e) => handleSubtaskChange(index, e.target.value)} 
                                 />
                             <Button onClick={() => handleRemoveSubtask(subtask.id)} variant="secondary" size="icon">
                               <FaRegTrashAlt/>

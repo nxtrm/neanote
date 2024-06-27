@@ -154,9 +154,9 @@ def register_routes(app, mysql, jwt):
             print('Error during transaction', error)
             return jsonify({'message': 'Error creating task', 'data': None}), 500
         
-    @app.route('/api/tasks/batch-update', methods=['POST'])
+    @app.route('/api/tasks/update', methods=['POST'])
     @jwt_required()
-    def update_tasks():
+    def upodate():
 
         tasks = request.get_json()
 
@@ -179,8 +179,8 @@ def register_routes(app, mysql, jwt):
                 # cur.execute("DELETE FROM TaskTags WHERE task_id = %s", (task_id,))
 
                 # Insert subtasks
-                for subtask in task_details.get('subtasks', []):  # Use .get() to avoid KeyError if 'subtasks' is missing
-                    cur.execute("INSERT INTO Subtasks (task_id, description) VALUES (%s, %s)", (task_id, subtask['description']))
+                for subtask in task_details.get('subtasks', []):
+                    cur.execute("INSERT INTO Subtasks (task_id, description, completed) VALUES (%s, %s, %s)", (task_id, subtask['description'], subtask['completed']))
                 
                 # # Insert tags
                 # for tag in task_details.get('tags', []):  # Use .get() to avoid KeyError if 'tags' is missing

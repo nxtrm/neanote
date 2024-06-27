@@ -23,12 +23,14 @@ type TaskState = {
   handleAddSubtask: () => void;
   handleRemoveSubtask: (subtaskId: number) => void;
   handleTagAdd: () => void;
-  handleSaveTask: () => Promise<void>; // Assuming this might be async
-  fetchTasks: () => Promise<void>; // Assuming this is async
+  handleSaveTask: () => Promise<void>; 
+  handleSubtaskChange: (subtaskId: number, update: string) => void;
+  fetchTasks: () => Promise<void>;
   toggleTaskCompleted: (taskId: number) => void;
   toggleSubtaskCompleted: (subtaskId: number, taskId: number) => void;
   sendUpdatesToServer: () => Promise<void>;
-  pendingUpdates: {[taskId :number] : TaskPreview[]};
+  onTaskUpdate: (taskId: number) => void;
+  pendingUpdates: {[taskId :number] : TaskPreview};
 };
 
 
@@ -58,7 +60,6 @@ export let useTasks = create<TaskState>((set, get) => {
     if (fetchedTasks)  {
 
       set({ tasks: fetchedTasks.data });
-      console.log(fetchedTasks);
     }
   },
 
@@ -77,11 +78,25 @@ export let useTasks = create<TaskState>((set, get) => {
       subtasks: state.subtasks.filter((subtask) => subtask.id !== subtaskId),
     }));
   },
-
-  toggleSubtaskCompleted: (subtaskId: number, taskId: number) => {
+  handleSubtaskChange: (subtaskId: number, update: string) => {
     set((state) => {
-      let taskUpdated = false;
-      const newTasks = state.tasks.map((task) => {
+      const newSubtasks = state.subtasks.map((subtask) => {
+        if (subtask.id === subtaskId) {
+          return { ...subtask, description: update};
+        }
+        return subtask;
+      });
+      return { ...state, subtasks: newSubtasks };
+    });
+  },
+  
+
+  toggleSubtaskCompleted: async (subtaskId: number, taskId: number) => {
+    let taskUpdated = false;
+    let newTasks: TaskPreview[] = [];
+  
+    set((state) => {
+      newTasks = state.tasks.map((task) => {
         if (task.id === taskId) {
           const newSubtasks = task.subtasks.map((subtask) => {
             if (subtask.id === subtaskId) {
@@ -95,41 +110,47 @@ export let useTasks = create<TaskState>((set, get) => {
         return task;
       });
   
-      return taskUpdated ? { ...state, tasks: newTasks } : state;
+      return { ...state, tasks: newTasks };
     });
-  },
   
-  toggleTaskCompleted: (taskId: number) => {
+    if (taskUpdated) {
+      await tasksApi.toggleCompleteness(taskId, subtaskId);
+    }
+  },
+
+  toggleTaskCompleted: async (taskId: number) => {
     set((state) => {
-      let taskUpdated = false;
       const newTasks = state.tasks.map((task) => {
         if (task.id === taskId) {
-          taskUpdated = true; // Mark that an update is needed
           return { ...task, completed: !task.completed };
         }
         return task;
       });
-  
-    if (taskUpdated) {
+      return { ...state, tasks: newTasks };
+    });
+    await tasksApi.toggleCompleteness(taskId, null); 
+  },
+
+  onTaskUpdate: function(taskId: number) {
+    const { sendUpdatesToServer } = get();
+    set((state) => {
         // Update pendingUpdates with the new state of the task
-        const updatedTask = newTasks.find((task) => task.id === taskId);
+        const updatedTask = state.tasks.find((task) => task.id === taskId);
         const newPendingUpdates = {
           ...state.pendingUpdates,
           [taskId]: updatedTask, // Use task ID as key for easy update/overwrite
         };
-        return { ...state, tasks: newTasks, pendingUpdates: newPendingUpdates };
-      }
-      
-      return state;
-    });
-  },
+        return { ...state, pendingUpdates: newPendingUpdates };
+      })
+    sendUpdatesToServer();
+    },
 
   sendUpdatesToServer : async () => {
     const { pendingUpdates, tasks } = get();
     const updates = tasks.filter(task => pendingUpdates[task.id]);
     if (updates.length > 0) {
       try {
-        let response = await tasksApi.batchUpdate(updates);
+        let response = await tasksApi.update(updates);
         if (response) {
     
           set({ pendingUpdates: {} }); //when tasks sent to server, clear pending updates

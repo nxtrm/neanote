@@ -37,19 +37,30 @@ const tasksApi = {
         }
     },
 
-    batchUpdate: async (taskUpdates: TaskPreview[]) => {
+    update: async (taskUpdates: TaskPreview[]) => {
         try {
-            const response = await a.post(`/api/tasks/batch-update`, taskUpdates);
+            const response = await a.post(`/api/tasks/update`, taskUpdates);
+            return true
+        } catch (error) {
+            showToast('e', error);
+            return false
+        }
+    },
+
+    toggleCompleteness: async (taskId: number, subtaskId: number| null) => {
+        try {
+            const response = await a.post(`/api/tasks/toggle-checkbox`, { taskId, subtaskId });
             if (response.status === 200) {
-                showToast('s', 'Tasks have been updated successfully');
+                
             } else {
-                showToast('e', 'There was an error updating the tasks');
+                showToast('e', 'There was an error updating the task');
             }
             return true;
         } catch (error) {
             showToast('e', error);
             return false;
         }
+
     }
 
     
