@@ -120,7 +120,7 @@ function Tasks() {
                             <Input 
                                 type='text' 
                                 value={subtask.description} 
-                                onChange={(e) => handleSubtaskChange(index, e.target.value)} 
+                                onChange={(e) => handleSubtaskChange(subtask.id, e.target.value)} 
                                 />
                             <Button onClick={() => handleRemoveSubtask(subtask.id)} variant="secondary" size="icon">
                               <FaRegTrashAlt/>

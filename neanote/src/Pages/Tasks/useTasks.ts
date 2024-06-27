@@ -165,9 +165,6 @@ export let useTasks = create<TaskState>((set, get) => {
         dueTime: dueTime
       };
   
-      // Update pendingUpdates with the single updated task
-  
-      // Update the specific task in the store
       const updatedTasks = state.tasks.map((task) => 
         task.id === currentId ? { ...task, ...updatedTask } : task
       );
