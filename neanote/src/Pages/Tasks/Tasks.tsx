@@ -15,9 +15,11 @@ import TaskCard from '../../../components/TaskCard/TaskCard';
 
 function Tasks() {
   
+  
     let {
         taskTitle,
         dueTime,
+        pendingUpdates,
         setDate,
         setTime,
         textField,
@@ -33,10 +35,12 @@ function Tasks() {
         handleAddSubtask,
         handleRemoveSubtask,
         handleSubtaskChange,
+        sendUpdatesToServer,
         handleTagAdd,
         handleSaveTask,
 
     } = useTasks();
+    useEffect(() => {sendUpdatesToServer()}, [pendingUpdates]);
 
     useEffect(() => {
         fetchTasks();

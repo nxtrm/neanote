@@ -22,7 +22,6 @@ type TaskState = {
   setSubtasks: (subtasks: Subtask[]) => void;
   handleAddSubtask: () => void;
   handleRemoveSubtask: (subtaskId: number) => void;
-  handleSubtaskChange: (index: number, field: keyof Subtask, value: string | boolean) => void; // Assuming Subtask fields are strings or booleans
   handleTagAdd: () => void;
   handleSaveTask: () => Promise<void>; // Assuming this might be async
   fetchTasks: () => Promise<void>; // Assuming this is async
@@ -78,13 +77,6 @@ export let useTasks = create<TaskState>((set, get) => {
       subtasks: state.subtasks.filter((subtask) => subtask.id !== subtaskId),
     }));
   },
-  handleSubtaskChange: (index: number, field: keyof Subtask, value: Subtask[keyof Subtask]) => {
-      set((state) => {
-          const newSubtasks: Subtask[] = [...state.subtasks];
-          newSubtasks[index][field] = value;
-          return { subtasks: newSubtasks };
-      });
-  },
 
   toggleSubtaskCompleted: (subtaskId: number, taskId: number) => {
     set((state) => {
@@ -125,7 +117,6 @@ export let useTasks = create<TaskState>((set, get) => {
           ...state.pendingUpdates,
           [taskId]: updatedTask, // Use task ID as key for easy update/overwrite
         };
-        console.log(newPendingUpdates)
         return { ...state, tasks: newTasks, pendingUpdates: newPendingUpdates };
       }
       
@@ -140,6 +131,7 @@ export let useTasks = create<TaskState>((set, get) => {
       try {
         let response = await tasksApi.batchUpdate(updates);
         if (response) {
+    
           set({ pendingUpdates: {} }); //when tasks sent to server, clear pending updates
         } else {
 

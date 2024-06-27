@@ -39,7 +39,7 @@ const tasksApi = {
 
     batchUpdate: async (taskUpdates: TaskPreview[]) => {
         try {
-            const response = await a.put(`/api/tasks/batch-update`, taskUpdates);
+            const response = await a.post(`/api/tasks/batch-update`, taskUpdates);
             if (response.status === 200) {
                 showToast('s', 'Tasks have been updated successfully');
             } else {

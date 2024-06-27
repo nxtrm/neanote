@@ -154,41 +154,47 @@ def register_routes(app, mysql, jwt):
             print('Error during transaction', error)
             return jsonify({'message': 'Error creating task', 'data': None}), 500
         
-    @app.route('/api/tasks/batch-update', methods=['GET'])
+    @app.route('/api/tasks/batch-update', methods=['POST'])
     @jwt_required()
     def update_tasks():
 
-        task_dict = request.get_json()
+        tasks = request.get_json()
 
         cur = mysql.connection.cursor()
         try:
-            for task_id, task_details in task_dict.items():
+            for task in tasks:  # Iterate over the list of tasks
+
+                task_id = task['id']
+                task_details = task
 
                 query = """
                 UPDATE Tasks
-                SET title = %s, description = %s, due_date = %s, completed = %s
+                SET due_date = %s, completed = %s
                 WHERE id = %s
                 """
-                # Execute the query with values from task_details
-                cur.execute(query, (task_details['title'], task_details['description'], task_details['due_date'], task_details['completed'], task_id))
+                cur.execute(query, ( task_details['due_date'], 1 if task_details['completed'] == True else 0, task_id))
                 
-            cur.execute("DELETE FROM Subtasks WHERE task_id = %s", (task_id,))
-            for subtask in task_details['subtasks']:
-                cur.execute("INSERT INTO Subtasks (task_id, description) VALUES (%s, %s)", (task_id, subtask['description']))
-            
-            # Update tags
-            cur.execute("DELETE FROM TaskTags WHERE task_id = %s", (task_id,))
-            for tag in task_details['tags']:
-                cur.execute("INSERT INTO TaskTags (task_id, tag) VALUES (%s, %s)", (task_id, tag))
+                # Delete existing subtasks and tags before inserting new ones
+                cur.execute("DELETE FROM Subtasks WHERE task_id = %s", (task_id,))
+                # cur.execute("DELETE FROM TaskTags WHERE task_id = %s", (task_id,))
+
+                # Insert subtasks
+                for subtask in task_details.get('subtasks', []):  # Use .get() to avoid KeyError if 'subtasks' is missing
+                    cur.execute("INSERT INTO Subtasks (task_id, description) VALUES (%s, %s)", (task_id, subtask['description']))
+                
+                # # Insert tags
+                # for tag in task_details.get('tags', []):  # Use .get() to avoid KeyError if 'tags' is missing
+                #     cur.execute("INSERT INTO TaskTags (task_id, tag) VALUES (%s, %s)", (task_id, tag))
         
-            # Commit the changes to the database
+             # Commit the changes to the database
             mysql.connection.commit()
+            cur.close()
+            return jsonify({'message': 'Tasks updated successfully', 'data': None}), 200
         except Exception as e:
             mysql.connection.rollback()
-            print(f"An error occurred: {e}")
-        finally:
-            # Close the cursor
-            cur.close()
+            return jsonify({'message': f"An error occurred: {e}", 'data': None}), 400
+            
+
             
     @app.route('/api/tasks/', methods=['GET'])
     @jwt_required()
