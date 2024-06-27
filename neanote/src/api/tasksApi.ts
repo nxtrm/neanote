@@ -49,7 +49,7 @@ const tasksApi = {
 
     toggleCompleteness: async (taskId: number, subtaskId: number| null) => {
         try {
-            const response = await a.post(`/api/tasks/toggle-checkbox`, { taskId, subtaskId });
+            const response = await a.post(`/api/tasks/toggle`, {"taskId": taskId,"subtaskId": subtaskId });
             if (response.status === 200) {
                 
             } else {

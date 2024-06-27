@@ -193,6 +193,44 @@ def register_routes(app, mysql, jwt):
         except Exception as e:
             mysql.connection.rollback()
             return jsonify({'message': f"An error occurred: {e}", 'data': None}), 400
+        
+    @app.route('/api/tasks/toggle', methods=['POST'])
+    @jwt_required()
+    def toggleTaskFields():
+        try:
+            data = request.get_json()
+            taskId = data.get('taskId') 
+            subtaskId = data.get('subtaskId')  # Correctly extract subtaskId, if present
+
+            cur = mysql.connection.cursor()
+            if subtaskId:
+                toggle_sql = """
+                    UPDATE Subtasks 
+                    SET completed = CASE 
+                                        WHEN completed = 1 THEN 0 
+                                        ELSE 1 
+                                    END 
+                    WHERE id = %s AND task_id = %s
+                    """
+                cur.execute(toggle_sql, (subtaskId, taskId))  # Correctly pass as tuple
+            else:
+                toggle_sql = """
+                    UPDATE Tasks 
+                    SET completed = CASE 
+                                        WHEN completed = 1 THEN 0 
+                                        ELSE 1 
+                                    END 
+                    WHERE id = %s
+                    """
+                cur.execute(toggle_sql, (taskId,))  # Correctly pass taskId as a tuple
+
+            mysql.connection.commit()
+            cur.close()
+            return jsonify({'message': 'Field toggled successfully', "data": None}), 200
+
+        except Exception as e:
+            mysql.connection.rollback()  # Ensure to rollback in case of error
+            return jsonify({'message': f'An error occurred: {str(e)}'}), 400
             
 
             
