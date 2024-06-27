@@ -156,40 +156,39 @@ def register_routes(app, mysql, jwt):
         
     @app.route('/api/tasks/update', methods=['POST'])
     @jwt_required()
-    def upodate():
-
-        tasks = request.get_json()
+    def update():
+        task = request.get_json()
 
         cur = mysql.connection.cursor()
         try:
-            for task in tasks:  # Iterate over the list of tasks
+            task_id = task['id']
 
-                task_id = task['id']
-                task_details = task
+            query = """
+            UPDATE Notes
+            SET title = %s, content = %s
+            WHERE id = %s
+            """
 
-                query = """
-                UPDATE Tasks
-                SET due_date = %s, completed = %s
-                WHERE id = %s
-                """
-                cur.execute(query, ( task_details['due_date'], 1 if task_details['completed'] == True else 0, task_id))
-                
-                # Delete existing subtasks and tags before inserting new ones
-                cur.execute("DELETE FROM Subtasks WHERE task_id = %s", (task_id,))
-                # cur.execute("DELETE FROM TaskTags WHERE task_id = %s", (task_id,))
+            due_date = task.get('dueDate') #add funcitonality to update Tasks table later
+            due_time = task.get('dueTime', '')
 
-                # Insert subtasks
-                for subtask in task_details.get('subtasks', []):
-                    cur.execute("INSERT INTO Subtasks (task_id, description, completed) VALUES (%s, %s, %s)", (task_id, subtask['description'], subtask['completed']))
-                
-                # # Insert tags
-                # for tag in task_details.get('tags', []):  # Use .get() to avoid KeyError if 'tags' is missing
-                #     cur.execute("INSERT INTO TaskTags (task_id, tag) VALUES (%s, %s)", (task_id, tag))
-        
-             # Commit the changes to the database
+            cur.execute(query, (task['title'], task['content'], task_id))
+            
+            # Delete existing subtasks and tags before inserting new ones
+            cur.execute("DELETE FROM Subtasks WHERE task_id = %s", (task_id,))
+            # cur.execute("DELETE FROM TaskTags WHERE task_id = %s", (task_id,))
+
+            for subtask in task.get('subtasks', []):
+                cur.execute("INSERT INTO Subtasks (task_id, description, completed) VALUES (%s, %s, %s)", (task_id, subtask['description'], subtask['completed']))
+            
+            # # Insert tags
+            # for tag in task_details.get('tags', []):  # Use .get() to avoid KeyError if 'tags' is missing
+            #     cur.execute("INSERT INTO TaskTags (task_id, tag) VALUES (%s, %s)", (task_id, tag))
+
+
             mysql.connection.commit()
             cur.close()
-            return jsonify({'message': 'Tasks updated successfully', 'data': None}), 200
+            return jsonify({'message': 'Task updated successfully', 'data': None}), 200
         except Exception as e:
             mysql.connection.rollback()
             return jsonify({'message': f"An error occurred: {e}", 'data': None}), 400

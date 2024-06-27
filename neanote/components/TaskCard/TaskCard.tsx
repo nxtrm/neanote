@@ -6,17 +6,24 @@ import { Separator } from "../@/ui/separator";
 import { Button } from '../@/ui/button';
 import { FaEdit } from 'react-icons/fa';
 import { useTasks } from '../../src/Pages/Tasks/useTasks';
+import { Link } from 'react-router-dom';
 
 
 
 function TaskCard({ task }: { task: TaskPreview }) {
     const {
-      toggleTaskCompleted
+      toggleTaskCompleted,
+      setSection,
+      setCurrentTask,
     } = useTasks()
     
     const toggleCompleted = () => {
         toggleTaskCompleted(task.id);
-        console.log(task.completed)
+    };
+
+    const handleEditClick = (task:TaskPreview) => {
+      setCurrentTask(task);
+      setSection('edit');
     };
 
     
@@ -51,7 +58,7 @@ function TaskCard({ task }: { task: TaskPreview }) {
             {task.due_date &&<div className={`text-xs p-1 rounded-md mt-1 ${isOverdue(formatDate(task.due_date)) ? 'bg-red-400' : 'bg-secondary'}`}>
              Due: {formatDate(task.due_date)}
             </div>}
-            <Button variant="ghost" size={"icon"}><FaEdit/></Button>
+              <Button variant="ghost" size={"icon"} onClick={()=>handleEditClick(task)}><FaEdit/></Button>
           </div>
         </div>
         <p className="text-md pl-1 pt-2">{task.content}</p>

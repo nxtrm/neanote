@@ -35,7 +35,7 @@ function Tasks() {
         setSubtasks,
         handleAddSubtask,
         handleRemoveSubtask,
-        onTaskUpdate,
+        handleEditTask,
         sendUpdatesToServer,
         handleTagAdd,
         handleSaveTask,
@@ -65,12 +65,12 @@ function Tasks() {
                 ))}
             </div>
     );
-    let createTask = (
+    let taskForm = (
     <div className='p-1'>
     {/* Navbar */}
       <div className='flex flex-row justify-between'>
 
-                <p className='pl-1 text-2xl font-bold'>Create Task</p>
+                <p className='pl-1 text-2xl font-bold'>{section === 'create'? "Create Task" : "Edit Task"}</p>
                 {/* Date Picker */}
                 <div className='flex flex-row gap-2'>
                     <DatePicker onDateChange={setDate}/>
@@ -136,7 +136,8 @@ function Tasks() {
                         Add Subtask
                       </div>
                     </Button>
-                    <Button onClick={handleSaveTask
+                    <Button onClick={
+                        section === "create" ? handleSaveTask: handleEditTask
                     }
                       >
                         Save
@@ -148,8 +149,9 @@ function Tasks() {
 
     return (
         <PageContainer>
+
             {section === 'all tasks' && allTasks}
-            {section === 'create task' && createTask}
+            {(section === 'create task' || section === 'edit') && taskForm}
             
         </PageContainer>
     );

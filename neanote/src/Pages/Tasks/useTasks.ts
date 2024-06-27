@@ -6,6 +6,7 @@ import { Subtask, TaskPreview } from '../../api/types/taskTypes';
 
 type TaskState = {
   section: string;
+  currentId:number | undefined;
   taskTitle: string;
   dueDate: Date | undefined;
   dueTime: string;
@@ -29,8 +30,9 @@ type TaskState = {
   toggleTaskCompleted: (taskId: number) => void;
   toggleSubtaskCompleted: (subtaskId: number, taskId: number) => void;
   sendUpdatesToServer: () => Promise<void>;
-  onTaskUpdate: (taskId: number) => void;
-  pendingUpdates: {[taskId :number] : TaskPreview};
+  handleEditTask: (taskId: number) => void;
+  setCurrentTask: (task: TaskPreview) => void;
+  pendingUpdates: {};
 };
 
 
@@ -41,6 +43,7 @@ export let useTasks = create<TaskState>((set, get) => {
 
   section: 'all tasks',
   dueDate: undefined,
+  currentId: undefined,
   dueTime: '',
   taskTitle: '',
   tags: [],
@@ -90,6 +93,10 @@ export let useTasks = create<TaskState>((set, get) => {
     });
   },
   
+  setCurrentTask: (task: TaskPreview) => {
+    set({currentId: task.id, taskTitle: task.title, tags: task.tags, textField: task.content, subtasks: task.subtasks, dueDate: task.due_date, dueTime: '' });
+
+  },
 
   toggleSubtaskCompleted: async (subtaskId: number, taskId: number) => {
     let taskUpdated = false;
@@ -131,36 +138,72 @@ export let useTasks = create<TaskState>((set, get) => {
     await tasksApi.toggleCompleteness(taskId, null); 
   },
 
-  onTaskUpdate: function(taskId: number) {
-    const { sendUpdatesToServer } = get();
+  handleEditTask: function() {
+    const { sendUpdatesToServer, currentId } = get();
+    let {
+      taskTitle,
+      tags, //replace with tag ids when tags module is done
+      dueDate,
+      dueTime,
+      textField,
+      subtasks, 
+  } = get()
+
+    if (typeof currentId === 'undefined') {
+      console.error('currentId is undefined');
+      return; // Exit the function if currentId is undefined
+    }
     set((state) => {
-        // Update pendingUpdates with the new state of the task
-        const updatedTask = state.tasks.find((task) => task.id === taskId);
-        const newPendingUpdates = {
-          ...state.pendingUpdates,
-          [taskId]: updatedTask, // Use task ID as key for easy update/overwrite
-        };
-        return { ...state, pendingUpdates: newPendingUpdates };
-      })
+
+      const updatedTask = {
+        id: currentId,
+        title: taskTitle,
+        tags: tags,
+        content: textField,
+        subtasks: subtasks,
+        dueDate: dueDate,
+        dueTime: dueTime
+      };
+  
+      // Update pendingUpdates with the single updated task
+  
+      // Update the specific task in the store
+      const updatedTasks = state.tasks.map((task) => 
+        task.id === currentId ? { ...task, ...updatedTask } : task
+      );
+  
+      return { ...state, pendingUpdates: updatedTask, tasks: updatedTasks };
+    });
     sendUpdatesToServer();
-    },
+  },
+
+  
 
   sendUpdatesToServer : async () => {
     const { pendingUpdates, tasks } = get();
-    const updates = tasks.filter(task => pendingUpdates[task.id]);
-    if (updates.length > 0) {
-      try {
+    const updates = pendingUpdates;
+    try {
         let response = await tasksApi.update(updates);
         if (response) {
     
           set({ pendingUpdates: {} }); //when tasks sent to server, clear pending updates
+          set({
+            taskTitle: '',
+            tags: [],
+            currentId: undefined,
+            dueDate: undefined,
+            dueTime: '',
+            textField: '',
+            subtasks: [],
+            section: 'all tasks',
+          });
         } else {
 
         }
       } catch (error) {
         // Handle error, maybe retry
       }
-    }
+    
   },
 
 

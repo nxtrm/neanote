@@ -37,7 +37,7 @@ const tasksApi = {
         }
     },
 
-    update: async (taskUpdates: TaskPreview[]) => {
+    update: async (taskUpdates: {}) => {
         try {
             const response = await a.post(`/api/tasks/update`, taskUpdates);
             return true
