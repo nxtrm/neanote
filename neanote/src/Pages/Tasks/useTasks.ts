@@ -151,7 +151,7 @@ export let useTasks = create<TaskState>((set, get) => {
       subtasks, 
   } = get()
 
-    if (typeof currentTaskId === 'undefined') {
+    if (typeof currentTaskId === 'undefined' || typeof currentNoteId === 'undefined') {
       console.error('currentId is undefined');
       return; // Exit the function if currentId is undefined
     }
@@ -159,7 +159,7 @@ export let useTasks = create<TaskState>((set, get) => {
 
       const updatedTask = {
         taskid: currentTaskId,
-        noteId: currentNoteId,
+        noteid: currentNoteId,
         title: taskTitle,
         tags: tags,
         content: textField,

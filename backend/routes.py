@@ -193,6 +193,26 @@ def register_routes(app, mysql, jwt):
         except Exception as e:
             mysql.connection.rollback()
             return jsonify({'message': f"An error occurred: {e}", 'data': None}), 400
+        
+    @app.route('/api/tasks/delete', methods=['POST'])
+    @jwt_required()
+    def delete_task():
+        try:
+            data = request.get_json()
+            taskId = data['taskid']
+            noteId = data['noteid']
+            cur = mysql.connection.cursor()
+
+            cur.execute("DELETE FROM Tasks WHERE id = %s", (taskId))
+            cur.execute("DELETE FROM Subtasks WHERE task_id = %s", (taskId))
+            cur.execute("DELETE FROM Notes WHERE task_id = %s", (taskId))
+            cur.execute("DELETE FROM NoteTags WHERE note_id = %s", (noteId))
+            mysql.connection.commit()
+            cur.close()
+            return jsonify({'message': 'Task deleted successfully', 'data': None}), 200
+        except Exception as e:
+            mysql.connection.rollback()
+            return jsonify({'message': f"An error occurred: {e}", 'data': None}), 400
     
         
     @app.route('/api/tasks/toggle', methods=['POST'])
