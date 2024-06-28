@@ -73,7 +73,7 @@ def register_routes(app, mysql, jwt):
             return jsonify({'message': 'Error creating user'}), 500
         
 
-
+#TASK MODULE
     @app.route('/api/tasks/create', methods=['POST'])
     @jwt_required()
     def create_task():
@@ -156,7 +156,7 @@ def register_routes(app, mysql, jwt):
         
     @app.route('/api/tasks/update', methods=['POST'])
     @jwt_required()
-    def update():
+    def update_task():
         task = request.get_json()
 
         cur = mysql.connection.cursor()
@@ -311,3 +311,106 @@ def register_routes(app, mysql, jwt):
             # Convert tasks dictionary to a list to match expected output format
             tasks_list = [value for key, value in tasks.items()]
             return jsonify({"data": tasks_list, 'message': "Tasks fetched successfully"}), 200
+
+#TAG MODULE
+    @app.route('/api/tasks/', methods=['GET'])
+    @jwt_required()
+    def create_tag():
+        try:
+            token = request.cookies.get('token')
+            user_id = decodeToken(token)
+        except:
+            return jsonify({'message': 'User not authenticated'}), 401
+
+        data = request.get_json()
+        tag_name = data['name']
+        tag_color = data['color']
+    
+        cur = mysql.connection.cursor()
+
+        try:
+            cur.execute(
+                "INSERT INTO Tags (name, color, user_id) VALUES (%s, %s, %s)",
+                (tag_name, tag_color, user_id)
+            )
+            mysql.connection.commit()
+            cur.close()
+            return jsonify({'message': 'Tag created successfully', 'data': None}), 200
+        except Exception as error:
+            mysql.connection.rollback()
+            cur.close()
+            print('Error during transaction', error)
+            return jsonify({'message': 'Error creating tag', 'data': None}), 500
+        
+    @app.route('/api/tags/', methods=['GET'])
+    @jwt_required()
+    def getAll_tags():
+        try:
+            token = request.cookies.get('token')
+            user_id = decodeToken(token)
+        except:
+            return jsonify({'message': 'User not authenticated'}), 401
+        
+        cur = mysql.connection.cursor(cursorclass=DictCursor)   
+        try:
+            cur.execute(
+                "SELECT * FROM Tags WHERE user_id = %s",
+                (user_id,)
+            )
+            tags = cur.fetchall()
+            mysql.connection.commit()
+            cur.close()
+            return jsonify({'message': 'Tags fetched successfully', 'data': tags}), 200
+        except Exception as e:
+            mysql.connection.rollback()
+            cur.close()
+            return jsonify({'message': f"An error occurred: {e}", 'data': None}), 400
+        
+    @app.route('/api/tags/<int:note_id>', methods=['GET'])
+    @jwt_required()
+    def getTags():
+        try:
+            token = request.cookies.get('token')
+            user_id = decodeToken(token)
+        except:
+            return jsonify({'message': 'User not authenticated'}), 401
+    
+        cur = mysql.connection.cursor(cursorclass=DictCursor)
+        note_id = request.args.get('note_id')
+        try:
+            cur.execute(
+                "SELECT t.id t.name, t.color FROM Tags t JOIN NoteTags nt ON t.id = nt.tag_id WHERE nt.note_id = %s",
+                (note_id,)
+            )
+            tags = cur.fetchall()
+            mysql.connection.commit()
+            cur.close()
+            return jsonify({'message': 'Tags fetched successfully', 'data': tags}), 200
+        except Exception as e:
+            mysql.connection.rollback()
+            cur.close()
+            return jsonify({'message': f"An error occurred: {e}", 'data': None}), 400
+    
+    @app.route('/api/tags/add', methods=['POST'])
+    @jwt_required()
+    def addTag():
+        try:
+            token = request.cookies.get('token')
+            user_id = decodeToken(token)
+        except:
+            return jsonify({'message': 'User not authenticated'}), 401
+        cur = mysql.connection.cursor()
+        data = request.get_json()
+        note_id = data['note_id']
+        tag_id = data['tag_id']
+        try:
+            cur.execute (
+                "INSERT INTO NoteTags (note_id, tag_id) VALUES (%s, %s)",
+            )
+            mysql.connection.commit()
+            cur.close()
+            return jsonify({'message': 'Tag added successfully', 'data': None}), 200
+        except Exception as e:
+            mysql.connection.rollback()
+            cur.close()
+            return jsonify({'message': f"An error occurred: {e}", 'data': None}), 400

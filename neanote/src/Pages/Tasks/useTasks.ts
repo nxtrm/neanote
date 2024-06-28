@@ -31,7 +31,7 @@ type TaskState = {
   toggleTaskCompleted: (taskId: number) => void;
   toggleSubtaskCompleted: (subtaskId: number, taskId: number) => void;
   sendUpdatesToServer: () => Promise<void>;
-  handleEditTask: (taskId: number) => void;
+  handleEditTask: () => void;
   setCurrentTask: (task: TaskPreview) => void;
   pendingUpdates: {};
 };
