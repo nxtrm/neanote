@@ -405,7 +405,7 @@ def register_routes(app, mysql, jwt):
         tag_id = data['tag_id']
         try:
             cur.execute (
-                "INSERT INTO NoteTags (note_id, tag_id) VALUES (%s, %s)",
+                "INSERT INTO NoteTags (note_id, tag_id) VALUES (%s, %s)", (note_id, tag_id),
             )
             mysql.connection.commit()
             cur.close()
