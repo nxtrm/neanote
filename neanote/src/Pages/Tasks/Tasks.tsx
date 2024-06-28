@@ -116,13 +116,13 @@ function Tasks() {
     <div className='pt-3 rounded-md'>
                 <Textarea value={textField}  placeholder="Describe your task here" onChange={(e) => setTextField(e.target.value)} />
                 {subtasks.map((subtask, index) => (
-                      <div key={subtask.id} className='flex pt-3 gap-2 items-center'>
+                      <div key={subtask.subtaskid} className='flex pt-3 gap-2 items-center'>
                             <Input 
                                 type='text' 
                                 value={subtask.description} 
-                                onChange={(e) => handleSubtaskChange(subtask.id, e.target.value)} 
+                                onChange={(e) => handleSubtaskChange(subtask.subtaskid, e.target.value)} 
                                 />
-                            <Button onClick={() => handleRemoveSubtask(subtask.id)} variant="secondary" size="icon">
+                            <Button onClick={() => handleRemoveSubtask(subtask.subtaskid)} variant="secondary" size="icon">
                               <FaRegTrashAlt/>
                             </Button>
                             

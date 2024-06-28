@@ -1,6 +1,6 @@
 
 export interface Subtask {
-    id: number;
+    subtaskid: number;
     description: string;
     completed: boolean;
   };
@@ -10,7 +10,8 @@ export interface TaskUpdate extends TaskPreview {
   }
 
 export interface TaskPreview {
-    id: number;
+    noteid: number;
+    taskid: number;
     title: string;
     content: string;
     completed: boolean;

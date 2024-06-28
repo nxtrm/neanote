@@ -18,7 +18,7 @@ function TaskCard({ task }: { task: TaskPreview }) {
     } = useTasks()
     
     const toggleCompleted = () => {
-        toggleTaskCompleted(task.id);
+        toggleTaskCompleted(task.taskid);
     };
 
     const handleEditClick = (task:TaskPreview) => {
@@ -67,8 +67,8 @@ function TaskCard({ task }: { task: TaskPreview }) {
         </div>
 
         {task.subtasks.map((subtask) => (
-            <div className='pt-2' key={subtask.id}>
-              <SubTaskCard subtask={subtask} taskId={task.id}/>
+            <div className='pt-2' key={subtask.subtaskid}>
+              <SubTaskCard subtask={subtask} taskId={task.taskid}/>
             </div>
         ))}
 

@@ -30,6 +30,7 @@ const tasksApi = {
         try {
             let response = await a.get<TaskResponse>(`/api/tasks/`);
 
+            console.log(response.data)
             return response.data;
         } catch (error) {
             showToast('e', error);

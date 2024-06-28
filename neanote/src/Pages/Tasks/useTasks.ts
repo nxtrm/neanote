@@ -6,7 +6,8 @@ import { Subtask, TaskPreview } from '../../api/types/taskTypes';
 
 type TaskState = {
   section: string;
-  currentId:number | undefined;
+  currentTaskId:number | undefined;
+  currentNoteId: number | undefined;
   taskTitle: string;
   dueDate: Date | undefined;
   dueTime: string;
@@ -43,7 +44,8 @@ export let useTasks = create<TaskState>((set, get) => {
 
   section: 'all tasks',
   dueDate: undefined,
-  currentId: undefined,
+  currentTaskId: undefined,
+  currentNoteId: undefined,
   dueTime: '',
   taskTitle: '',
   tags: [],
@@ -73,18 +75,18 @@ export let useTasks = create<TaskState>((set, get) => {
 
   handleAddSubtask: () => {
     set((state) => ({
-      subtasks: [...state.subtasks, { id: state.subtasks.length + 1, description: '', completed: false }],
+      subtasks: [...state.subtasks, { subtaskid: state.subtasks.length + 1, description: '', completed: false }],
     }));
   },
   handleRemoveSubtask: (subtaskId) => {
     set((state) => ({
-      subtasks: state.subtasks.filter((subtask) => subtask.id !== subtaskId),
+      subtasks: state.subtasks.filter((subtask) => subtask.subtaskid !== subtaskId),
     }));
   },
   handleSubtaskChange: (subtaskId: number, update: string) => {
     set((state) => {
       const newSubtasks = state.subtasks.map((subtask) => {
-        if (subtask.id === subtaskId) {
+        if (subtask.subtaskid === subtaskId) {
           return { ...subtask, description: update};
         }
         return subtask;
@@ -94,7 +96,7 @@ export let useTasks = create<TaskState>((set, get) => {
   },
   
   setCurrentTask: (task: TaskPreview) => {
-    set({currentId: task.id, taskTitle: task.title, tags: task.tags, textField: task.content, subtasks: task.subtasks, dueDate: task.due_date, dueTime: '' });
+    set({currentNoteId:task.noteid, currentTaskId: task.taskid, taskTitle: task.title, tags: task.tags, textField: task.content, subtasks: task.subtasks, dueDate: task.due_date, dueTime: '' });
 
   },
 
@@ -104,9 +106,9 @@ export let useTasks = create<TaskState>((set, get) => {
   
     set((state) => {
       newTasks = state.tasks.map((task) => {
-        if (task.id === taskId) {
+        if (task.taskid === taskId) {
           const newSubtasks = task.subtasks.map((subtask) => {
-            if (subtask.id === subtaskId) {
+            if (subtask.subtaskid === subtaskId) {
               taskUpdated = true; // Mark that an update is needed
               return { ...subtask, completed: !subtask.completed };
             }
@@ -128,7 +130,7 @@ export let useTasks = create<TaskState>((set, get) => {
   toggleTaskCompleted: async (taskId: number) => {
     set((state) => {
       const newTasks = state.tasks.map((task) => {
-        if (task.id === taskId) {
+        if (task.taskid === taskId) {
           return { ...task, completed: !task.completed };
         }
         return task;
@@ -139,7 +141,7 @@ export let useTasks = create<TaskState>((set, get) => {
   },
 
   handleEditTask: function() {
-    const { sendUpdatesToServer, currentId } = get();
+    const { sendUpdatesToServer, currentTaskId, currentNoteId } = get();
     let {
       taskTitle,
       tags, //replace with tag ids when tags module is done
@@ -149,14 +151,15 @@ export let useTasks = create<TaskState>((set, get) => {
       subtasks, 
   } = get()
 
-    if (typeof currentId === 'undefined') {
+    if (typeof currentTaskId === 'undefined') {
       console.error('currentId is undefined');
       return; // Exit the function if currentId is undefined
     }
     set((state) => {
 
       const updatedTask = {
-        id: currentId,
+        taskid: currentTaskId,
+        noteId: currentNoteId,
         title: taskTitle,
         tags: tags,
         content: textField,
@@ -166,7 +169,7 @@ export let useTasks = create<TaskState>((set, get) => {
       };
   
       const updatedTasks = state.tasks.map((task) => 
-        task.id === currentId ? { ...task, ...updatedTask } : task
+        task.taskid === currentTaskId ? { ...task, ...updatedTask } : task
       );
   
       return { ...state, pendingUpdates: updatedTask, tasks: updatedTasks };
@@ -187,7 +190,8 @@ export let useTasks = create<TaskState>((set, get) => {
           set({
             taskTitle: '',
             tags: [],
-            currentId: undefined,
+            currentTaskId: undefined,
+            currentNoteId: undefined,
             dueDate: undefined,
             dueTime: '',
             textField: '',

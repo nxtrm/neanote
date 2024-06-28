@@ -161,7 +161,8 @@ def register_routes(app, mysql, jwt):
 
         cur = mysql.connection.cursor()
         try:
-            task_id = task['id']
+            note_id = task['noteid']
+            task_id = task['taskid']
 
             query = """
             UPDATE Notes
@@ -172,7 +173,7 @@ def register_routes(app, mysql, jwt):
             due_date = task.get('dueDate') #add funcitonality to update Tasks table later
             due_time = task.get('dueTime', '')
 
-            cur.execute(query, (task['title'], task['content'], task_id))
+            cur.execute(query, (task['title'], task['content'], note_id))
             
             # Delete existing subtasks and tags before inserting new ones
             cur.execute("DELETE FROM Subtasks WHERE task_id = %s", (task_id,))
@@ -192,6 +193,7 @@ def register_routes(app, mysql, jwt):
         except Exception as e:
             mysql.connection.rollback()
             return jsonify({'message': f"An error occurred: {e}", 'data': None}), 400
+    
         
     @app.route('/api/tasks/toggle', methods=['POST'])
     @jwt_required()
@@ -221,7 +223,7 @@ def register_routes(app, mysql, jwt):
                                     END 
                     WHERE id = %s
                     """
-                cur.execute(toggle_sql, (taskId,))  # Correctly pass taskId as a tuple
+                cur.execute(toggle_sql, (taskId,)) 
 
             mysql.connection.commit()
             cur.close()
@@ -235,7 +237,7 @@ def register_routes(app, mysql, jwt):
             
     @app.route('/api/tasks/', methods=['GET'])
     @jwt_required()
-    def getAllPreviews(): #split into multiple functions, FIX VULNERABILITY WITH USER ID BEING SENT INSTEAD OF TOKEN, DECODE TOKEN HERE
+    def getAllPreviews(): 
             try:
                     token = request.cookies.get('token')
                     userId = decodeToken(token)
@@ -274,7 +276,8 @@ def register_routes(app, mysql, jwt):
                 note_id = row['note_id']
                 if note_id not in tasks:
                     tasks[note_id] = {
-                        'id': row['note_id'],
+                        'noteid': row['note_id'],
+                        'taskid': row['task_id'],
                         'title': row['note_title'],
                         'content': row['note_content'],
                         'completed': True if row['task_completed'] == 1 else False,
@@ -290,7 +293,7 @@ def register_routes(app, mysql, jwt):
                 # If the subtask is not already present, append it to the subtasks list
                 if not is_subtask_present:
                     new_subtask = {
-                        'id': row['subtask_id'],
+                        'subtaskid': row['subtask_id'],
                         'description': row['subtask_description'],
                         'completed': True if row['subtask_completed'] == 1 else False
                     }
@@ -299,7 +302,7 @@ def register_routes(app, mysql, jwt):
                 # Append tags if they exist
                 if row['tag_id'] and row['tag_name'] not in [tag['name'] for tag in tasks[note_id]['tags']]:
                     tasks[note_id]['tags'].append({
-                        'id': row['tag_id'],
+                        'tagid': row['tag_id'],
                         'name': row['tag_name'],
                         'color': row['tag_color']
                     })
