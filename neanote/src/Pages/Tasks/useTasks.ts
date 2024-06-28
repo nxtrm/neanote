@@ -32,6 +32,7 @@ type TaskState = {
   toggleSubtaskCompleted: (subtaskId: number, taskId: number) => void;
   sendUpdatesToServer: () => Promise<void>;
   handleEditTask: () => void;
+  handleDeleteTask: (taskId: number | undefined, noteId: number| undefined) => void;
   setCurrentTask: (task: TaskPreview) => void;
   pendingUpdates: {};
 };
@@ -177,6 +178,20 @@ export let useTasks = create<TaskState>((set, get) => {
     sendUpdatesToServer();
   },
 
+  handleDeleteTask: async (taskId: number | undefined, noteId: number | undefined) => {
+    if (taskId === undefined || noteId === undefined) {
+      return
+    }
+    const { tasks, setSection } = get();
+    set((state) => {
+        const newTasks = state.tasks.filter((task) => task.taskid !== taskId);
+      return { ...state, tasks: newTasks };
+      });
+    if( await tasksApi.delete(taskId, noteId)){
+      setSection('all tasks')
+    }
+  
+},
   
 
   sendUpdatesToServer : async () => {

@@ -48,6 +48,18 @@ const tasksApi = {
         }
     },
 
+    delete : async (taskId: number,noteId:number) => {
+        try {
+            const response = await a.post(`/api/tasks/delete`, {taskId,noteId})
+            if (response.status === 200) {
+                return true
+        }
+        } catch (error) {
+            showToast('e', error);
+            return false
+        }
+    },
+
     toggleCompleteness: async (taskId: number, subtaskId: number| null) => {
         try {
             const response = await a.post(`/api/tasks/toggle`, {"taskId": taskId,"subtaskId": subtaskId });

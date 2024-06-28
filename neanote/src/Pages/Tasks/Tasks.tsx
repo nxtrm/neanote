@@ -20,7 +20,8 @@ function Tasks() {
         taskTitle,
         dueTime,
         handleSubtaskChange,
-        pendingUpdates,
+        currentTaskId,
+        currentNoteId,
         setDate,
         setTime,
         textField,
@@ -37,7 +38,7 @@ function Tasks() {
         handleRemoveSubtask,
         handleEditTask,
         sendUpdatesToServer,
-        handleTagAdd,
+        handleDeleteTask,
         handleSaveTask,
 
     } = useTasks();
@@ -129,19 +130,27 @@ function Tasks() {
                         </div>
                     ))}
 {/* Footer */}
-      <div className='flex py-3 justify-between'>
+                 <div className='flex py-3 justify-between'>
                     <Button onClick={handleAddSubtask}>
                       <div className='flex flex-row items-center gap-2'>
                         <FaPlus /> 
                         Add Subtask
                       </div>
                     </Button>
-                    <Button onClick={
-                        section === "create" ? handleSaveTask: handleEditTask
-                    }
-                      >
-                        Save
-                    </Button>
+                    <div className='flex flex-row gap-2'>
+                        <Button variant="outline" onClick={() =>
+                            handleDeleteTask(currentTaskId, currentNoteId)
+                          
+                            }>
+                            Delete
+                        </Button>
+                        <Button onClick={
+                            section === "create" ? handleSaveTask: handleEditTask
+                        }
+                        >
+                            Save
+                        </Button>
+                    </div>
                 </div>
         </div>
       </div>

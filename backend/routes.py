@@ -199,14 +199,14 @@ def register_routes(app, mysql, jwt):
     def delete_task():
         try:
             data = request.get_json()
-            taskId = data['taskid']
-            noteId = data['noteid']
+            taskId = data['taskId']
+            noteId = data['noteId']
             cur = mysql.connection.cursor()
 
-            cur.execute("DELETE FROM Tasks WHERE id = %s", (taskId))
-            cur.execute("DELETE FROM Subtasks WHERE task_id = %s", (taskId))
-            cur.execute("DELETE FROM Notes WHERE task_id = %s", (taskId))
-            cur.execute("DELETE FROM NoteTags WHERE note_id = %s", (noteId))
+            cur.execute("DELETE FROM NoteTags WHERE note_id = %s", (noteId,))
+            cur.execute("DELETE FROM Subtasks WHERE task_id = %s", (taskId,))
+            cur.execute("DELETE FROM Tasks WHERE note_id = %s", (noteId,))
+            cur.execute("DELETE FROM Notes WHERE id = %s", (noteId,))
             mysql.connection.commit()
             cur.close()
             return jsonify({'message': 'Task deleted successfully', 'data': None}), 200
