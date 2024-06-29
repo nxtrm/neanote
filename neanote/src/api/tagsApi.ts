@@ -55,7 +55,29 @@ const tagsApi = {
             showToast('e', error);
             return false;
         }
+    },
+
+    edit : async (tagId: number, name: string, color: string) => {
+        try {
+            let response = await a.post(`/api/tags/edit`, {
+                tagId,
+                name,
+                color
+            });
+
+            if (response.status === 200) {
+                showToast('s', 'Tag has been updated successfully');
+            } else {
+                showToast('e', 'There was an error updating the tag')
+            }
+
+            return response.data;
+        } catch (error) {
+            showToast('e', error);
+            return false;
+        }
     }
+
 
 
 

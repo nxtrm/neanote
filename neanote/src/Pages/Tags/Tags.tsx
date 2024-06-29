@@ -1,12 +1,15 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import PageContainer from '../../../components/PageContainer/PageContainer'
 import { useTags } from './useTags'
 import { Button } from '../../../components/@/ui/button';
 import { Separator } from "../../../components/@/ui/separator";
 import { FaPlus } from 'react-icons/fa6';
 import TagCard from '../../../components/TagCard/TagCard';
-import { z } from "zod"
+import { HexColorPicker } from "react-colorful";
 import { MdCancel } from 'react-icons/md';
+import { Input } from '../../../components/@/ui/input';
+import { Popover } from '@radix-ui/react-popover';
+import { PopoverContent, PopoverTrigger } from '../../../components/@/ui/popover';
 
 function Tags() {
   const {
@@ -14,6 +17,12 @@ function Tags() {
     fetchTags,
     section,
     setSection,
+    tagTitle,
+    setTagTitle,
+    color,
+    setColor,
+    handleSaveTag,
+    handleEditTag,
   } = useTags()
 
   useEffect(() => {
@@ -57,7 +66,30 @@ const createTagForm = (
     <div className='pt-2'>
         <Separator />
     </div>
+    <div className='py-2 flex flex-col gap-2'>
 
+      <Input 
+          className='border rounded-md w-full h-10 leading-tight focus:outline-none focus:shadow-outline' 
+          placeholder='Title'
+          type='text' 
+          value={tagTitle} 
+          onChange={(e) => setTagTitle(e.target.value)} 
+          />
+        <Popover>
+          <PopoverTrigger asChild>
+              <Button style={{backgroundColor:color }}/>
+          </PopoverTrigger>
+          <PopoverContent className='w-200'>
+              <HexColorPicker color={color} onChange={setColor} />
+          </PopoverContent>
+        </Popover>
+    </div>
+      <Button onClick=
+      {
+          section === "create" ? handleSaveTag: handleEditTag
+      }>
+        Save
+      </Button>
     
   </div>
 );

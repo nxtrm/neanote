@@ -333,7 +333,7 @@ def register_routes(app, mysql, jwt):
             return jsonify({"data": tasks_list, 'message': "Tasks fetched successfully"}), 200
 
 #TAG MODULE
-    @app.route('/api/tasks/', methods=['GET'])
+    @app.route('/api/tags/create', methods=['POST'])
     @jwt_required()
     def create_tag():
         try:
@@ -430,6 +430,31 @@ def register_routes(app, mysql, jwt):
             mysql.connection.commit()
             cur.close()
             return jsonify({'message': 'Tag added successfully', 'data': None}), 200
+        except Exception as e:
+            mysql.connection.rollback()
+            cur.close()
+            return jsonify({'message': f"An error occurred: {e}", 'data': None}), 400
+        
+    @app.route('/api/tags/edit', methods=['POST'])
+    @jwt_required()
+    def editTag():
+        try:
+            token = request.cookies.get('token')
+            user_id = decodeToken(token)
+        except:
+            return jsonify({'message': 'User not authenticated'}), 401
+        cur = mysql.connection.cursor()
+        data = request.get_json()
+        tag_id = data['tagId']
+        name = data['name']
+        color = data['color']
+        try:
+            cur.execute (
+                "UPDATE Tags SET name = %s, color = %s WHERE id = %s", (name, color, tag_id),
+            )
+            mysql.connection.commit()
+            cur.close()
+            return jsonify({'message': 'Tag updated successfully', 'data': None}), 200
         except Exception as e:
             mysql.connection.rollback()
             cur.close()
