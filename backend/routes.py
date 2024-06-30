@@ -19,8 +19,6 @@ def register_routes(app, mysql, jwt):
             cur = mysql.connection.cursor()
             cur.execute("SELECT * FROM users WHERE username = %s AND password = %s", (username, password))
             user = cur.fetchone()
-            cur.close()
-
             if user:
                 userId = str(user[0])
                 access_token = create_access_token(identity=userId, expires_delta=timedelta(days=1))
@@ -32,9 +30,9 @@ def register_routes(app, mysql, jwt):
                 return jsonify({'message': 'User not found'}), 401
         except Exception as error:
             mysql.connection.rollback()
+            raise
+        finally:
             cur.close()
-            print('Error during user login', error)
-            return jsonify({'message': 'Error logging the user in'}), 500
 
     @app.route('/api/register', methods=['POST'])
     def register():
@@ -61,16 +59,16 @@ def register_routes(app, mysql, jwt):
             try:
                 access_token = create_access_token(exp=(datetime.datetime.utcnow() + datetime.timedelta(days=1)),identity=userId)
             except Exception as e:
-                print(e)
+                raise
 
             response.set_cookie('token', access_token)
             response = jsonify({'message': 'User created successfully', 'userId': userId})
             return response
         except Exception as error:
             mysql.connection.rollback()
+            raise
+        finally:
             cur.close()
-            print('Error during user creation', error)
-            return jsonify({'message': 'Error creating user'}), 500
         
 
 #TASK MODULE
@@ -148,7 +146,7 @@ def register_routes(app, mysql, jwt):
         except Exception as error:
             mysql.connection.rollback()
             print('Error during transaction', error)
-            return jsonify({'message': 'Error creating task', 'data': None}), 500
+            raise
         finally:
             cur.close()
         
@@ -203,7 +201,7 @@ def register_routes(app, mysql, jwt):
             return jsonify({'message': 'Task updated successfully', 'data': None}), 200
         except Exception as e:
             mysql.connection.rollback()
-            return jsonify({'message': f"An error occurred: {e}", 'data': None}), 400
+            raise
         finally:        
             cur.close()
         
@@ -231,7 +229,7 @@ def register_routes(app, mysql, jwt):
             return jsonify({'message': 'Task deleted successfully', 'data': None}), 200
         except Exception as e:
             mysql.connection.rollback()
-            return jsonify({'message': f"An error occurred: {e}", 'data': None}), 400
+            raise
         finally:
             cur.close()
     
@@ -241,9 +239,9 @@ def register_routes(app, mysql, jwt):
     @token_required
     def toggleTaskFields():
         try:
-            userId = g. userId
+            userId = g.userId
             data = request.get_json()
-            taskId = data.get('taskId') 
+            taskId = data.get('taskId')
             subtaskId = data.get('subtaskId')  # Correctly extract subtaskId, if present
 
             cur = mysql.connection.cursor()
@@ -274,7 +272,7 @@ def register_routes(app, mysql, jwt):
             return jsonify({'message': 'Field toggled successfully', "data": None}), 200
         except Exception as e:
             mysql.connection.rollback()  # Ensure to rollback in case of error
-            return jsonify({'message': f'An error occurred: {str(e)}'}), 400
+            raise
         finally:
             cur.close()
             
@@ -284,6 +282,7 @@ def register_routes(app, mysql, jwt):
     @jwt_required()
     @token_required
     def getAllPreviews(): 
+        try:
             userId = g.userId
             cur = mysql.connection.cursor(cursorclass=DictCursor)
 
@@ -352,6 +351,9 @@ def register_routes(app, mysql, jwt):
             cur.close()
             tasks_list = [value for key, value in tasks.items()]
             return jsonify({"data": tasks_list, 'message': "Tasks fetched successfully"}), 200
+        except Exception as e:
+            mysql.connection.rollback()
+            raise
 
 #TAG MODULE
     @app.route('/api/tags/create', methods=['POST'])
@@ -375,7 +377,7 @@ def register_routes(app, mysql, jwt):
         except Exception as error:
             mysql.connection.rollback()
             print('Error during transaction', error)
-            return jsonify({'message': 'Error creating tag', 'data': None}), 500
+            raise
         finally:
             cur.close()
         
@@ -396,7 +398,7 @@ def register_routes(app, mysql, jwt):
             return jsonify({'message': 'Tags fetched successfully', 'data': tags}), 200
         except Exception as e:
             mysql.connection.rollback()
-            return jsonify({'message': f"An error occurred: {e}", 'data': None}), 400
+            raise
         finally:
             cur.close()
         
@@ -415,12 +417,12 @@ def register_routes(app, mysql, jwt):
             )
             tags = cur.fetchall()
             mysql.connection.commit()
-            cur.close()
             return jsonify({'message': 'Tags fetched successfully', 'data': tags}), 200
         except Exception as e:
             mysql.connection.rollback()
+            raise
+        finally:
             cur.close()
-            return jsonify({'message': f"An error occurred: {e}", 'data': None}), 400
     
     @app.route('/api/tags/add', methods=['POST'])
     @jwt_required()
@@ -443,7 +445,7 @@ def register_routes(app, mysql, jwt):
         except Exception as e:
             mysql.connection.rollback()
             cur.close()
-            return jsonify({'message': f"An error occurred: {e}", 'data': None}), 400
+            raise
         
     @app.route('/api/tags/edit', methods=['POST'])
     @jwt_required()
@@ -467,7 +469,7 @@ def register_routes(app, mysql, jwt):
             return jsonify({'message': 'Tag updated successfully', 'data': None}), 200
         except Exception as e:
             mysql.connection.rollback()
-            return jsonify({'message': f"An error occurred: {e}", 'data': None}), 400
+            raise
         finally:
             cur.close()
     
@@ -495,7 +497,7 @@ def register_routes(app, mysql, jwt):
             return jsonify({'message': 'Tag deleted successfully', 'data': None}), 200
         except Exception as e:
             mysql.connection.rollback()
-            return jsonify({'message': f"An error occurred: {e}", 'data': None}), 400
+            raise
         finally:
             cur.close()
             
