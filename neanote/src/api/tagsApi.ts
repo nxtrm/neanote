@@ -57,6 +57,23 @@ const tagsApi = {
         }
     },
 
+    delete : async (tagId: number) => {
+        try {
+            let response = await a.post(`/api/tags/delete`, {tagId})
+
+            if (response.status === 200) {
+                showToast('s', 'Tag has been deleted successfully');
+                return true;
+            } else {
+                showToast('e', 'There was an error deleting the tag')
+                return false;
+            }
+        } catch (error) {
+            showToast('e', error);
+            return false;
+        }
+    },
+
     edit : async (tagId: number, name: string, color: string) => {
         try {
             let response = await a.post(`/api/tags/edit`, {

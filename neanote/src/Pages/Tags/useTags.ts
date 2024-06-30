@@ -14,6 +14,7 @@ type TagState = {
     setCurrentTagId: (tagId: number) => void;
     updateState: (key: keyof TagState, value: any) => void;
     handleSaveTag: () => void;
+    handleDeleteTag: () => void;
     handleEditTag: () => void;
 }
 
@@ -45,6 +46,16 @@ export let useTags = create<TagState>((set, get) => {
           },
 
         setCurrentTagId: (tagId) => updateState('currentTagId', tagId),
+
+        handleDeleteTag: async () => {
+            let {currentTagId} = get();
+            if (currentTagId === undefined) return;
+
+            if(await tagsApi.delete(currentTagId)) {
+                await get().fetchTags();
+                set({ section: 'all tags' });
+            }
+        },
 
         handleEditTag: async () => {
             let {currentTagId, tagTitle, color} = get();

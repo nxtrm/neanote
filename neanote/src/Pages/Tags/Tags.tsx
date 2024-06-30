@@ -23,6 +23,7 @@ function Tags() {
     setColor,
     handleSaveTag,
     handleEditTag,
+    handleDeleteTag
   } = useTags()
 
   useEffect(() => {
@@ -84,12 +85,16 @@ const createTagForm = (
           </PopoverContent>
         </Popover>
     </div>
+    <div className='flex flex-row gap-3'>
+
       <Button onClick=
       {
-          section === "create" ? handleSaveTag: handleEditTag
+        section === "create" ? handleSaveTag: handleEditTag
       }>
         Save
       </Button>
+      {section === "edit" && <Button variant={'secondary'} onClick={handleDeleteTag}>Delete</Button>}
+        </div>
     
   </div>
 );

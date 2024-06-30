@@ -459,3 +459,31 @@ def register_routes(app, mysql, jwt):
             mysql.connection.rollback()
             cur.close()
             return jsonify({'message': f"An error occurred: {e}", 'data': None}), 400
+    
+    @app.route('/api/tags/delete', methods=['POST'])
+    @jwt_required()
+    def deleteTag():
+        try:
+            token = request.cookies.get('token')
+            user_id = decodeToken(token)
+        except:
+            return jsonify({'message': 'User not authenticated'}), 401
+        
+        cur = mysql.connection.cursor()
+        data = request.get_json()
+        tag_id = data['tagId']
+        try:
+
+            cur.execute (
+                "DELETE FROM Tags WHERE id = %s AND user_id = %s" , (tag_id,user_id),
+            ) 
+            cur.execute (
+                "DELETE FROM NoteTags WHERE tag_id = %s", (tag_id,),
+            )
+            mysql.connection.commit()
+            return jsonify({'message': 'Tag deleted successfully', 'data': None}), 200
+        except Exception as e:
+            mysql.connection.rollback()
+            cur.close()
+            return jsonify({'message': f"An error occurred: {e}", 'data': None}), 400
+        

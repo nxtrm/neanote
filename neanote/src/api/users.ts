@@ -11,7 +11,7 @@ const users = {
             if (response.status === 200) {
                 showToast('s', 'Login successful');
             } else {
-                showToast('e', 'There was an error logging in')
+                showToast('e', `There was an error logging in: ${response.data.message}`)
             }
             
             return response.data;
