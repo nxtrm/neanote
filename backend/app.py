@@ -18,6 +18,11 @@ jwt = JWTManager(app)
 #Registering routes
 register_routes(app, mysql, jwt)
 
+#Centralized error handler
+@app.errorhandler(Exception)
+def handle_exception(error):
+    # Handle specific exceptions or return a generic response
+    return jsonify({'message': 'An error occurred', 'details': str(error)}), 500
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

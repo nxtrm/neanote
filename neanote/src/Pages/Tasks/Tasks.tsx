@@ -71,7 +71,7 @@ function Tasks() {
     {/* Navbar */}
       <div className='flex flex-row justify-between'>
 
-                <p className='pl-1 text-2xl font-bold'>{section === 'create'? "Create Task" : "Edit Task"}</p>
+                <p className='pl-1 text-2xl font-bold'>{section === 'create task'? "Create Task" : "Edit Task"}</p>
                 {/* Date Picker */}
                 <div className='flex flex-row gap-2'>
                     <DatePicker onDateChange={setDate}/>
@@ -145,7 +145,7 @@ function Tasks() {
                             Delete
                         </Button>
                         <Button onClick={
-                            section === "create" ? handleSaveTask: handleEditTask
+                            section === "create task" ? handleSaveTask: handleEditTask
                         }
                         >
                             Save

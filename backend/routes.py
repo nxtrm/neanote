@@ -1,12 +1,12 @@
 from datetime import datetime, timedelta
 
-from flask import Flask, jsonify, request
+from flask import Flask, g, jsonify, request
 from flask_cors import CORS
 from flask_jwt_extended import (JWTManager, create_access_token,
                                 get_jwt_identity, jwt_required)
 from MySQLdb.cursors import DictCursor
 
-from utils import decodeToken, generateToken
+from utils import token_required, verify_subtask_ownership, verify_tag_ownership, verify_task_ownership
 
 
 def register_routes(app, mysql, jwt):
@@ -76,12 +76,9 @@ def register_routes(app, mysql, jwt):
 #TASK MODULE
     @app.route('/api/tasks/create', methods=['POST'])
     @jwt_required()
+    @token_required
     def create_task():
-        try:
-                token = request.cookies.get('token')
-                userId = decodeToken(token)
-        except:
-            return jsonify({'message': 'User not authenticated'}), 401
+        userId = g. userId
 
         data = request.get_json()
         title = data['taskTitle']
@@ -105,7 +102,7 @@ def register_routes(app, mysql, jwt):
 
             if dueDate:
                 due_date_obj = datetime.fromisoformat(dueDate.rstrip("Z"))
-                # Default dueTime to "08:00" if it's undefined
+
                 if dueTime is None:
                     dueTime = "08:00"
                 # Combine dueDate and dueTime
@@ -150,58 +147,80 @@ def register_routes(app, mysql, jwt):
             return jsonify({'message': 'Task created successfully', 'data': None}), 200
         except Exception as error:
             mysql.connection.rollback()
-            cur.close()
             print('Error during transaction', error)
             return jsonify({'message': 'Error creating task', 'data': None}), 500
+        finally:
+            cur.close()
         
     @app.route('/api/tasks/update', methods=['POST'])
     @jwt_required()
+    @token_required
     def update_task():
         task = request.get_json()
-
+        userId = g. userId
         cur = mysql.connection.cursor()
+
         try:
             note_id = task['noteid']
             task_id = task['taskid']
 
-            query = """
-            UPDATE Notes
-            SET title = %s, content = %s
-            WHERE id = %s
-            """
-
-            due_date = task.get('dueDate') #add funcitonality to update Tasks table later
-            due_time = task.get('dueTime', '')
-
-            cur.execute(query, (task['title'], task['content'], note_id))
+            if verify_task_ownership(userId, task_id, cur) is False:
+                return jsonify({'message': 'You do not have permission to update this task'}), 403
             
+            query = """
+                    UPDATE Notes
+                    SET title = %s, content = %s
+                    WHERE id = %s AND user_id = %s
+                    """
+            cur.execute(query, (task['title'], task['content'], note_id, userId))
+
+            dueDate = task.get('dueDate') 
+            dueTime = task.get('dueTime')
+
+            if dueDate:
+                due_date_obj = datetime.fromisoformat(dueDate.rstrip("Z"))
+
+                if dueTime is None:
+                    dueTime = "08:00"
+                # Combine dueDate and dueTime
+                due_datetime = due_date_obj.strftime('%Y-%m-%d') + ' ' + dueTime + ':00'
+
+            cur.execute("UPDATE Tasks SET due_date = %s WHERE id = %s", (due_datetime, task_id))
+                
             # Delete existing subtasks and tags before inserting new ones
             cur.execute("DELETE FROM Subtasks WHERE task_id = %s", (task_id,))
-            # cur.execute("DELETE FROM TaskTags WHERE task_id = %s", (task_id,))
 
             for subtask in task.get('subtasks', []):
                 cur.execute("INSERT INTO Subtasks (task_id, description, completed) VALUES (%s, %s, %s)", (task_id, subtask['description'], subtask['completed']))
-            
-            # # Insert tags
-            # for tag in task_details.get('tags', []):  # Use .get() to avoid KeyError if 'tags' is missing
-            #     cur.execute("INSERT INTO TaskTags (task_id, tag) VALUES (%s, %s)", (task_id, tag))
+                
+            cur.execute("DELETE FROM NoteTags WHERE note_id = %s", (note_id,))
+                # Insert tags
+            for tag in task.get('tags', []):  # Use .get() to avoid KeyError if 'tags' is missing
+                cur.execute("INSERT INTO NoteTags (note_id, tag_id) VALUES (%s, %s)", (note_id, tag['id']))
 
 
             mysql.connection.commit()
-            cur.close()
             return jsonify({'message': 'Task updated successfully', 'data': None}), 200
         except Exception as e:
             mysql.connection.rollback()
             return jsonify({'message': f"An error occurred: {e}", 'data': None}), 400
+        finally:        
+            cur.close()
         
     @app.route('/api/tasks/delete', methods=['POST'])
     @jwt_required()
+    @token_required
     def delete_task():
         try:
+            userId = g. userId
             data = request.get_json()
             taskId = data['taskId']
             noteId = data['noteId']
             cur = mysql.connection.cursor()
+
+            if not verify_task_ownership(userId, taskId, cur):
+                return jsonify({'message': 'You do not have permission to update this task'}), 403
+
 
             cur.execute("DELETE FROM NoteTags WHERE note_id = %s", (noteId,))
             cur.execute("DELETE FROM Subtasks WHERE task_id = %s", (taskId,))
@@ -213,56 +232,59 @@ def register_routes(app, mysql, jwt):
         except Exception as e:
             mysql.connection.rollback()
             return jsonify({'message': f"An error occurred: {e}", 'data': None}), 400
+        finally:
+            cur.close()
     
         
     @app.route('/api/tasks/toggle', methods=['POST'])
     @jwt_required()
+    @token_required
     def toggleTaskFields():
         try:
+            userId = g. userId
             data = request.get_json()
             taskId = data.get('taskId') 
             subtaskId = data.get('subtaskId')  # Correctly extract subtaskId, if present
 
             cur = mysql.connection.cursor()
+            if (verify_task_ownership(userId, taskId, cur) and verify_subtask_ownership(userId, subtaskId, cur)) is False:
+                return jsonify({'message': 'You do not have permission to update this task'}), 403
+            
             if subtaskId:
                 toggle_sql = """
-                    UPDATE Subtasks 
-                    SET completed = CASE 
-                                        WHEN completed = 1 THEN 0 
-                                        ELSE 1 
-                                    END 
-                    WHERE id = %s AND task_id = %s
-                    """
+                        UPDATE Subtasks 
+                        SET completed = CASE 
+                                            WHEN completed = 1 THEN 0 
+                                            ELSE 1 
+                                        END 
+                        WHERE id = %s AND task_id = %s
+                        """
                 cur.execute(toggle_sql, (subtaskId, taskId))  # Correctly pass as tuple
-            else:
                 toggle_sql = """
-                    UPDATE Tasks 
-                    SET completed = CASE 
-                                        WHEN completed = 1 THEN 0 
-                                        ELSE 1 
-                                    END 
-                    WHERE id = %s
-                    """
+                        UPDATE Tasks 
+                        SET completed = CASE 
+                                            WHEN completed = 1 THEN 0 
+                                            ELSE 1 
+                                        END 
+                        WHERE id = %s
+                        """
                 cur.execute(toggle_sql, (taskId,)) 
 
             mysql.connection.commit()
-            cur.close()
             return jsonify({'message': 'Field toggled successfully', "data": None}), 200
-
         except Exception as e:
             mysql.connection.rollback()  # Ensure to rollback in case of error
             return jsonify({'message': f'An error occurred: {str(e)}'}), 400
+        finally:
+            cur.close()
             
 
             
     @app.route('/api/tasks/', methods=['GET'])
     @jwt_required()
+    @token_required
     def getAllPreviews(): 
-            try:
-                    token = request.cookies.get('token')
-                    userId = decodeToken(token)
-            except:
-                    return jsonify({'message': 'User not authenticated'}), 401
+            userId = g.userId
             cur = mysql.connection.cursor(cursorclass=DictCursor)
 
             cur.execute(""" 
@@ -328,20 +350,15 @@ def register_routes(app, mysql, jwt):
                     })
 
             cur.close()
-            # Convert tasks dictionary to a list to match expected output format
             tasks_list = [value for key, value in tasks.items()]
             return jsonify({"data": tasks_list, 'message': "Tasks fetched successfully"}), 200
 
 #TAG MODULE
     @app.route('/api/tags/create', methods=['POST'])
     @jwt_required()
+    @token_required
     def create_tag():
-        try:
-            token = request.cookies.get('token')
-            user_id = decodeToken(token)
-        except:
-            return jsonify({'message': 'User not authenticated'}), 401
-
+        userId = g.userId
         data = request.get_json()
         tag_name = data['name']
         tag_color = data['color']
@@ -351,56 +368,50 @@ def register_routes(app, mysql, jwt):
         try:
             cur.execute(
                 "INSERT INTO Tags (name, color, user_id) VALUES (%s, %s, %s)",
-                (tag_name, tag_color, user_id)
+                (tag_name, tag_color, userId)
             )
             mysql.connection.commit()
-            cur.close()
             return jsonify({'message': 'Tag created successfully', 'data': None}), 200
         except Exception as error:
             mysql.connection.rollback()
-            cur.close()
             print('Error during transaction', error)
             return jsonify({'message': 'Error creating tag', 'data': None}), 500
+        finally:
+            cur.close()
         
     @app.route('/api/tags/', methods=['GET'])
     @jwt_required()
+    @token_required
     def getAll_tags():
-        try:
-            token = request.cookies.get('token')
-            user_id = decodeToken(token)
-        except:
-            return jsonify({'message': 'User not authenticated'}), 401
+        userId = g. userId
         
         cur = mysql.connection.cursor(cursorclass=DictCursor)   
         try:
             cur.execute(
                 "SELECT * FROM Tags WHERE user_id = %s",
-                (user_id,)
+                (userId,)
             )
             tags = cur.fetchall()
             mysql.connection.commit()
-            cur.close()
             return jsonify({'message': 'Tags fetched successfully', 'data': tags}), 200
         except Exception as e:
             mysql.connection.rollback()
-            cur.close()
             return jsonify({'message': f"An error occurred: {e}", 'data': None}), 400
+        finally:
+            cur.close()
         
     @app.route('/api/tags/<int:note_id>', methods=['GET'])
     @jwt_required()
+    @token_required
     def getTags():
-        try:
-            token = request.cookies.get('token')
-            user_id = decodeToken(token)
-        except:
-            return jsonify({'message': 'User not authenticated'}), 401
+        userId = g. userId
     
         cur = mysql.connection.cursor(cursorclass=DictCursor)
         note_id = request.args.get('note_id')
         try:
             cur.execute(
-                "SELECT t.id t.name, t.color FROM Tags t JOIN NoteTags nt ON t.id = nt.tag_id WHERE nt.note_id = %s",
-                (note_id,)
+                "SELECT t.id t.name, t.color FROM Tags t JOIN NoteTags nt ON t.id = nt.tag_id WHERE nt.note_id = %s AND t.user_id = %s",
+                (note_id, userId)
             )
             tags = cur.fetchall()
             mysql.connection.commit()
@@ -413,16 +424,15 @@ def register_routes(app, mysql, jwt):
     
     @app.route('/api/tags/add', methods=['POST'])
     @jwt_required()
+    @token_required
     def addTag():
-        try:
-            token = request.cookies.get('token')
-            user_id = decodeToken(token)
-        except:
-            return jsonify({'message': 'User not authenticated'}), 401
+        userId = g. userId
         cur = mysql.connection.cursor()
         data = request.get_json()
         note_id = data['note_id']
         tag_id = data['tag_id']
+        if verify_tag_ownership(userId, tag_id, cur) is False:
+            return jsonify({'message': 'You do not have permission to update this tag'}), 403
         try:
             cur.execute (
                 "INSERT INTO NoteTags (note_id, tag_id) VALUES (%s, %s)", (note_id, tag_id),
@@ -437,17 +447,17 @@ def register_routes(app, mysql, jwt):
         
     @app.route('/api/tags/edit', methods=['POST'])
     @jwt_required()
+    @token_required
     def editTag():
-        try:
-            token = request.cookies.get('token')
-            user_id = decodeToken(token)
-        except:
-            return jsonify({'message': 'User not authenticated'}), 401
+        userId = g.userId
         cur = mysql.connection.cursor()
         data = request.get_json()
         tag_id = data['tagId']
         name = data['name']
         color = data['color']
+
+        if verify_tag_ownership(userId, tag_id, cur) is False:
+            return jsonify({'message': 'You do not have permission to update this tag'}), 403
         try:
             cur.execute (
                 "UPDATE Tags SET name = %s, color = %s WHERE id = %s", (name, color, tag_id),
@@ -457,33 +467,35 @@ def register_routes(app, mysql, jwt):
             return jsonify({'message': 'Tag updated successfully', 'data': None}), 200
         except Exception as e:
             mysql.connection.rollback()
-            cur.close()
             return jsonify({'message': f"An error occurred: {e}", 'data': None}), 400
+        finally:
+            cur.close()
     
     @app.route('/api/tags/delete', methods=['POST'])
     @jwt_required()
+    @token_required
     def deleteTag():
-        try:
-            token = request.cookies.get('token')
-            user_id = decodeToken(token)
-        except:
-            return jsonify({'message': 'User not authenticated'}), 401
+        userId = g.userId
         
+        # Initialize cursor outside try block
         cur = mysql.connection.cursor()
-        data = request.get_json()
-        tag_id = data['tagId']
+        
         try:
+            data = request.get_json()
+            tag_id = data['tagId']
 
-            cur.execute (
-                "DELETE FROM Tags WHERE id = %s AND user_id = %s" , (tag_id,user_id),
-            ) 
-            cur.execute (
-                "DELETE FROM NoteTags WHERE tag_id = %s", (tag_id,),
-            )
+            if not verify_tag_ownership(userId, tag_id, cur):
+                return jsonify({'message': 'You do not have permission to update this tag'}), 403
+            
+            # Perform deletion operations
+            cur.execute("DELETE FROM Tags WHERE id = %s AND user_id = %s", (tag_id, userId))
+            cur.execute("DELETE FROM NoteTags WHERE tag_id = %s", (tag_id,))
             mysql.connection.commit()
+            
             return jsonify({'message': 'Tag deleted successfully', 'data': None}), 200
         except Exception as e:
             mysql.connection.rollback()
-            cur.close()
             return jsonify({'message': f"An error occurred: {e}", 'data': None}), 400
-        
+        finally:
+            cur.close()
+            
