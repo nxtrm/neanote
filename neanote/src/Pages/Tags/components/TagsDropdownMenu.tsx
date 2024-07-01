@@ -1,54 +1,42 @@
 import * as React from "react";// Adjust the import path according to your project structure
 import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from "../../../../components/@/ui/dropdown-menu";
+  Dialog,
+  DialogContent,
+  DialogTrigger,
+} from "../../../../components/@/ui/dialog";
 import { useTasks } from "../../Tasks/useTasks";
 import { Button } from "../../../../components/@/ui/button";
 import { useTags } from "../useTags";
+import TagLabel from "./TagLabel";
 
-function TagsDropdownMenu({ onTagsSelected }) {
+function TagsDialog({ onTagsSelected }) {
   const { tags,fetchTags } = useTags();
-  const {selectedTagIds, setSelectedTagIds} = useTasks();
+  const {selectedTagIds} = useTasks();
   if (tags.length < 1 ){
     fetchTags()
   }
 
-  const [selectedTags, setSelectedTags] = React.useState([]);
 
-  const handleTagChange = (tag, checked) => {
-    setSelectedTags((prev) => {
-      if (checked) {
-        return [...prev, tag];
-      } else {
-        return prev.filter((t) => t !== tag);
-      }
-    });
-    if (onTagsSelected) {
-      setSelectedTagIds(selectedTags);
-      console.log(selectedTags)
-    }
-  }
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
+    <Dialog >
+      <DialogTrigger asChild>
         <Button variant="secondary">Tags</Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent side="left" className="w-40">
-        {tags.map((tag) => (
-          <DropdownMenuCheckboxItem
-            key={tag.id} // Assuming each tag has a unique id
-            checked={selectedTagIds.includes(tag.id)}
-            onCheckedChange={(checked) => handleTagChange(tag, checked)}
-          >
-            {tag.name}
-          </DropdownMenuCheckboxItem>
+      </DialogTrigger>
+      <DialogContent className="mx-auto w-full max-w-sm py-10">
+        {tags.map((tag, index) => (
+          <TagLabel
+          key={index}
+          tagId={tag.tagid}
+          title={tag.name}
+          color={tag.color}
+          checked={selectedTagIds.includes(tag.tagid)}
+        />
+
+
         ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
+      </DialogContent>
+    </Dialog>
   );
 }
 
-export default TagsDropdownMenu
+export default TagsDialog

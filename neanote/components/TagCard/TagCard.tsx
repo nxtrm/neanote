@@ -20,7 +20,7 @@ function TagCard({tag}:{tag:Tag}) {
             <p className='pl-1 text-2xl font-bold'>{tag.name}</p>
             <Button variant="ghost" size={"icon"} onClick={
                 () => {
-                    handleEditTag(tag.id)
+                    handleEditTag(tag.tagid)
                 }
             
             }><FaEdit/></Button>

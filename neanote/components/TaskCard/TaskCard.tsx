@@ -16,6 +16,8 @@ function TaskCard({ task }: { task: TaskPreview }) {
       toggleTaskCompleted,
       setSection,
       setCurrentTask,
+      setSelectedTagIds,
+      selectedTagIds
     } = useTasks()
     
     const toggleCompleted = () => {
@@ -24,6 +26,8 @@ function TaskCard({ task }: { task: TaskPreview }) {
 
     const handleEditClick = (task:TaskPreview) => {
       setCurrentTask(task);
+      setSelectedTagIds([...new Set(task.tags.map(tag => tag.tagid))]);
+      console.log(selectedTagIds)
       setSection('edit');
     };
 

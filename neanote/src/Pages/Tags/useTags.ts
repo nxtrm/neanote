@@ -24,6 +24,7 @@ export let useTags = create<TagState>((set, get) => {
     return {
         tags: [],
         tagTitle: '',
+        currentTagId: undefined,
         color: '#000000',
         section: 'all tags',
         setSection: (section) => set({ section }),

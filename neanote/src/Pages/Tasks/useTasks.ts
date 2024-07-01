@@ -63,7 +63,7 @@ export let useTasks = create<TaskState>((set, get) => {
   setTags: (tags) => updateState('tags', tags),
   setTextField: (text) => updateState('textField', text),
   setSubtasks: (subtasks) => updateState('subtasks', subtasks),
-  setSelectedTagIds  : (tagIds) => updateState('selectedTagIds', tagIds),
+  setSelectedTagIds : (tagIds) => updateState('selectedTagIds', tagIds),
 
 
   fetchTasks: async () => {

@@ -1,5 +1,5 @@
 export interface Tag {
-    id: number;
+    tagid: number;
     name: string;
     color: string;
   };
