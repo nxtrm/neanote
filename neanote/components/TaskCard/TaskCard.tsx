@@ -7,6 +7,7 @@ import { Button } from '../@/ui/button';
 import { FaEdit } from 'react-icons/fa';
 import { useTasks } from '../../src/Pages/Tasks/useTasks';
 import { Link } from 'react-router-dom';
+import { Label } from '@radix-ui/react-dropdown-menu';
 
 
 
@@ -58,7 +59,11 @@ function TaskCard({ task }: { task: TaskPreview }) {
             {task.due_date &&<div className={`text-xs p-1 rounded-md mt-1 ${isOverdue(formatDate(task.due_date)) ? 'bg-red-400' : 'bg-secondary'}`}>
              Due: {formatDate(task.due_date)}
             </div>}
-              <Button variant="ghost" size={"icon"} onClick={()=>handleEditClick(task)}><FaEdit/></Button>
+            {task.tags.map((tag, index) => (
+              <Label key={index} style={{backgroundColor: tag.color}} className='rounded-md font-bold items-center bg-secondary text-white text-xs p-1'>{tag.name}</Label>
+
+            ))}
+            <Button variant="ghost" size={"icon"} onClick={()=>handleEditClick(task)}><FaEdit/></Button>
           </div>
         </div>
         <p className="text-md pl-1 pt-2">{task.content}</p>

@@ -7,7 +7,7 @@ import { Input } from "../../../components/@/ui/input";
 import { Separator } from "../../../components/@/ui/separator";
 import { Textarea } from "../../../components/@/ui/textarea";
 import PageContainer from '../../../components/PageContainer/PageContainer';
-import { TagsDropdownMenu } from '../Tags/components/TagsDropdownMenu';
+import TagsDropdownMenu from '../Tags/components/TagsDropdownMenu';
 import { DatePicker } from './DatePicker/DatePicker';
 import { useTasks } from './useTasks';
 import TaskCard from '../../../components/TaskCard/TaskCard';
@@ -104,7 +104,7 @@ function Tasks() {
                         value={taskTitle} 
                         onChange={(e) => setTaskTitle(e.target.value)} 
                     />
-                      <TagsDropdownMenu />
+                      <TagsDropdownMenu onTagsSelected={()=> console.log("selected")}/>
                       {/* <div className='flex flex-row items-center'>
                           {tags.map((tag, index) => (
                               <span key={index} className='bg-gray-200 rounded-full px-2 py-1 text-sm mr-2'>{tag}</span>

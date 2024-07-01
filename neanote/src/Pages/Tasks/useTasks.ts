@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import tasksApi from '../../api/tasksApi';
 import { Subtask, TaskPreview } from '../../api/types/taskTypes';
+import { Tag } from '../../api/types/tagTypes';
 
 
 
@@ -11,7 +12,8 @@ type TaskState = {
   taskTitle: string;
   dueDate: Date | undefined;
   dueTime: string;
-  tags: string[];
+  tags: Tag[];
+  selectedTagIds: number[];
   tasks: TaskPreview[];
   textField: string;
   subtasks: Subtask[];
@@ -20,6 +22,7 @@ type TaskState = {
   setTime: (time: string) => void;
   setTaskTitle: (title: string) => void;
   setTags: (tags: string[]) => void;
+  setSelectedTagIds: (tagIds: number[]) => void;
   setTextField: (text: string) => void;
   setSubtasks: (subtasks: Subtask[]) => void;
   handleAddSubtask: () => void;
@@ -50,6 +53,7 @@ export let useTasks = create<TaskState>((set, get) => {
   dueTime: '',
   taskTitle: '',
   tags: [],
+  selectedTagIds: [],
   textField: '',
   subtasks: [],
   tasks: [],
@@ -59,6 +63,7 @@ export let useTasks = create<TaskState>((set, get) => {
   setTags: (tags) => updateState('tags', tags),
   setTextField: (text) => updateState('textField', text),
   setSubtasks: (subtasks) => updateState('subtasks', subtasks),
+  setSelectedTagIds  : (tagIds) => updateState('selectedTagIds', tagIds),
 
 
   fetchTasks: async () => {
@@ -224,10 +229,10 @@ export let useTasks = create<TaskState>((set, get) => {
 
 
   handleTagAdd: () => {
-    const newTag = prompt("Enter new tag:");
-    if (newTag) {
-      set((state) => ({ tags: [...state.tags,  newTag] }));
-    }
+    // const newTag = prompt("Enter new tag:");
+    // if (newTag) {
+    //   set((state) => ({ tags: [...state.tags,  newTag] }));
+    // }
   },
 
   handleSaveTask : async() => {

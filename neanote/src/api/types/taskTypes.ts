@@ -1,3 +1,4 @@
+import { Tag } from "./tagTypes";
 
 export interface Subtask {
     subtaskid: number;
@@ -17,7 +18,7 @@ export interface TaskPreview {
     completed: boolean;
     due_date: Date | undefined;
     subtasks: Subtask[];
-    tags: string[];
+    tags: Tag[];
   };
 
   // export interface Task {
