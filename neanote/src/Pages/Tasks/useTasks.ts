@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import tasksApi from '../../api/tasksApi';
 import { Subtask, TaskPreview } from '../../api/types/taskTypes';
 import { Tag } from '../../api/types/tagTypes';
+import { useTags } from '../Tags/useTags';
 
 
 
@@ -147,10 +148,11 @@ export let useTasks = create<TaskState>((set, get) => {
   },
 
   handleEditTask: function() {
-    const { sendUpdatesToServer, currentTaskId, currentNoteId } = get();
+    const { sendUpdatesToServer, currentTaskId, currentNoteId} = get();
+    const {tags}  = useTags.getState();
     let {
       taskTitle,
-      tags, //replace with tag ids when tags module is done
+      selectedTagIds, //replace with tag ids when tags module is done
       dueDate,
       dueTime,
       textField,
@@ -161,13 +163,15 @@ export let useTasks = create<TaskState>((set, get) => {
       console.error('currentId is undefined');
       return; // Exit the function if currentId is undefined
     }
+    const filteredTags = tags.filter((tag) => selectedTagIds.includes(tag.tagid));
+
     set((state) => {
 
       const updatedTask = {
         taskid: currentTaskId,
         noteid: currentNoteId,
         title: taskTitle,
-        tags: tags,
+        tags: filteredTags,
         content: textField,
         subtasks: subtasks,
         dueDate: dueDate,

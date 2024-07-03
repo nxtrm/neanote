@@ -16,7 +16,6 @@ function TagsDialog({ onTagsSelected }) {
     fetchTags()
   }
 
-
   return (
     <Dialog >
       <DialogTrigger asChild>
@@ -29,7 +28,6 @@ function TagsDialog({ onTagsSelected }) {
           tagId={tag.tagid}
           title={tag.name}
           color={tag.color}
-          checked={selectedTagIds.includes(tag.tagid)}
         />
 
 

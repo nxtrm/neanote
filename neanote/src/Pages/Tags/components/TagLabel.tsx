@@ -7,21 +7,18 @@ import { useTasks } from '../../Tasks/useTasks';
 interface Props {
     key: number;
     tagId: number; 
-    checked: boolean;
     color: string;
     title: string;
 
   }
   
-  function TagLabel({ checked, color, title, tagId}: Props) {
+  function TagLabel({ color, title, tagId}: Props) {
     const { selectedTagIds, setSelectedTagIds } = useTasks();
-  
+    let checked = selectedTagIds.includes(tagId);
     const handleClick = () => {
-        setSelectedTagIds((prevSelectedTagIds: number[]) =>
-          checked
-            ? prevSelectedTagIds.filter((id) => id !== tagId)
-            : [...prevSelectedTagIds, tagId]
-        );
+        setSelectedTagIds(checked ? selectedTagIds.filter((id) => id !== tagId) : [...selectedTagIds, tagId]
+      );
+      console.log(selectedTagIds)
       };
 
     return (

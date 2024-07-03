@@ -155,15 +155,15 @@ def register_routes(app, mysql, jwt):
     @token_required
     def update_task():
         task = request.get_json()
-        userId = g. userId
-        cur = mysql.connection.cursor()
+        userId = g.userId
+        cur = mysql.connection.cursor(cursorclass=DictCursor)
 
         try:
             note_id = task['noteid']
             task_id = task['taskid']
 
-            if verify_task_ownership(userId, task_id, cur) is False:
-                return jsonify({'message': 'You do not have permission to update this task'}), 403
+            # if verify_task_ownership(userId, task_id, cur) is False:
+            #     return jsonify({'message': 'You do not have permission to update this task'}), 403
             
             query = """
                     UPDATE Notes
@@ -172,18 +172,18 @@ def register_routes(app, mysql, jwt):
                     """
             cur.execute(query, (task['title'], task['content'], note_id, userId))
 
-            dueDate = task.get('dueDate') 
-            dueTime = task.get('dueTime')
+            # dueDate = task.get('dueDate') 
+            # dueTime = task.get('dueTime')
 
-            if dueDate:
-                due_date_obj = datetime.fromisoformat(dueDate.rstrip("Z"))
+            # if dueDate:
+            #     due_date_obj = datetime.fromisoformat(dueDate.rstrip("Z"))
 
-                if dueTime is None:
-                    dueTime = "08:00"
-                # Combine dueDate and dueTime
-                due_datetime = due_date_obj.strftime('%Y-%m-%d') + ' ' + dueTime + ':00'
+            #     if dueTime is None:
+            #         dueTime = "08:00"
+            #     # Combine dueDate and dueTime
+            #     due_datetime = due_date_obj.strftime('%Y-%m-%d') + ' ' + dueTime + ':00'
 
-            cur.execute("UPDATE Tasks SET due_date = %s WHERE id = %s", (due_datetime, task_id))
+            # cur.execute("UPDATE Tasks SET due_date = %s WHERE id = %s", (due_datetime, task_id))
                 
             # Delete existing subtasks and tags before inserting new ones
             cur.execute("DELETE FROM Subtasks WHERE task_id = %s", (task_id,))
@@ -193,8 +193,10 @@ def register_routes(app, mysql, jwt):
                 
             cur.execute("DELETE FROM NoteTags WHERE note_id = %s", (note_id,))
                 # Insert tags
-            for tag in task.get('tags', []):  # Use .get() to avoid KeyError if 'tags' is missing
-                cur.execute("INSERT INTO NoteTags (note_id, tag_id) VALUES (%s, %s)", (note_id, tag['id']))
+            if task['tags']:
+                for tag in task['tags']:
+                    print(tag['tagid'])
+                    cur.execute("INSERT INTO NoteTags (note_id, tag_id) VALUES (%s, %s)", (note_id, tag['tagid']))
 
 
             mysql.connection.commit()
@@ -390,7 +392,7 @@ def register_routes(app, mysql, jwt):
         cur = mysql.connection.cursor(cursorclass=DictCursor)   
         try:
             cur.execute(
-                "SELECT * FROM Tags WHERE user_id = %s",
+                "SELECT id AS tagid, name, color FROM Tags WHERE user_id = %s",
                 (userId,)
             )
             tags = cur.fetchall()
@@ -412,7 +414,7 @@ def register_routes(app, mysql, jwt):
         note_id = request.args.get('note_id')
         try:
             cur.execute(
-                "SELECT t.id t.name, t.color FROM Tags t JOIN NoteTags nt ON t.id = nt.tag_id WHERE nt.note_id = %s AND t.user_id = %s",
+                "SELECT t.id AS t.tagid, t.name, t.color FROM Tags t JOIN NoteTags nt ON t.id = nt.tag_id WHERE nt.note_id = %s AND t.user_id = %s",
                 (note_id, userId)
             )
             tags = cur.fetchall()

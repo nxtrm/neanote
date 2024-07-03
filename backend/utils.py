@@ -40,6 +40,7 @@ def token_required(f):
         try:
             decoded = jwt.decode(token, Config.JWT_SECRET_KEY, algorithms=['HS256'])
             g.userId = decoded.get('sub')  # Store decoded token data in Flask's g object
+
         except jwt.ExpiredSignatureError:
             return jsonify({'message': 'Token has expired'}), 403
         except jwt.InvalidTokenError:

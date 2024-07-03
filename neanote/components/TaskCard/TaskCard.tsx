@@ -26,8 +26,7 @@ function TaskCard({ task }: { task: TaskPreview }) {
 
     const handleEditClick = (task:TaskPreview) => {
       setCurrentTask(task);
-      setSelectedTagIds([...new Set(task.tags.map(tag => tag.tagid))]);
-      console.log(selectedTagIds)
+      setSelectedTagIds(task.tags.map(tag => tag.tagid));
       setSection('edit');
     };
 
