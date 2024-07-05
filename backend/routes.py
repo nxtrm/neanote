@@ -172,19 +172,14 @@ def register_routes(app, mysql, jwt):
                     """
             cur.execute(query, (task['title'], task['content'], note_id, userId))
 
-            # dueDate = task.get('dueDate') 
-            # dueTime = task.get('dueTime')
+            dueDate = task.get('dueDate') 
 
-            # if dueDate:
-            #     due_date_obj = datetime.fromisoformat(dueDate.rstrip("Z"))
-
-            #     if dueTime is None:
-            #         dueTime = "08:00"
-            #     # Combine dueDate and dueTime
-            #     due_datetime = due_date_obj.strftime('%Y-%m-%d') + ' ' + dueTime + ':00'
-
-            # cur.execute("UPDATE Tasks SET due_date = %s WHERE id = %s", (due_datetime, task_id))
-                
+            if dueDate:
+                # Convert react Date format to mysql Date format
+                parsed_date = datetime.strptime(dueDate, "%Y-%m-%dT%H:%M:%S.%fZ")
+                mysql_datetime_str = parsed_date.strftime("%Y-%m-%d %H:%M:%S")
+                cur.execute("UPDATE Tasks SET due_date = %s WHERE id = %s", (mysql_datetime_str, task_id))
+            
             # Delete existing subtasks and tags before inserting new ones
             cur.execute("DELETE FROM Subtasks WHERE task_id = %s", (task_id,))
 

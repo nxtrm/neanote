@@ -31,7 +31,7 @@ function TaskCard({ task }: { task: TaskPreview }) {
     };
 
     
-    function formatDate(dateInput: string | Date | undefined): string {
+      function formatDateWithTime(dateInput: string | Date | undefined): string {
         if (!dateInput) return 'No due date';
         let date: Date;
         if (typeof dateInput === 'string') {
@@ -41,7 +41,7 @@ function TaskCard({ task }: { task: TaskPreview }) {
         } else {
           return 'Invalid date';
         }
-        return new Intl.DateTimeFormat('en-US', { dateStyle: 'medium' }).format(date);
+        return new Intl.DateTimeFormat('en-US', { dateStyle: 'medium', timeStyle: 'short', timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone }).format(date);
       }
   
       const isOverdue = (dateString: string | undefined) => {
@@ -59,8 +59,8 @@ function TaskCard({ task }: { task: TaskPreview }) {
             <h3 className="text-xl font-bold">{task.title}</h3>
           </div>
           <div className='flex flex-row items-center gap-3'>
-            {task.due_date &&<div className={`text-xs p-1 rounded-md mt-1 ${isOverdue(formatDate(task.due_date)) ? 'bg-red-400' : 'bg-secondary'}`}>
-             Due: {formatDate(task.due_date)}
+            {task.due_date &&<div className={`text-xs p-1 rounded-md mt-1 ${isOverdue(formatDateWithTime(task.due_date)) ? 'bg-red-400' : 'bg-secondary'}`}>
+             Due: {formatDateWithTime(task.due_date)}
             </div>}
             {task.tags.map((tag, index) => (
               <Label key={index} style={{backgroundColor: tag.color}} className='rounded-md font-bold items-center bg-secondary text-white text-xs p-1'>{tag.name}</Label>

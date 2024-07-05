@@ -76,9 +76,12 @@ export let useTasks = create<TaskState>((set, get) => {
   },
 
   setDate: (date: Date | undefined) => {
-    updateState('dueDate', date);
+    if (!date) return; // If no date is provided, do nothing
+    let newDate = new Date(date);
+    set({ "dueDate": newDate });
+    
+    console.log('Date:', newDate);
   },
-  setTime: (time: string) => updateState('dueTime', time),
 
   handleAddSubtask: () => {
     set((state) => ({
@@ -152,9 +155,8 @@ export let useTasks = create<TaskState>((set, get) => {
     const {tags}  = useTags.getState();
     let {
       taskTitle,
-      selectedTagIds, //replace with tag ids when tags module is done
+      selectedTagIds,
       dueDate,
-      dueTime,
       textField,
       subtasks, 
   } = get()
@@ -175,7 +177,6 @@ export let useTasks = create<TaskState>((set, get) => {
         content: textField,
         subtasks: subtasks,
         dueDate: dueDate,
-        dueTime: dueTime
       };
   
       const updatedTasks = state.tasks.map((task) => 
@@ -217,7 +218,7 @@ export let useTasks = create<TaskState>((set, get) => {
             currentTaskId: undefined,
             currentNoteId: undefined,
             dueDate: undefined,
-            dueTime: '',
+
             textField: '',
             subtasks: [],
             section: 'all tasks',

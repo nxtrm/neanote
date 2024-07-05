@@ -26,7 +26,7 @@ function Tasks() {
         setTime,
         textField,
         subtasks,
-        tags,
+        dueDate,
         tasks, fetchTasks,
         section,
         setSection,
@@ -74,14 +74,7 @@ function Tasks() {
                 <p className='pl-1 text-2xl font-bold'>{section === 'create task'? "Create Task" : "Edit Task"}</p>
                 {/* Date Picker */}
                 <div className='flex flex-row gap-2'>
-                    <DatePicker onDateChange={setDate}/>
-                    {/* Time Picker */}
-                    <Input 
-                        type="time" 
-                        value={dueTime} 
-                        onChange={(e) => setTime(e.target.value)} 
-                        className="w-19" 
-                        />
+                    <DatePicker onDateChange={setDate} data={dueDate} includeTime={true}/>
                     <Button size="icon" onClick={() => setSection("all tasks")}>
                         <MdCancel size={15} />
                     </Button>
