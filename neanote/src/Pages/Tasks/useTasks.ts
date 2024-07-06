@@ -218,7 +218,6 @@ export let useTasks = create<TaskState>((set, get) => {
             currentTaskId: undefined,
             currentNoteId: undefined,
             dueDate: undefined,
-
             textField: '',
             subtasks: [],
             section: 'all tasks',
@@ -243,21 +242,18 @@ export let useTasks = create<TaskState>((set, get) => {
   handleSaveTask : async() => {
     let {
         taskTitle,
-        tags, //replace with tag ids when tags module is done
         dueDate,
-        dueTime,
         textField,
         subtasks, 
+        selectedTagIds,
     } = get()
-
     
-    let response = await tasksApi.create(taskTitle,tags,textField, subtasks, dueDate, dueTime)
+    let response = await tasksApi.create(taskTitle,selectedTagIds,textField, subtasks, (dueDate ? dueDate.toISOString() : undefined))
 
     set({
       taskTitle: '',
       tags: [],
       dueDate: undefined,
-      dueTime: '',
       textField: '',
       subtasks: [],
       section: 'all tasks',

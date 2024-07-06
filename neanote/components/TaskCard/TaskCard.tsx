@@ -19,7 +19,7 @@ function TaskCard({ task }: { task: TaskPreview }) {
       setSelectedTagIds,
       selectedTagIds
     } = useTasks()
-    
+    console.log(task)
     const toggleCompleted = () => {
         toggleTaskCompleted(task.taskid);
     };
@@ -59,7 +59,7 @@ function TaskCard({ task }: { task: TaskPreview }) {
             <h3 className="text-xl font-bold">{task.title}</h3>
           </div>
           <div className='flex flex-row items-center gap-3'>
-            {task.due_date &&<div className={`text-xs p-1 rounded-md mt-1 ${isOverdue(formatDateWithTime(task.due_date)) ? 'bg-red-400' : 'bg-secondary'}`}>
+            {task.due_date &&<div className={`text-xs  items-center p-1 rounded-md ${isOverdue(formatDateWithTime(task.due_date)) ? 'bg-red-400' : 'bg-secondary'}`}>
              Due: {formatDateWithTime(task.due_date)}
             </div>}
             {task.tags.map((tag, index) => (
@@ -69,11 +69,13 @@ function TaskCard({ task }: { task: TaskPreview }) {
             <Button variant="ghost" size={"icon"} onClick={()=>handleEditClick(task)}><FaEdit/></Button>
           </div>
         </div>
-        <p className="text-md pl-1 pt-2">{task.content}</p>
+        {task.content && <p className="text-md pl-1 pt-2">{task.content}</p>}
+        
+        {task.subtasks.length > 0 && 
         <div className='pt-2'>
             <Separator />
-        </div>
-
+        </div>}
+        
         {task.subtasks.map((subtask) => (
             <div className='pt-2' key={subtask.subtaskid}>
               <SubTaskCard subtask={subtask} taskId={task.taskid}/>

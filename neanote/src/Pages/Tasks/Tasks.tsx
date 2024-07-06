@@ -43,6 +43,22 @@ function Tasks() {
 
     } = useTasks();
 
+    function resetTask() {
+        useTasks.setState({
+          currentTaskId: undefined,
+          currentNoteId: undefined,
+          taskTitle: '',
+          dueDate: undefined,
+          dueTime: '',
+          tags: [],
+          selectedTagIds: [],
+          textField: '',
+          subtasks: [],
+          section: 'all tasks',
+          pendingUpdates: {},
+        });
+      }
+
     useEffect(() => {
         fetchTasks();
       }, [fetchTasks]);
@@ -75,7 +91,7 @@ function Tasks() {
                 {/* Date Picker */}
                 <div className='flex flex-row gap-2'>
                     <DatePicker onDateChange={setDate} data={dueDate} includeTime={true}/>
-                    <Button size="icon" onClick={() => setSection("all tasks")}>
+                    <Button size="icon" onClick={resetTask}>
                         <MdCancel size={15} />
                     </Button>
                 </div>

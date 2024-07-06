@@ -83,8 +83,7 @@ def register_routes(app, mysql, jwt):
         tags = data['tags']
         textField = data['textField']
         subtasks = data['subtasks']
-        dueDate = data['dueDate']
-        dueTime = data['dueTime']
+        dueDate = data.get('dueDate')
         print(data)
     
         cur = mysql.connection.cursor()
@@ -98,44 +97,37 @@ def register_routes(app, mysql, jwt):
             cur.execute("SELECT LAST_INSERT_ID()")
             noteId = cur.fetchone()[0]
 
-            if dueDate:
+            if dueDate is not None:
                 due_date_obj = datetime.fromisoformat(dueDate.rstrip("Z"))
 
                 if dueTime is None:
                     dueTime = "08:00"
                 # Combine dueDate and dueTime
                 due_datetime = due_date_obj.strftime('%Y-%m-%d') + ' ' + dueTime + ':00'
+                cur.execute(
+                    "INSERT INTO Tasks (note_id, due_date) VALUES (%s,  %s)",
+                    (noteId,  due_datetime)
+                )
 
             if textField is not None:
                 cur.execute(
-                    "INSERT INTO Tasks (note_id, completed, due_date) VALUES (%s, %s, %s)",
-                    (noteId, False, due_datetime)
+                    "INSERT INTO Tasks (note_id, completed) VALUES (%s, %s)",
+                    (noteId, False)
                 )
             
             cur.execute("SELECT LAST_INSERT_ID()")
         
             taskId = cur.fetchone()[0]
 
-            if subtasks:
+            if len(subtasks)>0:
                 for i in subtasks:
                     cur.execute(
                         "INSERT INTO Subtasks (task_id, description, completed) VALUES (%s, %s, %s)",
                         (taskId, i['text'], False)
                     )
 
-            if tags:
-                for tagName in tags:
-                    cur.execute("SELECT id FROM Tags WHERE name = %s", (tagName,))
-                    tagResult = cur.fetchone()
-                    if tagResult is None:
-                        cur.execute(
-                            "INSERT INTO Tags (name) VALUES (%s)",
-                            (tagName,)  # Default color
-                        )
-                        cur.execute("SELECT LAST_INSERT_ID()")
-                        tagId = cur.fetchone()[0]
-                    else:
-                        tagId = tagResult[0]
+            if len(tags)>0:
+                for tagId in tags:
                     cur.execute(
                         "INSERT INTO NoteTags (note_id, tag_id) VALUES (%s, %s)",
                         (noteId, tagId)
@@ -243,7 +235,7 @@ def register_routes(app, mysql, jwt):
 
             cur = mysql.connection.cursor()
             if (verify_task_ownership(userId, taskId, cur) and verify_subtask_ownership(userId, subtaskId, cur)) is False:
-                return jsonify({'message': 'You do not have permission to update this task'}), 403
+                return jsonify({'message': 'You do not have permission to update this task'}), 403 #to be fixed
             
             if subtaskId:
                 toggle_sql = """
@@ -308,7 +300,6 @@ def register_routes(app, mysql, jwt):
             """, (userId,)) 
 
             rows = cur.fetchall()
-
             tasks = {}
             for row in rows:
                 note_id = row['note_id']
@@ -318,32 +309,29 @@ def register_routes(app, mysql, jwt):
                         'taskid': row['task_id'],
                         'title': row['note_title'],
                         'content': row['note_content'],
-                        'completed': True if row['task_completed'] == 1 else False,
+                        'completed': row['task_completed'] == 1,
                         'due_date': row['task_due_date'],
                         'subtasks': [],
                         'tags': []
-                        }
-                # Append subtasks if they exist
-                is_subtask_present = row['subtask_id'] and any(
-                subtask['description'] == row['subtask_description'] for subtask in tasks[note_id]['subtasks']
-                )
-
-                # If the subtask is not already present, append it to the subtasks list
-                if not is_subtask_present:
-                    new_subtask = {
-                        'subtaskid': row['subtask_id'],
-                        'description': row['subtask_description'],
-                        'completed': True if row['subtask_completed'] == 1 else False
                     }
-                    tasks[note_id]['subtasks'].append(new_subtask)
-
-                # Append tags if they exist
-                if row['tag_id'] and row['tag_name'] not in [tag['name'] for tag in tasks[note_id]['tags']]:
-                    tasks[note_id]['tags'].append({
-                        'tagid': row['tag_id'],
-                        'name': row['tag_name'],
-                        'color': row['tag_color']
-                    })
+                # Check if subtask_id is not None before appending
+                if row['subtask_id'] is not None:
+                    is_subtask_present = any(subtask['subtask_id'] == row['subtask_id'] for subtask in tasks[note_id]['subtasks'])
+                    if not is_subtask_present:
+                        tasks[note_id]['subtasks'].append({
+                            'subtask_id': row['subtask_id'],
+                            'description': row['subtask_description'],
+                            'completed': row['subtask_completed'] == 1
+                        })
+                # Similar logic for tags, ensuring only non-null tags are appended
+                if row['tag_id'] is not None:
+                    is_tag_present = any(tag['tag_id'] == row['tag_id'] for tag in tasks[note_id]['tags'])
+                    if not is_tag_present:
+                        tasks[note_id]['tags'].append({
+                            'tag_id': row['tag_id'],
+                            'name': row['tag_name'],
+                            'color': row['tag_color']
+                        })
 
             cur.close()
             tasks_list = [value for key, value in tasks.items()]

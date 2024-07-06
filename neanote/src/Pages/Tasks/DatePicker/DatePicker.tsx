@@ -16,7 +16,7 @@ import { Input } from "../../../../components/@/ui/input"
 
 interface DatePickerProps {
   onDateChange: (newDate: Date | undefined) => void;
-  data ?: Date;
+  data ?: Date | undefined;
   includeTime?: boolean; // Optional prop to include time picker
 }
 
