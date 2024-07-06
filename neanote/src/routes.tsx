@@ -28,6 +28,7 @@ const AppRouter = () => (
         <Route path="notes" element={<Notes />}/>
         <Route path="tasks" element={<Tasks/>} />
         <Route path="tasks/edit" element={<EditTasks/>} />
+        <Route path="tasks/create" element={<EditTasks/>} />
         <Route path="tags" element={<Tags/>} />
       </Route>
       <Route path="login" element={<Login />} />

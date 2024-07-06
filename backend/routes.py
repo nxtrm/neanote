@@ -79,11 +79,11 @@ def register_routes(app, mysql, jwt):
         userId = g. userId
 
         data = request.get_json()
-        title = data['taskTitle']
+        title = data['title']
         tags = data['tags']
-        textField = data['textField']
+        content = data['content']
         subtasks = data['subtasks']
-        dueDate = data.get('dueDate')
+        due_date = data.get('due_date')
         print(data)
     
         cur = mysql.connection.cursor()
@@ -92,28 +92,22 @@ def register_routes(app, mysql, jwt):
             # Insert into Notes table
             cur.execute(
                 "INSERT INTO Notes (user_id, title, content, type) VALUES (%s, %s, %s, %s)",
-                (userId, title, textField, 'task')  # Replace userId with the actual user ID
+                (userId, title, content, 'task')  # Replace userId with the actual user ID
             )
             cur.execute("SELECT LAST_INSERT_ID()")
             noteId = cur.fetchone()[0]
 
-            if dueDate is not None:
-                due_date_obj = datetime.fromisoformat(dueDate.rstrip("Z"))
-
-                if dueTime is None:
-                    dueTime = "08:00"
-                # Combine dueDate and dueTime
-                due_datetime = due_date_obj.strftime('%Y-%m-%d') + ' ' + dueTime + ':00'
+            if due_date is not None:
+                due_date_obj = datetime.fromisoformat(due_date.rstrip("Z"))
                 cur.execute(
                     "INSERT INTO Tasks (note_id, due_date) VALUES (%s,  %s)",
-                    (noteId,  due_datetime)
+                    (noteId,  due_date_obj)
                 )
 
-            if textField is not None:
-                cur.execute(
-                    "INSERT INTO Tasks (note_id, completed) VALUES (%s, %s)",
-                    (noteId, False)
-                )
+            cur.execute(
+                "INSERT INTO Tasks (note_id, completed) VALUES (%s, %s)",
+                (noteId, False)
+            )
             
             cur.execute("SELECT LAST_INSERT_ID()")
         
@@ -123,7 +117,7 @@ def register_routes(app, mysql, jwt):
                 for i in subtasks:
                     cur.execute(
                         "INSERT INTO Subtasks (task_id, description, completed) VALUES (%s, %s, %s)",
-                        (taskId, i['text'], False)
+                        (taskId, i['description'], False)
                     )
 
             if len(tags)>0:

@@ -1,93 +1,55 @@
 import React, { useEffect } from 'react';
-import { FaRegTrashAlt } from "react-icons/fa";
-import { FaPlus } from "react-icons/fa6";
-import { MdCancel } from "react-icons/md";
 import { Button } from '../../../components/@/ui/button';
-import { Input } from "../../../components/@/ui/input";
-import { Separator } from "../../../components/@/ui/separator";
-import { Textarea } from "../../../components/@/ui/textarea";
-import PageContainer from '../../../components/PageContainer/PageContainer';
-import TagsDropdownMenu from '../Tags/components/TagsDropdownMenu';
-import { DatePicker } from './DatePicker/DatePicker';
-import { useTasks } from './useTasks';
+import { FaPlus } from 'react-icons/fa';
 import TaskCard from '../../../components/TaskCard/TaskCard';
+import { useTasks } from './useTasks';
+import PageContainer from '../../../components/PageContainer/PageContainer';
+import { useNavigate } from 'react-router-dom';
 
+const Tasks: React.FC = () => {
+  const { tasks, setSection, fetchTasks, setCurrentTask } = useTasks();
+  const navigate = useNavigate();
 
-function Tasks() {
-  
-  
-    let {
-        taskTitle,
-        dueTime,
-        handleSubtaskChange,
-        currentTaskId,
-        currentNoteId,
-        setDate,
-        setTime,
-        textField,
-        subtasks,
-        dueDate,
-        tasks, fetchTasks,
-        section,
-        setSection,
-        setTaskTitle,
-        setTags,
-        setTextField,
-        setSubtasks,
-        handleAddSubtask,
-        handleRemoveSubtask,
-        handleEditTask,
-        sendUpdatesToServer,
-        handleDeleteTask,
-        handleSaveTask,
+  useEffect(() => {
+    fetchTasks();
+  }, [fetchTasks]);
 
-    } = useTasks();
+  const handleAddTaskClick = () => {
+    setCurrentTask({
+        taskid: -1,
+        noteid: -1,
+        title: '',
+        tags: [],
+        content: '',
+        subtasks: [],
+        due_date: undefined,
+        completed: false,
+      });
+    setSection('create');
+    navigate('/tasks/create')
+  };
 
-    function resetTask() {
-        useTasks.setState({
-          currentTaskId: undefined,
-          currentNoteId: undefined,
-          taskTitle: '',
-          dueDate: undefined,
-          dueTime: '',
-          tags: [],
-          selectedTagIds: [],
-          textField: '',
-          subtasks: [],
-          section: 'all tasks',
-          pendingUpdates: {},
-        });
-      }
+  return (
+    <PageContainer>
+      <div className='px-1 py-1'>
+        {/* Title and Button */}
+        <div className='flex flex-row justify-between pb-2'>
+          <p className='pl-1 text-2xl font-bold'>Tasks</p>
+          <Button size='sm' onClick={handleAddTaskClick}>
+            <FaPlus />
+            Add Task
+          </Button>
+        </div>
 
-    useEffect(() => {
-        fetchTasks();
-      }, [fetchTasks]);
-
-
-    let allTasks = (
-        <div className='p-1'>
-            <div className='flex flex-row justify-between'>
-                <p className='pl-1 text-2xl font-bold'>Tasks</p>
-                <Button size="icon" onClick={() => setSection("create task")}>
-                    <FaPlus />
-                </Button>
-            </div>
-            <div className='pt-2'>
-                <Separator />
-            </div>
-                {tasks.map((task, index) => (
-                <div key={index} className="py-2">
-                    <TaskCard task={task} />
-                </div>
-                ))}
-            </div>
-    );
-
-    return (
-        <PageContainer>
-            {allTasks}
-        </PageContainer>
-    );
-}
+        {/* Task List */}
+        <div className='flex flex-col gap-3'>
+          {tasks.map((task) => (
+            <TaskCard key={task.taskid} task={task} />
+          ))}
+        </div>
+      </div>
+    </PageContainer>
+  );
+};
 
 export default Tasks;

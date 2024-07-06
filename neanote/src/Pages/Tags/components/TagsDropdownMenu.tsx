@@ -1,40 +1,40 @@
-import * as React from "react";// Adjust the import path according to your project structure
+import * as React from "react";
 import {
   Dialog,
   DialogContent,
   DialogTrigger,
 } from "../../../../components/@/ui/dialog";
-import { useTasks } from "../../Tasks/useTasks";
 import { Button } from "../../../../components/@/ui/button";
 import { useTags } from "../useTags";
 import TagLabel from "./TagLabel";
+import { Tag, Tags } from "lucide-react";
 
-function TagsDialog({ onTagsSelected }) {
-  const { tags,fetchTags } = useTags();
-  const {selectedTagIds} = useTasks();
-  if (tags.length < 1 ){
-    fetchTags()
-  }
+function TagsDropdownMenu({ onTagsSelected }) {
+  const { tags, fetchTags} = useTags();
+
+  React.useEffect(() => {
+    if (tags.length < 1) {
+      fetchTags();
+    }
+  }, [tags.length, fetchTags]);
 
   return (
-    <Dialog >
+    <Dialog>
       <DialogTrigger asChild>
         <Button variant="secondary">Tags</Button>
       </DialogTrigger>
       <DialogContent className="mx-auto w-full max-w-sm py-10">
         {tags.map((tag, index) => (
           <TagLabel
-          key={index}
-          tagId={tag.tagid}
-          title={tag.name}
-          color={tag.color}
-        />
-
-
+            key={index}
+            tagId={tag.tag_id}
+            title={tag.name}
+            color={tag.color}
+          />
         ))}
       </DialogContent>
     </Dialog>
   );
 }
 
-export default TagsDialog
+export default TagsDropdownMenu;  

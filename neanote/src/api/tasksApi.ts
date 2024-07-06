@@ -3,14 +3,14 @@ import a from './api'
 import { TaskPreview, TaskResponse } from "./types/taskTypes";
 
 const tasksApi = {
-    create: async (taskTitle, tags, textField, subtasks,dueDate) => {
+    create: async (title, tags, content, subtasks,due_date) => {
         try {
             let response = await a.post<TaskResponse>(`/api/tasks/create`, {
-                taskTitle,
+                title,
                 tags,
-                textField,
+                content,
                 subtasks,
-                dueDate,
+                due_date,
             });
 
             if (response.status === 200) {

@@ -8,6 +8,7 @@ import { FaEdit } from 'react-icons/fa';
 import { useTasks } from '../../src/Pages/Tasks/useTasks';
 import { Link, useNavigate } from 'react-router-dom';
 import { Label } from '@radix-ui/react-dropdown-menu';
+import { useTags } from '../../src/Pages/Tags/useTags';
 
 
 
@@ -16,10 +17,13 @@ function TaskCard({ task }: { task: TaskPreview }) {
       toggleTaskCompleted,
       setSection,
       setCurrentTask,
-      setSelectedTagIds,
-      selectedTagIds
     } = useTasks()
-    console.log(task)
+
+    const {
+      selectedTagIds,
+      setSelectedTagIds,
+    } = useTags();
+
     const toggleCompleted = () => {
         toggleTaskCompleted(task.taskid);
     };
@@ -27,7 +31,8 @@ function TaskCard({ task }: { task: TaskPreview }) {
 
     const handleEditClick = (task:TaskPreview) => {
       setCurrentTask(task);
-      setSelectedTagIds(task.tags.map(tag => tag.tagid));
+      setSelectedTagIds(task.tags.map(tag => tag.tag_id));
+      console.log(selectedTagIds)
       setSection('edit');
       navigate('/tasks/edit')
     };

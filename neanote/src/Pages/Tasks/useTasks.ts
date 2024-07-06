@@ -1,264 +1,157 @@
 import { create } from 'zustand';
+import { immer } from 'zustand/middleware/immer';
 import tasksApi from '../../api/tasksApi';
 import { Subtask, TaskPreview } from '../../api/types/taskTypes';
 import { Tag } from '../../api/types/tagTypes';
 import { useTags } from '../Tags/useTags';
-
-
+import { useNavigate } from 'react-router-dom';
 
 type TaskState = {
   section: string;
-  currentTaskId:number | undefined;
-  currentNoteId: number | undefined;
-  taskTitle: string;
-  dueDate: Date | undefined;
-  dueTime: string;
-  tags: Tag[];
+  currentTask: TaskPreview | null;
   selectedTagIds: number[];
   tasks: TaskPreview[];
-  textField: string;
-  subtasks: Subtask[];
+  pendingUpdates: Partial<TaskPreview> | null;
   setSection: (section: string) => void;
-  setDate: (date: Date | undefined) => void;
-  setTime: (time: string) => void;
-  setTaskTitle: (title: string) => void;
-  setTags: (tags: string[]) => void;
-  setSelectedTagIds: (tagIds: number[]) => void;
-  setTextField: (text: string) => void;
-  setSubtasks: (subtasks: Subtask[]) => void;
+  updateCurrentTask: (key: keyof TaskPreview, value: any) => void;
+  fetchTasks: () => Promise<void>;
   handleAddSubtask: () => void;
   handleRemoveSubtask: (subtaskId: number) => void;
-  handleTagAdd: () => void;
-  handleSaveTask: () => Promise<void>; 
-  handleSubtaskChange: (subtaskId: number, update: string) => void;
-  fetchTasks: () => Promise<void>;
-  toggleTaskCompleted: (taskId: number) => void;
-  toggleSubtaskCompleted: (subtaskId: number, taskId: number) => void;
-  sendUpdatesToServer: () => Promise<void>;
-  handleEditTask: () => void;
-  handleDeleteTask: (taskId: number | undefined, noteId: number| undefined) => void;
+  handleSaveTask: () => Promise<void>;
+  handleEditTask: () => Promise<void>;
+  handleDeleteTask: (taskId: number | undefined, noteId: number | undefined) => Promise<void>;
+  toggleTaskCompleted: (taskId: number) => Promise<void>;
+  toggleSubtaskCompleted: (subtaskId: number, taskId: number) => Promise<void>;
   setCurrentTask: (task: TaskPreview) => void;
-  pendingUpdates: {};
 };
 
+export const useTasks = create<TaskState>()(
+  immer((set, get) => ({
+    section: 'all tasks',
+    currentTask: null,
+    selectedTagIds: [],
+    tasks: [],
+    pendingUpdates: null,
 
-export let useTasks = create<TaskState>((set, get) => {
-  const updateState = (key: keyof TaskState, value: any) => set({ [key]: value })
-  ;
-  return {
+    setSection: (section) => set({ section }),
 
-  section: 'all tasks',
-  dueDate: undefined,
-  currentTaskId: undefined,
-  currentNoteId: undefined,
-  dueTime: '',
-  taskTitle: '',
-  tags: [],
-  selectedTagIds: [],
-  textField: '',
-  subtasks: [],
-  tasks: [],
-  pendingUpdates: {},
-  setSection: (section) => updateState('section', section),
-  setTaskTitle: (title) => updateState('taskTitle', title),
-  setTags: (tags) => updateState('tags', tags),
-  setTextField: (text) => updateState('textField', text),
-  setSubtasks: (subtasks) => updateState('subtasks', subtasks),
-  setSelectedTagIds : (tagIds) => updateState('selectedTagIds', tagIds),
-
-
-  fetchTasks: async () => {
-    const fetchedTasks = await tasksApi.getAll();
-    if (fetchedTasks)  {
-
-      set({ tasks: fetchedTasks.data });
-    }
-  },
-
-  setDate: (date: Date | undefined) => {
-    if (!date) return; // If no date is provided, do nothing
-    let newDate = new Date(date);
-    set({ "dueDate": newDate });
-    
-    console.log('Date:', newDate);
-  },
-
-  handleAddSubtask: () => {
-    set((state) => ({
-      subtasks: [...state.subtasks, { subtaskid: state.subtasks.length + 1, description: '', completed: false }],
-    }));
-  },
-  handleRemoveSubtask: (subtaskId) => {
-    set((state) => ({
-      subtasks: state.subtasks.filter((subtask) => subtask.subtaskid !== subtaskId),
-    }));
-  },
-  handleSubtaskChange: (subtaskId: number, update: string) => {
-    set((state) => {
-      const newSubtasks = state.subtasks.map((subtask) => {
-        if (subtask.subtaskid === subtaskId) {
-          return { ...subtask, description: update};
+    updateCurrentTask: (key, value) => 
+      set((state) => {
+        if (state.currentTask) {
+          state.currentTask[key] = value;
         }
-        return subtask;
-      });
-      return { ...state, subtasks: newSubtasks };
-    });
-  },
-  
-  setCurrentTask: (task: TaskPreview) => {
-    set({currentNoteId:task.noteid, currentTaskId: task.taskid, taskTitle: task.title, tags: task.tags, textField: task.content, subtasks: task.subtasks, dueDate: task.due_date, dueTime: '' });
+      }),
 
-  },
-
-  toggleSubtaskCompleted: async (subtaskId: number, taskId: number) => {
-    let taskUpdated = false;
-    let newTasks: TaskPreview[] = [];
-  
-    set((state) => {
-      newTasks = state.tasks.map((task) => {
-        if (task.taskid === taskId) {
-          const newSubtasks = task.subtasks.map((subtask) => {
-            if (subtask.subtaskid === subtaskId) {
-              taskUpdated = true; // Mark that an update is needed
-              return { ...subtask, completed: !subtask.completed };
-            }
-            return subtask;
-          });
-          return { ...task, subtasks: newSubtasks };
-        }
-        return task;
-      });
-  
-      return { ...state, tasks: newTasks };
-    });
-  
-    if (taskUpdated) {
-      await tasksApi.toggleCompleteness(taskId, subtaskId);
-    }
-  },
-
-  toggleTaskCompleted: async (taskId: number) => {
-    set((state) => {
-      const newTasks = state.tasks.map((task) => {
-        if (task.taskid === taskId) {
-          return { ...task, completed: !task.completed };
-        }
-        return task;
-      });
-      return { ...state, tasks: newTasks };
-    });
-    await tasksApi.toggleCompleteness(taskId, null); 
-  },
-
-  handleEditTask: function() {
-    const { sendUpdatesToServer, currentTaskId, currentNoteId} = get();
-    const {tags}  = useTags.getState();
-    let {
-      taskTitle,
-      selectedTagIds,
-      dueDate,
-      textField,
-      subtasks, 
-  } = get()
-
-    if (typeof currentTaskId === 'undefined' || typeof currentNoteId === 'undefined') {
-      console.error('currentId is undefined');
-      return; // Exit the function if currentId is undefined
-    }
-    const filteredTags = tags.filter((tag) => selectedTagIds.includes(tag.tagid));
-
-    set((state) => {
-
-      const updatedTask = {
-        taskid: currentTaskId,
-        noteid: currentNoteId,
-        title: taskTitle,
-        tags: filteredTags,
-        content: textField,
-        subtasks: subtasks,
-        dueDate: dueDate,
-      };
-  
-      const updatedTasks = state.tasks.map((task) => 
-        task.taskid === currentTaskId ? { ...task, ...updatedTask } : task
-      );
-  
-      return { ...state, pendingUpdates: updatedTask, tasks: updatedTasks };
-    });
-    sendUpdatesToServer();
-  },
-
-  handleDeleteTask: async (taskId: number | undefined, noteId: number | undefined) => {
-    if (taskId === undefined || noteId === undefined) {
-      return
-    }
-    const { tasks, setSection } = get();
-    set((state) => {
-        const newTasks = state.tasks.filter((task) => task.taskid !== taskId);
-      return { ...state, tasks: newTasks };
-      });
-    if( await tasksApi.delete(taskId, noteId)){
-      setSection('all tasks')
-    }
-  
-},
-  
-
-  sendUpdatesToServer : async () => {
-    const { pendingUpdates, tasks } = get();
-    const updates = pendingUpdates;
-    try {
-        let response = await tasksApi.update(updates);
-        if (response) {
-    
-          set({ pendingUpdates: {} }); //when tasks sent to server, clear pending updates
-          set({
-            taskTitle: '',
-            tags: [],
-            currentTaskId: undefined,
-            currentNoteId: undefined,
-            dueDate: undefined,
-            textField: '',
-            subtasks: [],
-            section: 'all tasks',
-          });
-        } else {
-
-        }
-      } catch (error) {
-        // Handle error, maybe retry
+    fetchTasks: async () => {
+      const fetchedTasks = await tasksApi.getAll();
+      if (fetchedTasks) {
+        set({ tasks: fetchedTasks.data });
       }
-    
-  },
+    },
 
+    handleAddSubtask: () => 
+      set((state) => {
+        if (state.currentTask) {
+          state.currentTask.subtasks.push({ subtaskid: state.currentTask.subtasks.length + 1, description: '', completed: false });
+        }
+      }),
 
-  handleTagAdd: () => {
-    // const newTag = prompt("Enter new tag:");
-    // if (newTag) {
-    //   set((state) => ({ tags: [...state.tags,  newTag] }));
-    // }
-  },
+    handleRemoveSubtask: (subtaskId) => 
+      set((state) => {
+        if (state.currentTask) {
+          state.currentTask.subtasks = state.currentTask.subtasks.filter((subtask) => subtask.subtaskid !== subtaskId);
+        }
+      }),
 
-  handleSaveTask : async() => {
-    let {
-        taskTitle,
-        dueDate,
-        textField,
-        subtasks, 
-        selectedTagIds,
-    } = get()
-    
-    let response = await tasksApi.create(taskTitle,selectedTagIds,textField, subtasks, (dueDate ? dueDate.toISOString() : undefined))
+    handleSaveTask: async () => {
+      const { currentTask } = get();
+      const {selectedTagIds} = useTags.getState();
 
-    set({
-      taskTitle: '',
-      tags: [],
-      dueDate: undefined,
-      textField: '',
-      subtasks: [],
-      section: 'all tasks',
-    });
-  },
-  
-  }}
+      if (currentTask) {
+        const {title, content, subtasks, due_date } = currentTask;
+        const response = await tasksApi.create(title, selectedTagIds, content, subtasks, due_date ? due_date.toISOString() : undefined);
+
+        // if (response) {
+        //   set((state) => {
+        //     state.currentTask = null;
+        //     state.section = 'all tasks';
+        //   });
+        // }
+      }
+    },
+
+    handleEditTask: async () => {
+      const { currentTask } = get();
+      const { tags } = useTags.getState();
+      const {selectedTagIds} = useTags.getState();
+      
+      if (currentTask) {
+        console.log(currentTask)
+        const { taskid, noteid, title, content, subtasks, due_date } = currentTask;
+        const filteredTags = tags.filter((tag) => selectedTagIds.includes(tag.tag_id));
+
+        const updatedTask: TaskPreview = {
+          ...currentTask,
+          title,
+          tags: filteredTags,
+          content,
+          subtasks,
+          due_date,
+        };
+
+        set((state) => {
+          state.tasks = state.tasks.map((task) => (task.taskid === taskid ? updatedTask : task));
+          state.pendingUpdates = updatedTask;
+        });
+
+        await tasksApi.update(updatedTask);
+        set((state) => {
+          state.pendingUpdates = null;
+          state.currentTask = null;
+          state.selectedTagIds = [];
+          state.section = 'all tasks';
+        });
+      }
+    },
+
+    handleDeleteTask: async (taskId, noteId) => {
+      if (taskId && noteId) {
+        await tasksApi.delete(taskId, noteId);
+        set((state) => {
+          state.tasks = state.tasks.filter((task) => task.taskid !== taskId);
+          state.section = 'all tasks';
+        });
+      }
+    },
+
+    toggleTaskCompleted: async (taskId) => {
+      set((state) => {
+        state.tasks = state.tasks.map((task) => 
+          task.taskid === taskId ? { ...task, completed: !task.completed } : task
+        );
+      });
+      await tasksApi.toggleCompleteness(taskId, null);
+    },
+
+    toggleSubtaskCompleted: async (subtaskId, taskId) => {
+      set((state) => {
+        state.tasks = state.tasks.map((task) => {
+          if (task.taskid === taskId) {
+            const newSubtasks = task.subtasks.map((subtask) => 
+              subtask.subtaskid === subtaskId ? { ...subtask, completed: !subtask.completed } : subtask
+            );
+            return { ...task, subtasks: newSubtasks };
+          }
+          return task;
+        });
+      });
+      await tasksApi.toggleCompleteness(taskId, subtaskId);
+    },
+
+    setCurrentTask: (task) => 
+      set((state) => {
+        state.currentTask = { ...task };
+        state.selectedTagIds = task.tags.map((tag) => tag.tag_id);
+      }),
+  }))
 );
