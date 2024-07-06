@@ -6,7 +6,7 @@ import { Separator } from "../@/ui/separator";
 import { Button } from '../@/ui/button';
 import { FaEdit } from 'react-icons/fa';
 import { useTasks } from '../../src/Pages/Tasks/useTasks';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Label } from '@radix-ui/react-dropdown-menu';
 
 
@@ -23,11 +23,13 @@ function TaskCard({ task }: { task: TaskPreview }) {
     const toggleCompleted = () => {
         toggleTaskCompleted(task.taskid);
     };
+    const navigate = useNavigate()
 
     const handleEditClick = (task:TaskPreview) => {
       setCurrentTask(task);
       setSelectedTagIds(task.tags.map(tag => tag.tagid));
       setSection('edit');
+      navigate('/tasks/edit')
     };
 
     

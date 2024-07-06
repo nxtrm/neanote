@@ -13,6 +13,7 @@ import Landing from './Pages/Landing/Landing.tsx';
 import Notes from './Pages/Notes/Notes.tsx';
 import Tasks from './Pages/Tasks/Tasks.tsx';
 import Tags from './Pages/Tags/Tags.tsx';
+import EditTasks from './Pages/Tasks/EditTasks.tsx';
 
 
 const CheckedLayout = withTokenCheck(Layout);
@@ -26,6 +27,7 @@ const AppRouter = () => (
         <Route path="account" element={<div>Account</div>} />
         <Route path="notes" element={<Notes />}/>
         <Route path="tasks" element={<Tasks/>} />
+        <Route path="tasks/edit" element={<EditTasks/>} />
         <Route path="tags" element={<Tags/>} />
       </Route>
       <Route path="login" element={<Login />} />
