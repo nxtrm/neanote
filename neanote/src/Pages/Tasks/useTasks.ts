@@ -9,7 +9,6 @@ import { useNavigate } from 'react-router-dom';
 type TaskState = {
   section: string;
   currentTask: TaskPreview | null;
-  selectedTagIds: number[];
   tasks: TaskPreview[];
   pendingUpdates: Partial<TaskPreview> | null;
   setSection: (section: string) => void;
@@ -82,8 +81,8 @@ export const useTasks = create<TaskState>()(
 
     handleEditTask: async () => {
       const { currentTask } = get();
-      const { tags } = useTags.getState();
-      const {selectedTagIds} = useTags.getState();
+      const { tags, selectedTagIds } = useTags.getState();
+
       
       if (currentTask) {
         console.log(currentTask)
@@ -108,7 +107,6 @@ export const useTasks = create<TaskState>()(
         set((state) => {
           state.pendingUpdates = null;
           state.currentTask = null;
-          state.selectedTagIds = [];
           state.section = 'all tasks';
         });
       }
@@ -151,7 +149,7 @@ export const useTasks = create<TaskState>()(
     setCurrentTask: (task) => 
       set((state) => {
         state.currentTask = { ...task };
-        state.selectedTagIds = task.tags.map((tag) => tag.tag_id);
+        useTags.getState().selectedTagIds = task.tags.map((tag) => tag.tag_id);
       }),
   }))
 );

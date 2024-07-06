@@ -10,6 +10,12 @@ import { DatePicker } from './DatePicker/DatePicker';
 import { useTasks } from './useTasks';
 import PageContainer from '../../../components/PageContainer/PageContainer';
 import { useNavigate } from 'react-router-dom';
+import { useTags } from '../Tags/useTags';
+
+//Fix Tags dropdown menu
+//Fix DatePicker not having information
+//ensure that all temporary ocmponents like currentTask are wiped
+//maybe add server querying
 
 function EditTasks() {
   const {
@@ -27,8 +33,10 @@ function EditTasks() {
   const handleClose = () => {
     useTasks.setState({
       currentTask: null,
-      selectedTagIds: [],
       section: 'all tasks',
+    })
+    useTags.setState({
+      selectedTagIds: [],
     })
     navigate('/tasks');
   };
