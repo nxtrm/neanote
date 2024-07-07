@@ -34,7 +34,7 @@ export const useTasks = create<TaskState>()(
 
     setSection: (section) => set({ section }),
 
-    updateCurrentTask: (key, value) => 
+    updateCurrentTask: <K extends keyof TaskPreview>(key: K, value: TaskPreview[K]) => 
       set((state) => {
         if (state.currentTask) {
           state.currentTask[key] = value;
@@ -70,12 +70,13 @@ export const useTasks = create<TaskState>()(
         const {title, content, subtasks, due_date } = currentTask;
         const response = await tasksApi.create(title, selectedTagIds, content, subtasks, due_date ? due_date.toISOString() : undefined);
 
-        // if (response) {
-        //   set((state) => {
-        //     state.currentTask = null;
-        //     state.section = 'all tasks';
-        //   });
-        // }
+        if (response) {
+          set((state) => {
+            state.tasks.push(currentTask)
+            state.currentTask = null;
+            state.section = 'all tasks';
+          });
+        }
       }
     },
 
@@ -98,27 +99,40 @@ export const useTasks = create<TaskState>()(
           due_date,
         };
 
-        set((state) => {
-          state.tasks = state.tasks.map((task) => (task.taskid === taskid ? updatedTask : task));
-          state.pendingUpdates = updatedTask;
-        });
+        const previousTasks = get().tasks;
 
-        await tasksApi.update(updatedTask);
+        // optimistic update
         set((state) => {
-          state.pendingUpdates = null;
+            state.tasks = state.tasks.map((task) => (task.taskid === taskid ? updatedTask : task));
+            state.pendingUpdates = updatedTask;
+          });
+
+        const response = await tasksApi.update(updatedTask);
+        if (!response) {
+          // revert update
+          set({ tasks: previousTasks, pendingUpdates: null });
+        }
+
+        set((state) => {
           state.currentTask = null;
           state.section = 'all tasks';
         });
       }
-    },
+      },
 
     handleDeleteTask: async (taskId, noteId) => {
       if (taskId && noteId) {
-        await tasksApi.delete(taskId, noteId);
+        const previousTasks = get().tasks;
         set((state) => {
           state.tasks = state.tasks.filter((task) => task.taskid !== taskId);
-          state.section = 'all tasks';
         });
+      
+        const response = await tasksApi.delete(taskId, noteId);
+      
+        // Revert the state if the API call fails
+        if (!response) {
+          set({ tasks: previousTasks });
+        }
       }
     },
 
@@ -128,7 +142,16 @@ export const useTasks = create<TaskState>()(
           task.taskid === taskId ? { ...task, completed: !task.completed } : task
         );
       });
-      await tasksApi.toggleCompleteness(taskId, null);
+      const response = await tasksApi.toggleCompleteness(taskId, null);
+
+      // Revert the state if the API call fails
+      if (!response) {
+        set((state) => {
+          state.tasks = state.tasks.map((task) => 
+            task.taskid === taskId ? { ...task, completed: !task.completed } : task
+          );
+        });
+      }
     },
 
     toggleSubtaskCompleted: async (subtaskId, taskId) => {

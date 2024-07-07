@@ -201,9 +201,8 @@ def register_routes(app, mysql, jwt):
             noteId = data['noteId']
             cur = mysql.connection.cursor()
 
-            if not verify_task_ownership(userId, taskId, cur):
+            if verify_task_ownership(userId, taskId, cur) == False:
                 return jsonify({'message': 'You do not have permission to update this task'}), 403
-
 
             cur.execute("DELETE FROM NoteTags WHERE note_id = %s", (noteId,))
             cur.execute("DELETE FROM Subtasks WHERE task_id = %s", (taskId,))
@@ -232,6 +231,15 @@ def register_routes(app, mysql, jwt):
             cur = mysql.connection.cursor(cursorclass=DictCursor)
             if (verify_task_ownership(userId, taskId, cur)) == False:
                 return jsonify({'message': 'You do not have permission to update this task'}), 403 #to be fixed
+            toggle_sql = """
+                        UPDATE Tasks 
+                        SET completed = CASE 
+                                            WHEN completed = 1 THEN 0 
+                                            ELSE 1 
+                                        END 
+                        WHERE id = %s
+                        """
+            cur.execute(toggle_sql, (taskId,)) 
             
             if subtaskId and verify_subtask_ownership(userId, subtaskId, cur):
                 toggle_sql = """
@@ -243,15 +251,7 @@ def register_routes(app, mysql, jwt):
                         WHERE id = %s AND task_id = %s
                         """
                 cur.execute(toggle_sql, (subtaskId, taskId))  # Correctly pass as tuple
-                toggle_sql = """
-                        UPDATE Tasks 
-                        SET completed = CASE 
-                                            WHEN completed = 1 THEN 0 
-                                            ELSE 1 
-                                        END 
-                        WHERE id = %s
-                        """
-                cur.execute(toggle_sql, (taskId,)) 
+  
 
             mysql.connection.commit()
             return jsonify({'message': 'Field toggled successfully', "data": None}), 200

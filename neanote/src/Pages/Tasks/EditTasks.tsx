@@ -47,8 +47,13 @@ function EditTasks() {
       await handleEditTask();
     }
     navigate('/tasks');
-
   }
+
+  const handleDelete = async () => {
+    await handleDeleteTask(currentTask?.taskid, currentTask?.noteid)
+    navigate('/tasks');
+  }
+
 
   return (
     <PageContainer>
@@ -107,7 +112,8 @@ function EditTasks() {
                     </Button>
                     <div className='flex flex-row gap-2'>
                         <Button variant="outline" onClick={() =>
-                            handleDeleteTask(currentTask?.taskid, currentTask?.noteid)
+                            handleDelete
+                            
                           
                             }>
                             Delete

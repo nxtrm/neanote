@@ -7,7 +7,7 @@ import AppRouter from "./routes.tsx";
 import 'react-toastify/dist/ReactToastify.css';
 
 const App = () => (
-  <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+  <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
       <AppRouter/>
       <ToastContainer/>
   </ThemeProvider>
