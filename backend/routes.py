@@ -230,10 +230,10 @@ def register_routes(app, mysql, jwt):
             subtaskId = data.get('subtaskid')  # Correctly extract subtaskId, if present
 
             cur = mysql.connection.cursor(cursorclass=DictCursor)
-            if (verify_task_ownership(userId, taskId, cur) and verify_subtask_ownership(userId, subtaskId, cur)) == False:
+            if (verify_task_ownership(userId, taskId, cur)) == False:
                 return jsonify({'message': 'You do not have permission to update this task'}), 403 #to be fixed
             
-            if subtaskId:
+            if subtaskId and verify_subtask_ownership(userId, subtaskId, cur):
                 toggle_sql = """
                         UPDATE Subtasks 
                         SET completed = CASE 
@@ -270,7 +270,6 @@ def register_routes(app, mysql, jwt):
         try:
             userId = g.userId
             cur = mysql.connection.cursor(cursorclass=DictCursor)
-
             cur.execute(""" 
                 SELECT 
                     n.id AS note_id, 
@@ -284,7 +283,7 @@ def register_routes(app, mysql, jwt):
                     st.id AS subtask_id, 
                     st.description AS subtask_description, 
                     st.completed AS subtask_completed, 
-                    tg.id AS tag_id, 
+                    tg.id AS tagid, 
                     tg.name AS tag_name, 
                     tg.color AS tag_color
                 FROM Notes n
@@ -294,7 +293,6 @@ def register_routes(app, mysql, jwt):
                 LEFT JOIN Tags tg ON nt.tag_id = tg.id
                 WHERE n.user_id = %s
             """, (userId,)) 
-
             rows = cur.fetchall()
             tasks = {}
             for row in rows:
@@ -310,7 +308,6 @@ def register_routes(app, mysql, jwt):
                         'subtasks': [],
                         'tags': []
                     }
-                # Check if subtask_id is not None before appending
                 if row['subtask_id'] is not None:
                     is_subtask_present = any(subtask['subtask_id'] == row['subtask_id'] for subtask in tasks[note_id]['subtasks'])
                     if not is_subtask_present:
@@ -319,12 +316,11 @@ def register_routes(app, mysql, jwt):
                             'description': row['subtask_description'],
                             'completed': row['subtask_completed'] == 1
                         })
-                # Similar logic for tags, ensuring only non-null tags are appended
-                if row['tag_id'] is not None:
-                    is_tag_present = any(tag['tag_id'] == row['tag_id'] for tag in tasks[note_id]['tags'])
+                if row['tagid'] is not None:
+                    is_tag_present = any(tag['tagid'] == row['tagid'] for tag in tasks[note_id]['tags'])
                     if not is_tag_present:
                         tasks[note_id]['tags'].append({
-                            'tag_id': row['tag_id'],
+                            'tagid': row['tagid'],
                             'name': row['tag_name'],
                             'color': row['tag_color']
                         })
@@ -332,6 +328,7 @@ def register_routes(app, mysql, jwt):
             return jsonify({"data": tasks_list, 'message': "Tasks fetched successfully"}), 200
         except Exception as e:
             mysql.connection.rollback()
+            print(f"An error occurred: {e}")  # Improved error logging
             raise
         finally:
             cur.close()

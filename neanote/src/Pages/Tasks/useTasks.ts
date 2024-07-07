@@ -87,7 +87,7 @@ export const useTasks = create<TaskState>()(
       if (currentTask) {
         console.log(currentTask)
         const { taskid, noteid, title, content, subtasks, due_date } = currentTask;
-        const filteredTags = tags.filter((tag) => selectedTagIds.includes(tag.tag_id));
+        const filteredTags = tags.filter((tag) => selectedTagIds.includes(tag.tagid));
 
         const updatedTask: TaskPreview = {
           ...currentTask,
@@ -149,7 +149,7 @@ export const useTasks = create<TaskState>()(
     setCurrentTask: (task) => 
       set((state) => {
         state.currentTask = { ...task };
-        useTags.getState().selectedTagIds = task.tags.map((tag) => tag.tag_id);
+        useTags.getState().selectedTagIds = task.tags.map((tag) => tag.tagid);
       }),
   }))
 );

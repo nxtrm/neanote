@@ -31,6 +31,8 @@ function TaskCard({ task }: { task: TaskPreview }) {
 
     const handleEditClick = (task: TaskPreview) => {
       setCurrentTask(task);
+      console.log(task.tags)
+      setSelectedTagIds(task.tags.map(tag => tag.tagid));
       setSection('edit');
       navigate('/tasks/edit');
     };

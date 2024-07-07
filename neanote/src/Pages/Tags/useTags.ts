@@ -44,7 +44,7 @@ export const useTags = create<TagState>((set, get) => ({
         set({ tagTitle: '', color: '#000000' });
         set({ section: 'all tags' });
     },
-    setSelectedTagIds: (tagIds) => set((state) => ({ selectedTagIds: [...tagIds] })),
+    setSelectedTagIds: (tagIds) => set({ selectedTagIds: [...tagIds] }),
     setCurrentTagId: (tagId) => set({ currentTagId: tagId }),
     handleDeleteTag: async () => {
         const { currentTagId } = get();

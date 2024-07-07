@@ -17,6 +17,7 @@ function TagsDropdownMenu({ onTagsSelected }) {
       fetchTags();
     }
   }, [tags.length, fetchTags]);
+  console.log(tags);
 
   return (
     <Dialog>
@@ -27,7 +28,7 @@ function TagsDropdownMenu({ onTagsSelected }) {
         {tags.map((tag, index) => (
           <TagLabel
             key={index}
-            tagId={tag.tag_id}
+            tagId={tag.tagid}
             title={tag.name}
             color={tag.color}
           />

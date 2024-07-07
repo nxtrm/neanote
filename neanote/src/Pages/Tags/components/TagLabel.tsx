@@ -13,7 +13,8 @@ interface Props {
 function TagLabel({ color, title, tagId }: Props) {
   const { selectedTagIds, setSelectedTagIds } = useTags();
   const checked = selectedTagIds.includes(tagId);
-
+  console.log(selectedTagIds);
+  console.log(tagId);
   const handleClick = () => {
     const newSelectedTagIds = checked
       ? selectedTagIds.filter((id) => id !== tagId)
