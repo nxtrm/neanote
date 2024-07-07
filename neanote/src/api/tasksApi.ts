@@ -61,7 +61,7 @@ const tasksApi = {
 
     toggleCompleteness: async (taskId: number, subtaskId: number| null) => {
         try {
-            const response = await a.post(`/api/tasks/toggle`, {"taskId": taskId,"subtaskId": subtaskId });
+            const response = await a.post(`/api/tasks/toggle`, {"taskid": taskId,"subtaskid": subtaskId });
             if (response.status === 200) {
                 
             } else {

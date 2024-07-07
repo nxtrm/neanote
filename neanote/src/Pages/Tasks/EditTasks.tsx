@@ -13,7 +13,6 @@ import { useNavigate } from 'react-router-dom';
 import { useTags } from '../Tags/useTags';
 
 //Fix Tags dropdown menu
-//Fix DatePicker not having information
 //ensure that all temporary ocmponents like currentTask are wiped
 //maybe add server querying
 
@@ -90,9 +89,9 @@ function EditTasks() {
             onChange={(e) => updateCurrentTask('content', e.target.value)}
           />
           {currentTask?.subtasks.map((subtask, index) => (
-            <div key={subtask.subtaskid} className='flex pt-3 gap-2 items-center'>
-              <Input type='text' value={subtask.description} onChange={(e) => updateCurrentTask('subtasks', currentTask.subtasks.map(st => st.subtaskid === subtask.subtaskid ? { ...st, description: e.target.value } : st))} />
-              <Button onClick={() => handleRemoveSubtask(subtask.subtaskid)} variant='secondary' size='icon'>
+            <div key={subtask.subtask_id} className='flex pt-3 gap-2 items-center'>
+              <Input type='text' value={subtask.description} onChange={(e) => updateCurrentTask('subtasks', currentTask.subtasks.map(st => st.subtask_id === subtask.subtask_id ? { ...st, description: e.target.value } : st))} />
+              <Button onClick={() => handleRemoveSubtask(subtask.subtask_id)} variant='secondary' size='icon'>
                 <FaRegTrashAlt />
               </Button>
             </div>

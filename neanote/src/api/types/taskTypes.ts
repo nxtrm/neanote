@@ -1,7 +1,7 @@
 import { Tag } from "./tagTypes";
 
 export interface Subtask {
-    subtaskid: number;
+    subtask_id: number;
     description: string;
     completed: boolean;
   };

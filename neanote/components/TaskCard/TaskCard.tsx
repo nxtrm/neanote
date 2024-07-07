@@ -82,7 +82,7 @@ function TaskCard({ task }: { task: TaskPreview }) {
         </div>}
         
         {task.subtasks.map((subtask) => (
-            <div className='pt-2' key={subtask.subtaskid}>
+            <div className='pt-2' key={subtask.subtask_id}>
               <SubTaskCard subtask={subtask} taskId={task.taskid}/>
             </div>
         ))}

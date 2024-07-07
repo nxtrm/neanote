@@ -49,6 +49,7 @@ def token_required(f):
     return decorated_function
 
 def verify_task_ownership(user_id, task_id, cur):
+    
     query = """
     SELECT Notes.user_id
     FROM Tasks
@@ -58,7 +59,8 @@ def verify_task_ownership(user_id, task_id, cur):
     cur.execute(query, (task_id,))
     result = cur.fetchone()
 
-    if not result or result['user_id'] != user_id:
+    if (len(result)<1) or (int(result['user_id']) != int(user_id)):
+        print("False")
         return False
     return True
 
@@ -72,8 +74,9 @@ def verify_subtask_ownership(user_id, subtask_id, cur):
     """
     cur.execute(query, (subtask_id,))
     result = cur.fetchone()
+    print(subtask_id)
 
-    if not result or result['user_id'] != user_id:
+    if (len(result)<1) or (int(result['user_id']) != int(user_id)):
         return False
     return True
 

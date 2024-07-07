@@ -51,14 +51,14 @@ export const useTasks = create<TaskState>()(
     handleAddSubtask: () => 
       set((state) => {
         if (state.currentTask) {
-          state.currentTask.subtasks.push({ subtaskid: state.currentTask.subtasks.length + 1, description: '', completed: false });
+          state.currentTask.subtasks.push({ subtask_id: state.currentTask.subtasks.length + 1, description: '', completed: false });
         }
       }),
 
     handleRemoveSubtask: (subtaskId) => 
       set((state) => {
         if (state.currentTask) {
-          state.currentTask.subtasks = state.currentTask.subtasks.filter((subtask) => subtask.subtaskid !== subtaskId);
+          state.currentTask.subtasks = state.currentTask.subtasks.filter((subtask) => subtask.subtask_id !== subtaskId);
         }
       }),
 
@@ -136,7 +136,7 @@ export const useTasks = create<TaskState>()(
         state.tasks = state.tasks.map((task) => {
           if (task.taskid === taskId) {
             const newSubtasks = task.subtasks.map((subtask) => 
-              subtask.subtaskid === subtaskId ? { ...subtask, completed: !subtask.completed } : subtask
+              subtask.subtask_id === subtaskId ? { ...subtask, completed: !subtask.completed } : subtask
             );
             return { ...task, subtasks: newSubtasks };
           }

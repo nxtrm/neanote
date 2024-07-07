@@ -9,7 +9,8 @@ function SubTaskCard({ subtask, taskId }: { subtask: Subtask, taskId:number }) {
   } = useTasks()
 
     const toggleCompleted = () => {
-        toggleSubtaskCompleted(subtask.subtaskid, taskId);
+        toggleSubtaskCompleted(subtask.subtask_id, taskId);
+        console.log(subtask)
     };
 
   return (

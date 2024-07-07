@@ -23,6 +23,13 @@ interface DatePickerProps {
 export function DatePicker({ onDateChange, data, includeTime = false }: DatePickerProps) {
   const [dateTime, setDateTime] = React.useState<Date | undefined>()
 
+  React.useEffect(() => {
+    if (data) {
+      const parsedDate = new Date(data);
+      setDateTime(parsedDate);
+    }
+  }, [data]);
+
   const handleDateSelect = (newDate: Date | undefined) => {
     if (newDate && dateTime) {
       newDate.setHours(dateTime.getHours(), dateTime.getMinutes());

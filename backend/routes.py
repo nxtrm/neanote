@@ -148,8 +148,8 @@ def register_routes(app, mysql, jwt):
             note_id = task['noteid']
             task_id = task['taskid']
 
-            # if verify_task_ownership(userId, task_id, cur) is False:
-            #     return jsonify({'message': 'You do not have permission to update this task'}), 403
+            if verify_task_ownership(userId, task_id, cur) == False:
+                return jsonify({'message': 'You do not have permission to update this task'}), 403
             
             query = """
                     UPDATE Notes
@@ -158,12 +158,14 @@ def register_routes(app, mysql, jwt):
                     """
             cur.execute(query, (task['title'], task['content'], note_id, userId))
 
-            dueDate = task.get('dueDate') 
+            dueDate = task.get('due_date') 
 
             if dueDate:
+                print(dueDate)
                 # Convert react Date format to mysql Date format
-                parsed_date = datetime.strptime(dueDate, "%Y-%m-%dT%H:%M:%S.%fZ")
+                parsed_date = datetime.strptime(dueDate, "%a, %d %b %Y %H:%M:%S GMT")
                 mysql_datetime_str = parsed_date.strftime("%Y-%m-%d %H:%M:%S")
+                print(mysql_datetime_str)
                 cur.execute("UPDATE Tasks SET due_date = %s WHERE id = %s", (mysql_datetime_str, task_id))
             
             # Delete existing subtasks and tags before inserting new ones
@@ -224,11 +226,11 @@ def register_routes(app, mysql, jwt):
         try:
             userId = g.userId
             data = request.get_json()
-            taskId = data.get('taskId')
-            subtaskId = data.get('subtaskId')  # Correctly extract subtaskId, if present
+            taskId = data.get('taskid')
+            subtaskId = data.get('subtaskid')  # Correctly extract subtaskId, if present
 
-            cur = mysql.connection.cursor()
-            if (verify_task_ownership(userId, taskId, cur) and verify_subtask_ownership(userId, subtaskId, cur)) is False:
+            cur = mysql.connection.cursor(cursorclass=DictCursor)
+            if (verify_task_ownership(userId, taskId, cur) and verify_subtask_ownership(userId, subtaskId, cur)) == False:
                 return jsonify({'message': 'You do not have permission to update this task'}), 403 #to be fixed
             
             if subtaskId:
@@ -326,13 +328,13 @@ def register_routes(app, mysql, jwt):
                             'name': row['tag_name'],
                             'color': row['tag_color']
                         })
-
-            cur.close()
             tasks_list = [value for key, value in tasks.items()]
             return jsonify({"data": tasks_list, 'message': "Tasks fetched successfully"}), 200
         except Exception as e:
             mysql.connection.rollback()
             raise
+        finally:
+            cur.close()
 
 #TAG MODULE
     @app.route('/api/tags/create', methods=['POST'])
