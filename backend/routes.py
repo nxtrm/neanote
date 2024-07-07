@@ -40,6 +40,7 @@ def register_routes(app, mysql, jwt):
             username = request.json['username']
             email = request.json['email']
             password = request.json['password']
+            
 
             cur = mysql.connection.cursor()
 
