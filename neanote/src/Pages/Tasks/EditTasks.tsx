@@ -111,11 +111,7 @@ function EditTasks() {
                       </div>
                     </Button>
                     <div className='flex flex-row gap-2'>
-                        <Button variant="outline" onClick={() =>
-                            handleDelete
-                            
-                          
-                            }>
+                        <Button variant="outline" onClick={handleDelete}>
                             Delete
                         </Button>
                         <Button onClick={handleSave}

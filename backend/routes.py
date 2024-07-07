@@ -1,20 +1,24 @@
 from datetime import datetime, timedelta
-
+from marshmallow import ValidationError
 from flask import Flask, g, jsonify, request
 from flask_cors import CORS
 from flask_jwt_extended import (JWTManager, create_access_token,
                                 get_jwt_identity, jwt_required)
 from MySQLdb.cursors import DictCursor
 
+from formsValidation import LoginSchema, UserSchema
 from utils import token_required, verify_subtask_ownership, verify_tag_ownership, verify_task_ownership
 
 
 def register_routes(app, mysql, jwt):
     @app.route('/api/login', methods=['POST'])
     def login():
-        try: 
-            username = request.json['username']
-            password = request.json['password']
+        try: #implement password hashing later
+            login_schema = LoginSchema()
+
+            data = login_schema.load(request.json)
+            username = data['username']
+            password = data['password']
 
             cur = mysql.connection.cursor()
             cur.execute("SELECT * FROM users WHERE username = %s AND password = %s", (username, password))
@@ -28,6 +32,8 @@ def register_routes(app, mysql, jwt):
                 return response, 200
             else:
                 return jsonify({'message': 'User not found'}), 401
+        except ValidationError as err:
+            return jsonify(err.messages), 400
         except Exception as error:
             mysql.connection.rollback()
             raise
@@ -37,9 +43,12 @@ def register_routes(app, mysql, jwt):
     @app.route('/api/register', methods=['POST'])
     def register():
         try:
-            username = request.json['username']
-            email = request.json['email']
-            password = request.json['password']
+            user_schema = UserSchema()
+            result = user_schema.load(request.json)
+
+            username = result['username']
+            email = result['email']
+            password = result['password']
             
 
             cur = mysql.connection.cursor()
@@ -65,6 +74,8 @@ def register_routes(app, mysql, jwt):
             response.set_cookie('token', access_token)
             response = jsonify({'message': 'User created successfully', 'userId': userId})
             return response
+        except ValidationError as err:
+            return jsonify(err.messages), 400
         except Exception as error:
             mysql.connection.rollback()
             raise
@@ -196,11 +207,11 @@ def register_routes(app, mysql, jwt):
     @token_required
     def delete_task():
         try:
-            userId = g. userId
+            userId = g.userId
             data = request.get_json()
             taskId = data['taskId']
             noteId = data['noteId']
-            cur = mysql.connection.cursor()
+            cur = mysql.connection.cursor(cursorclass=DictCursor)
 
             if verify_task_ownership(userId, taskId, cur) == False:
                 return jsonify({'message': 'You do not have permission to update this task'}), 403
