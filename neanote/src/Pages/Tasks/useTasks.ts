@@ -5,8 +5,12 @@ import { Subtask, TaskPreview } from '../../api/types/taskTypes';
 import { Tag } from '../../api/types/tagTypes';
 import { useTags } from '../Tags/useTags';
 import { useNavigate } from 'react-router-dom';
+import { TaskSchema } from '../../formValidation';
+import { showToast } from '../../../components/Toast';
 
 type TaskState = {
+  loading:boolean;
+  setLoading: (loading: boolean) => void;
   section: string;
   currentTask: TaskPreview | null;
   tasks: TaskPreview[];
@@ -31,6 +35,9 @@ export const useTasks = create<TaskState>()(
     selectedTagIds: [],
     tasks: [],
     pendingUpdates: null,
+    loading: false,
+
+    setLoading : (loading) => set({ loading }),
 
     setSection: (section) => set({ section }),
 
@@ -42,9 +49,16 @@ export const useTasks = create<TaskState>()(
       }),
 
     fetchTasks: async () => {
+      const setLoading = useTasks.getState().setLoading;
+      setLoading(true);
       const fetchedTasks = await tasksApi.getAll();
       if (fetchedTasks) {
-        set({ tasks: fetchedTasks.data });
+        try {
+          set({ tasks: fetchedTasks.data });
+        } 
+        finally {
+          setLoading(false);
+        }
       }
     },
 
@@ -67,6 +81,13 @@ export const useTasks = create<TaskState>()(
       const {selectedTagIds} = useTags.getState();
 
       if (currentTask) {
+        // const result = TaskSchema.safeParse(currentTask);
+
+        // if (!result.success) {
+        //   showToast('e', 'Please fill in all required fields');
+        //   return; 
+        // }
+        
         const {title, content, subtasks, due_date } = currentTask;
         const response = await tasksApi.create(title, selectedTagIds, content, subtasks, due_date ? due_date.toISOString() : undefined);
 
@@ -84,9 +105,15 @@ export const useTasks = create<TaskState>()(
       const { currentTask } = get();
       const { tags, selectedTagIds } = useTags.getState();
 
-      
       if (currentTask) {
-        console.log(currentTask)
+
+        // const result = TaskSchema.safeParse(currentTask);
+
+        // if (!result.success) {
+        //   showToast('e', 'Please fill in all required fields');
+        //   return; 
+        // }
+
         const { taskid, noteid, title, content, subtasks, due_date } = currentTask;
         const filteredTags = tags.filter((tag) => selectedTagIds.includes(tag.tagid));
 

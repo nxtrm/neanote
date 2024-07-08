@@ -7,7 +7,7 @@ import PageContainer from '../../../components/PageContainer/PageContainer';
 import { useNavigate } from 'react-router-dom';
 
 const Tasks: React.FC = () => {
-  const { tasks, setSection, fetchTasks, setCurrentTask } = useTasks();
+  const { tasks, loading, setSection, fetchTasks, setCurrentTask } = useTasks();
   const navigate = useNavigate();
 
   const [lastFetchTime, setLastFetchTime] = useState<Date | null>(null);
@@ -47,22 +47,26 @@ const Tasks: React.FC = () => {
 
   return (
     <PageContainer>
+    
       <div className='px-1 py-1'>
-        {/* Title and Button */}
-        <div className='flex flex-row justify-between pb-2'>
-          <p className='pl-1 text-2xl font-bold'>Tasks</p>
-          <Button size='sm' onClick={handleAddTaskClick}>
-            <FaPlus />
-            Add Task
-          </Button>
-        </div>
-
-        {/* Task List */}
-        <div className='flex flex-col gap-3'>
-          {tasks.map((task) => (
-            <TaskCard key={task.taskid} task={task} />
-          ))}
-        </div>
+      {loading ? (
+        <div className="spinner">Loading...</div> 
+      ) : (
+      <>
+      <div className='flex flex-row justify-between pb-2'>
+              <p className='pl-1 text-2xl font-bold'>Tasks</p>
+              <Button size='sm' onClick={handleAddTaskClick}>
+                <FaPlus />
+                Add Task
+              </Button>
+            </div>
+            <div className='flex flex-col gap-3'>
+              {tasks.map((task) => (
+                <TaskCard key={task.taskid} task={task} />
+              ))}
+            </div>
+        </>
+      )}
       </div>
     </PageContainer>
   );

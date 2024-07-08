@@ -9,6 +9,7 @@ import { useTasks } from '../../src/Pages/Tasks/useTasks';
 import { Link, useNavigate } from 'react-router-dom';
 import { Label } from '@radix-ui/react-dropdown-menu';
 import { useTags } from '../../src/Pages/Tags/useTags';
+import SkeletonCard from './SkeletonCard';
 
 
 
@@ -17,6 +18,7 @@ function TaskCard({ task }: { task: TaskPreview }) {
       toggleTaskCompleted,
       setSection,
       setCurrentTask,
+      loading,
     } = useTasks()
 
     const {
@@ -57,8 +59,12 @@ function TaskCard({ task }: { task: TaskPreview }) {
         const date = new Date(dateString);
         return date < new Date();
       };
-  
-    return (
+      
+      if (loading) {
+        return <SkeletonCard />;
+      }
+      
+      return (
       <div className='p-4 w-full rounded-xl border-[2px]'>
         <div className='flex flex-row items-center gap-3 justify-between'>
           <div className='flex flex-row items-center gap-3'>

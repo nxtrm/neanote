@@ -31,9 +31,10 @@ export const loginFormSchema = z.object({
       completed: z.boolean(),
     });
     
-export const TaskSchema = z.object({
-      title: z.string().min(1, "Title is required"),
-      content: z.string().optional(),
-      due_date: z.date().optional(),
-      subtasks: z.array(SubtaskSchema),
-    });
+// export const TaskSchema = z.object({
+//       title: z.string().min(1, "Title is required"),
+//       content: z.string().optional(),
+//       due_date: z.date().optional(),
+//       subtasks: z.array(SubtaskSchema).optional(),
+//       tags: z.array(TagSchema).optional(),
+//     });
