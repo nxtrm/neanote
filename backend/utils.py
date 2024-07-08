@@ -89,6 +89,6 @@ def verify_tag_ownership(user_id, tag_id, cur):
     cur.execute(query, (tag_id,))
     result = cur.fetchone()
 
-    if not result or result['user_id'] != user_id:
+    if (len(result)<1) or (int(result['user_id']) != int(user_id)):
         return False
     return True

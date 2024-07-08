@@ -6,7 +6,7 @@ from flask_jwt_extended import (JWTManager, create_access_token,
                                 get_jwt_identity, jwt_required)
 from MySQLdb.cursors import DictCursor
 
-from formsValidation import LoginSchema, UserSchema
+from formsValidation import LoginSchema, TagSchema, TaskSchema, UserSchema
 from utils import token_required, verify_subtask_ownership, verify_tag_ownership, verify_task_ownership
 
 
@@ -88,9 +88,10 @@ def register_routes(app, mysql, jwt):
     @jwt_required()
     @token_required
     def create_task():
-        userId = g. userId
+        userId = g.userId
 
-        data = request.get_json()
+        task_schema = TaskSchema()
+        data = task_schema.load(request.get_json())
         title = data['title']
         tags = data['tags']
         content = data['content']
@@ -152,10 +153,13 @@ def register_routes(app, mysql, jwt):
     @jwt_required()
     @token_required
     def update_task():
-        task = request.get_json()
         userId = g.userId
+
         cur = mysql.connection.cursor(cursorclass=DictCursor)
 
+        task_schema = TaskSchema()
+        task = task_schema.load(request.get_json())
+        
         try:
             note_id = task['noteid']
             task_id = task['taskid']
@@ -351,7 +355,9 @@ def register_routes(app, mysql, jwt):
     @token_required
     def create_tag():
         userId = g.userId
-        data = request.get_json()
+
+        tag_schema = TagSchema()
+        data = tag_schema.load(request.get_json())
         tag_name = data['name']
         tag_color = data['color']
     
@@ -441,12 +447,16 @@ def register_routes(app, mysql, jwt):
     @jwt_required()
     @token_required
     def editTag():
+        tag_schema = TagSchema()
         userId = g.userId
-        cur = mysql.connection.cursor()
-        data = request.get_json()
+
+        data = tag_schema.load(request.get_json())
+        
         tag_id = data['tagId']
         name = data['name']
         color = data['color']
+
+        cur = mysql.connection.cursor(cursorclass=DictCursor)
 
         if verify_tag_ownership(userId, tag_id, cur) is False:
             return jsonify({'message': 'You do not have permission to update this tag'}), 403
