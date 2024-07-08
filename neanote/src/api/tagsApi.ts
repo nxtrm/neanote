@@ -22,11 +22,11 @@ const tagsApi = {
             return false;
         }
     },
-    add : async (noteId: number, tagId: number) => {
+    add : async (noteid: number, tagid: number) => {
         try {
             let response = await a.post(`/api/tags/add`, {
-                noteId,
-                tagId
+                noteid,
+                tagid
             });
 
             if (response.status === 200) {
@@ -57,9 +57,9 @@ const tagsApi = {
         }
     },
 
-    delete : async (tagId: number) => {
+    delete : async (tagid: number) => {
         try {
-            let response = await a.post(`/api/tags/delete`, {tagId})
+            let response = await a.post(`/api/tags/delete`, {tagid})
 
             if (response.status === 200) {
                 showToast('s', 'Tag has been deleted successfully');
@@ -74,10 +74,10 @@ const tagsApi = {
         }
     },
 
-    edit : async (tagId: number, name: string, color: string) => {
+    edit : async (tagid: number, name: string, color: string) => {
         try {
             let response = await a.post(`/api/tags/edit`, {
-                tagId,
+                tagid,
                 name,
                 color
             });

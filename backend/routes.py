@@ -428,7 +428,7 @@ def register_routes(app, mysql, jwt):
         cur = mysql.connection.cursor()
         data = request.get_json()
         note_id = data['note_id']
-        tag_id = data['tag_id']
+        tag_id = data['tagid']
         if verify_tag_ownership(userId, tag_id, cur) is False:
             return jsonify({'message': 'You do not have permission to update this tag'}), 403
         try:
@@ -451,8 +451,8 @@ def register_routes(app, mysql, jwt):
         userId = g.userId
 
         data = tag_schema.load(request.get_json())
-        
-        tag_id = data['tagId']
+
+        tag_id = data['tagid']
         name = data['name']
         color = data['color']
 
@@ -484,7 +484,7 @@ def register_routes(app, mysql, jwt):
         
         try:
             data = request.get_json()
-            tag_id = data['tagId']
+            tag_id = data['tagid']
 
             if not verify_tag_ownership(userId, tag_id, cur):
                 return jsonify({'message': 'You do not have permission to update this tag'}), 403
