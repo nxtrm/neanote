@@ -9,7 +9,7 @@ export const modules = [
     {link: 'memory', text: 'Memory', disabled: true},
     {link: 'tasks', text: 'Tasks', disabled: false},
     {link: 'goals', text: 'Goals', disabled: true},
-    {link: 'habits', text: 'Habits', disabled: true},
+    {link: 'habits', text: 'Habits', disabled: false},
     {link: 'events', text: 'Events', disabled: true},
     {link: 'projects', text: 'Projects', disabled: true},
     {link: 'archive', text: 'Archive', disabled: true},

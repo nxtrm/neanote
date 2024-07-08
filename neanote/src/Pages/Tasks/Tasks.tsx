@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { Button } from '../../../components/@/ui/button';
-import { FaPlus } from 'react-icons/fa';
+import { FaPlus } from 'react-icons/fa6';
 import TaskCard from '../../../components/TaskCard/TaskCard';
 import { useTasks } from './useTasks';
 import PageContainer from '../../../components/PageContainer/PageContainer';
 import { useNavigate } from 'react-router-dom';
 
 const Tasks: React.FC = () => {
-  const { tasks, loading, setSection, fetchTasks, setCurrentTask } = useTasks();
+  const { tasks, setSection, fetchTasks, setCurrentTask } = useTasks();
   const navigate = useNavigate();
 
   const [lastFetchTime, setLastFetchTime] = useState<Date | null>(null);
@@ -49,15 +49,12 @@ const Tasks: React.FC = () => {
     <PageContainer>
     
       <div className='px-1 py-1'>
-      {loading ? (
-        <div className="spinner">Loading...</div> 
-      ) : (
-      <>
+
       <div className='flex flex-row justify-between pb-2'>
               <p className='pl-1 text-2xl font-bold'>Tasks</p>
-              <Button size='sm' onClick={handleAddTaskClick}>
-                <FaPlus />
-                Add Task
+              <Button size='sm' className='gap-2' onClick={handleAddTaskClick}>
+                <FaPlus />  
+                 Add Task
               </Button>
             </div>
             <div className='flex flex-col gap-3'>
@@ -65,8 +62,6 @@ const Tasks: React.FC = () => {
                 <TaskCard key={task.taskid} task={task} />
               ))}
             </div>
-        </>
-      )}
       </div>
     </PageContainer>
   );
