@@ -11,7 +11,8 @@ import { Label } from '@radix-ui/react-dropdown-menu';
 import { useTags } from '../../src/Pages/Tags/useTags';
 import SkeletonCard from './SkeletonCard';
 import './TaskCard.css'; 
-import TagLabel from './TagLabel';
+import TagLabel from '../../components/TagLabel/TagLabel';
+import DateLabel from '../DateLabel/DateLabel';
 
 
 function TaskCard({ task }: { task: TaskPreview }) {
@@ -40,31 +41,13 @@ function TaskCard({ task }: { task: TaskPreview }) {
     };
 
     
-      function formatDateWithTime(dateInput: string | Date | undefined): string {
-        if (!dateInput) return 'No due date';
-        let date: Date;
-        if (typeof dateInput === 'string') {
-          date = new Date(dateInput);
-        } else if (dateInput instanceof Date) {
-          date = dateInput;
-        } else {
-          return 'Invalid date';
-        }
-        return new Intl.DateTimeFormat('en-US', { dateStyle: 'medium', timeStyle: 'short', timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone }).format(date);
-      }
+
   
-      const isOverdue = (dateString: string | undefined) => {
-        if (!dateString) return false;
-        // Parse the dateString into a Date object
-        const date = new Date(dateString);
-        return date < new Date();
-      };
+
       
       if (loading) {
         return <SkeletonCard />;
       }
-
-
       
       return (
       <div className='p-3 w-full rounded-xl border-[2px]'>
@@ -74,9 +57,7 @@ function TaskCard({ task }: { task: TaskPreview }) {
             <h3 className="task-title">{task.title}</h3>
           </div>                                                       
           <div className='flex flex-row items-center gap-3'>
-            {task.due_date &&<div className={`text-xs  items-center p-1 rounded-md ${isOverdue(formatDateWithTime(task.due_date)) ? 'bg-red-400' : 'bg-secondary'}`}>
-             Due: {formatDateWithTime(task.due_date)}
-            </div>}
+            {task.due_date  && <DateLabel date={task.due_date} />}
             {task.tags.map((tag, index) => (
               
               <TagLabel key={index} name={tag.name} color={tag.color} compressed={false}/>
