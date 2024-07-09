@@ -15,7 +15,7 @@ import TagLabel from '../../components/TagLabel/TagLabel';
 import DateLabel from '../DateLabel/DateLabel';
 
 
-function TaskCard({ task }: { task: TaskPreview }) {
+function TaskCard({ task }: { task: TaskPreview }) { //Add Combine DateLabel and TagLabel into a new component which will have a specific width depending on the display size and collapse/uncollapse components based on it
     const {
       toggleTaskCompleted,
       setSection,
@@ -40,10 +40,6 @@ function TaskCard({ task }: { task: TaskPreview }) {
       navigate('/tasks/edit');
     };
 
-    
-
-  
-
       
       if (loading) {
         return <SkeletonCard />;
@@ -56,11 +52,10 @@ function TaskCard({ task }: { task: TaskPreview }) {
             <CheckBox checked={task.completed} onChange={toggleCompleted} />
             <h3 className="task-title">{task.title}</h3>
           </div>                                                       
-          <div className='flex flex-row items-center gap-3'>
-            {task.due_date  && <DateLabel date={task.due_date} />}
+          <div className='flex flex-row items-center gap-1'>
+            {task.due_date  && <DateLabel collapsed={true} date={task.due_date} />}
             {task.tags.map((tag, index) => (
-              
-              <TagLabel key={index} name={tag.name} color={tag.color} compressed={false}/>
+              <TagLabel key={index} name={tag.name} color={tag.color} compressed={true}/>
             ))}
             <Button variant="ghost" size={"icon"} onClick={()=>handleEditClick(task)}><FaEdit/></Button>
           </div>

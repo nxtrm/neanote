@@ -1,6 +1,6 @@
-import React from 'react'
-import { Tag } from '../../src/api/types/tagTypes'
+import React, { useState } from 'react'
 import {Label} from '../@/ui/label'
+import { Button } from '../@/ui/button'
 interface Props {
   name:string
   color:string
@@ -8,10 +8,15 @@ interface Props {
 }
 
 function TagLabel({name,color,compressed}: Props) {
+   const [compressed_, setCompressed] = useState<boolean>(compressed)
    return (
-    !compressed ? (<Label style={{backgroundColor: color}} className='rounded-md font-bold items-center text-xs p-1'>{name}</Label>
-    ): (<div></div>)
-  )
-}
+    <Button
+      style={{ backgroundColor: color }}
+      onClick={() => setCompressed(!compressed_)}
+      className={`rounded-${compressed_ ? 'sm' : 'md'} font-bold items-center h-6 text-xs p-1`}
+    >
+      {!compressed_ && name}
+    </Button>
+  );}
 
 export default TagLabel

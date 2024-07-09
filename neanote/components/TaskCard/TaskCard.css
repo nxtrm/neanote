@@ -8,7 +8,7 @@
     flex-grow: 1;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 650px) {
     .task-title {
         max-width: 150px; /* Max-width for small displays */
     }

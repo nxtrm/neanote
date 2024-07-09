@@ -3,9 +3,10 @@ import { FaBell } from 'react-icons/fa';
 
 interface Props {
   date: string | Date | undefined
+  collapsed?: boolean
 }   
 
-function DateLabel({date}:Props) {
+function DateLabel({date,collapsed}:Props) {
 
     function formatDateWithTime(dateInput: string | Date | undefined): string {
         if (!dateInput) return 'No due date';
@@ -28,8 +29,8 @@ function DateLabel({date}:Props) {
       };
 
   return (
-    <div className={`text-xs  items-center flex flex-row gap-1 p-1 rounded-md ${isOverdue(formatDateWithTime(date)) ? 'bg-red-400' : 'bg-secondary'}`}>
-             <FaBell /> {formatDateWithTime(date)}
+    <div className={`text-xs items-center flex flex-row h-6 gap-1 p-1 rounded-md ${isOverdue(formatDateWithTime(date)) ? 'bg-red-400' : 'bg-secondary'}`}>
+                <FaBell /> {!collapsed && formatDateWithTime(date)}
     </div>
   )
 }
