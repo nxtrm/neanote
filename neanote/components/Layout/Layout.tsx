@@ -9,7 +9,7 @@ return (
     <div className='flex flex-col min-h-screen min-w-full bg-background max-h-screen'>
  
             <div className="flex  flex-row">
-                <div className='pt-3 pl-3 pb-3' >
+                <div className='pt-3 pl-3 pb-3 sm:block hidden' >
                     <Sidebar/>
                 </div>
 

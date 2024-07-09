@@ -3,7 +3,7 @@ import { ToastContainer } from 'react-toastify'
 
 function PageContainer({children}) {
   return (
-    <div className='p-2 w-full rounded-xl border-[2px]'>
+    <div className='p-2 w-full rounded-xl md:border-[2px] lg:border-[2px]'>
         {children}
     </div>
   )

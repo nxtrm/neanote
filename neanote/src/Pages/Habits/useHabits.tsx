@@ -7,6 +7,7 @@ type HabitState = {
     habits: Habit[];
     currentHabit: Habit | null;
     setCurrentHabit: (habit: Habit) => void;
+    updateCurrentHabit: <K extends keyof Habit>(key: K, value: Habit[K]) => void;
     section: string
     setSection: (section: string) => void;
     loading: boolean;
@@ -26,6 +27,13 @@ export const useHabits = create<HabitState>()(
                 useTags.getState().selectedTagIds = habit.tags.map((tag) => tag.tagid);
               })
             },
+        
+        updateCurrentHabit: <K extends keyof Habit>(key: K, value: Habit[K]) => 
+            set((state) => {
+                  if (state.currentHabit) {
+                    state.currentHabit[key] = value;
+                }
+            }),
 
         setSection: (section) => set({section}),
         setLoading: (loading) => set({loading}),

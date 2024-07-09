@@ -30,7 +30,7 @@ function Habits() {
 
         <div className='flex flex-row justify-between pb-2'>
             <p className='pl-1 text-2xl font-bold'>Habits</p>
-            <Button size='sm' className='gap-2' onClick={() => console.log('clicked')}>
+            <Button size='sm' className='gap-2' onClick={handleAddHabitClick}>
               <FaPlus />  
                Add Habit
             </Button>

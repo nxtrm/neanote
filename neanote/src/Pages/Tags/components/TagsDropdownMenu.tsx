@@ -17,7 +17,6 @@ function TagsDropdownMenu({ onTagsSelected }) {
       fetchTags();
     }
   }, [tags.length, fetchTags]);
-  console.log(tags);
 
   return (
     <Dialog>
