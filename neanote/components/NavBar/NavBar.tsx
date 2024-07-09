@@ -4,7 +4,7 @@ import LoginButton from './LoginButton/LoginButton';
 
 function NavBar() {
   return (
-    <div className='p-2 rounded-xl flex flex-row gap-2 border-[2px] '>
+    <div className='p-2 rounded-xl flex flex-row justify-between items-center border-[2px]'>
       <ThemeSwitcher/>
       <LoginButton/>
     </div>

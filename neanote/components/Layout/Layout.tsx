@@ -5,25 +5,23 @@ import { Outlet } from "react-router-dom";
 
 
 const Layout = () => {
-return (
-    <div className='flex flex-col min-h-screen min-w-full bg-background max-h-screen'>
- 
-            <div className="flex  flex-row">
-                <div className='pt-3 pl-3 pb-3 sm:block hidden' >
-                    <Sidebar/>
-                </div>
-
-                <div className='flex flex-col flex-grow'>
-                    <nav className='p-3 h-15'>
-                        <NavBar/>
-                    </nav>
-                    <main className='p-3 pt-0 flex flex-w-full flex-grow' >
-                            <Outlet/>
-                    </main>
-                </div>
-            </div>
-    </div>
-)
+    return (
+      <div className='flex flex-col min-h-screen min-w-full bg-background'>
+        <div className="flex flex-row">
+          <div className='hidden pr-0 p-2 md:flex md:w-60 lg:w-72 xl:w-80'>
+            <Sidebar/>
+          </div>
+          <div className='flex flex-col flex-grow'>
+            <nav className='p-2'>
+              <NavBar/>
+            </nav>
+            <main className='p-2 pt-0 flex-grow'>
+              <Outlet/>
+            </main>
+          </div>
+        </div>
+      </div>
+    )
 }
 
 export default Layout

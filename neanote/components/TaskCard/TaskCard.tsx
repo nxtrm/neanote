@@ -10,7 +10,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Label } from '@radix-ui/react-dropdown-menu';
 import { useTags } from '../../src/Pages/Tags/useTags';
 import SkeletonCard from './SkeletonCard';
-
+import './TaskCard.css'; 
+import TagLabel from './TagLabel';
 
 
 function TaskCard({ task }: { task: TaskPreview }) {
@@ -33,7 +34,6 @@ function TaskCard({ task }: { task: TaskPreview }) {
 
     const handleEditClick = (task: TaskPreview) => {
       setCurrentTask(task);
-      console.log(task.tags)
       setSelectedTagIds(task.tags.map(tag => tag.tagid));
       setSection('edit');
       navigate('/tasks/edit');
@@ -63,21 +63,23 @@ function TaskCard({ task }: { task: TaskPreview }) {
       if (loading) {
         return <SkeletonCard />;
       }
+
+
       
       return (
-      <div className='p-4 w-full rounded-xl border-[2px]'>
+      <div className='p-3 w-full rounded-xl border-[2px]'>
         <div className='flex flex-row items-center gap-3 justify-between'>
           <div className='flex flex-row items-center gap-3'>
             <CheckBox checked={task.completed} onChange={toggleCompleted} />
-            <h3 className="text-xl font-bold">{task.title}</h3>
-          </div>
+            <h3 className="task-title">{task.title}</h3>
+          </div>                                                       
           <div className='flex flex-row items-center gap-3'>
             {task.due_date &&<div className={`text-xs  items-center p-1 rounded-md ${isOverdue(formatDateWithTime(task.due_date)) ? 'bg-red-400' : 'bg-secondary'}`}>
              Due: {formatDateWithTime(task.due_date)}
             </div>}
             {task.tags.map((tag, index) => (
-              <Label key={index} style={{backgroundColor: tag.color}} className='rounded-md font-bold items-center bg-secondary text-white text-xs p-1'>{tag.name}</Label>
-
+              
+              <TagLabel key={index} name={tag.name} color={tag.color} compressed={false}/>
             ))}
             <Button variant="ghost" size={"icon"} onClick={()=>handleEditClick(task)}><FaEdit/></Button>
           </div>

@@ -18,22 +18,15 @@ export const modules = [
 
 function Sidebar() {
   return (
-    <div className="pt-1 pl-2 flex rounded-xl justify-center w-[180px] min-h-screen border-[2px]">
-        <div className=" ">
-            <Title/>
-            
-        <div className="w-full pt-2 ">
-            <Separator />
-            <div className="flex flex-col pt-5 gap-4">
-              <div>Calendar</div>
-              {modules.map((module) => (
-                <ModuleLink key={module.link} link={module.link} text={module.text} disabled={module.disabled} />
-                // <Button>toyota</Button>
-              ))}
-            </div>
-
-        </div>
-        </div>
+    <div className="flex rounded-xl flex-col w-full min-h-screen border-[2px] p-2">
+      <Title/>
+      <Separator />
+      <div className="flex flex-col gap-4 pt-5">
+        <div>Calendar</div>
+        {modules.map((module) => (
+          <ModuleLink key={module.link} link={module.link} text={module.text} disabled={module.disabled} />
+        ))}
+      </div>
     </div>
   )
 }
