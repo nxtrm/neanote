@@ -1,18 +1,17 @@
-import React from 'react'
-import { TaskPreview } from '../../src/api/types/taskTypes'
-import CheckBox from '../CheckBox/CheckBox';
-import SubTaskCard from './SubTaskCard';
-import { Separator } from "../@/ui/separator";
-import { Button } from '../@/ui/button';
+import React, { useEffect, useState } from 'react';
 import { FaEdit } from 'react-icons/fa';
-import { useTasks } from '../../src/Pages/Tasks/useTasks';
-import { Link, useNavigate } from 'react-router-dom';
-import { Label } from '@radix-ui/react-dropdown-menu';
-import { useTags } from '../../src/Pages/Tags/useTags';
-import SkeletonCard from './SkeletonCard';
-import './TaskCard.css'; 
+import { useNavigate } from 'react-router-dom';
 import TagLabel from '../../components/TagLabel/TagLabel';
+import { TaskPreview } from '../../src/api/types/taskTypes';
+import { useTags } from '../../src/Pages/Tags/useTags';
+import { useTasks } from '../../src/Pages/Tasks/useTasks';
+import { Button } from '../@/ui/button';
+import { Separator } from "../@/ui/separator";
+import CheckBox from '../CheckBox/CheckBox';
 import DateLabel from '../DateLabel/DateLabel';
+import SkeletonCard from './SkeletonCard';
+import SubTaskCard from './SubTaskCard';
+import './TaskCard.css';
 
 
 function TaskCard({ task }: { task: TaskPreview }) { //Add Combine DateLabel and TagLabel into a new component which will have a specific width depending on the display size and collapse/uncollapse components based on it
@@ -40,6 +39,31 @@ function TaskCard({ task }: { task: TaskPreview }) { //Add Combine DateLabel and
       navigate('/tasks/edit');
     };
 
+    const [screenSize, setScreenSize] = useState('large'); // Default to large
+
+    useEffect(() => {
+      const handleResize = () => {
+        if (window.innerWidth < 650) {
+          setScreenSize('small');
+        } else if (window.innerWidth >= 650 && window.innerWidth < 1024) {
+          setScreenSize('medium');
+        } else {
+          setScreenSize('large');
+        }
+      };
+  
+      // Set initial size
+      handleResize();
+  
+      window.addEventListener('resize', handleResize);
+      return () => window.removeEventListener('resize', handleResize);
+    }, []);
+  
+    // Determine collapsed and compressed states based on screenSize
+    const isDateCollapsed = screenSize === 'small';
+    const isTagCompressed = screenSize !== 'large';
+  
+
       
       if (loading) {
         return <SkeletonCard />;
@@ -53,9 +77,9 @@ function TaskCard({ task }: { task: TaskPreview }) { //Add Combine DateLabel and
             <h3 className="task-title">{task.title}</h3>
           </div>                                                       
           <div className='flex flex-row items-center gap-1'>
-            {task.due_date  && <DateLabel collapsed={true} date={task.due_date} />}
+            {task.due_date  && <DateLabel collapsed={isDateCollapsed} date={task.due_date} />}
             {task.tags.map((tag, index) => (
-              <TagLabel key={index} name={tag.name} color={tag.color} compressed={true}/>
+              <TagLabel key={index} name={tag.name} color={tag.color} compressed={isTagCompressed}/>
             ))}
             <Button variant="ghost" size={"icon"} onClick={()=>handleEditClick(task)}><FaEdit/></Button>
           </div>

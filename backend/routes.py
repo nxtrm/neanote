@@ -177,11 +177,9 @@ def register_routes(app, mysql, jwt):
             dueDate = task.get('due_date') 
 
             if dueDate:
-                print(dueDate)
-                # Convert react Date format to mysql Date format
-                parsed_date = datetime.strptime(dueDate, "%a, %d %b %Y %H:%M:%S GMT")
+                # Convert ISO 8601 format to mysql Date format
+                parsed_date = datetime.strptime(dueDate, "%Y-%m-%dT%H:%M:%S.%fZ")
                 mysql_datetime_str = parsed_date.strftime("%Y-%m-%d %H:%M:%S")
-                print(mysql_datetime_str)
                 cur.execute("UPDATE Tasks SET due_date = %s WHERE id = %s", (mysql_datetime_str, task_id))
             
             # Delete existing subtasks and tags before inserting new ones
