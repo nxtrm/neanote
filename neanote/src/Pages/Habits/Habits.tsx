@@ -10,15 +10,15 @@ function Habits() {
     const navigate = useNavigate(); //plan out habits and steps in miro
     const handleAddHabitClick = () => {
         setCurrentHabit({
-            habitid: -1,
-            noteid: -1,
-            title: '',
-            tags: [],
-            content: '',
-            reminder_time: '',
-            completed: false,
-            streak: 0
-          });
+          habitid: -1,
+          noteid: -1,
+          title: '',
+          tags: [],
+          content: '',
+          reminder: {reminder_time: '', repetition: 'daily'},
+          completed: false,
+          streak: 0
+        });
         setSection('create');
         navigate('/habits/create')
       };

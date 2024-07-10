@@ -26,9 +26,23 @@ class TaskSchema(Schema):
     title = fields.Str(required=True, validate=lambda s: len(s) > 0)
     content = fields.Str(required=False, validate=lambda s: len(s) > 0)
     due_date = fields.Str(required=False)
-    tags = fields.List(fields.Nested(TagSchema), required=False)  # Nested TagSchema for list of tags
+    tags = fields.List(fields.Nested(TagSchema), required=False)  # Nested TagSchema for list of tags WILL NOT WORK WITH CREATE TASK, FIX
     subtasks = fields.List(fields.Nested(SubtaskSchema), required=False)  # Nested SubtaskSchema for list of subtasks
     completed = fields.Bool(required=True)
 
     noteid = fields.Int(required=False)
     taskid = fields.Int(required=False)
+
+class ReminderSchema(Schema):
+    reminder_time = fields.Str(required=True)
+    repetition = fields.Str(required=True)
+
+class HabitSchema(Schema):
+    title = fields.Str(required=True, validate=lambda s: len(s) > 0)
+    content = fields.Str(required=False, validate=lambda s: len(s) > 0)
+    tags = fields.List(fields.Int(), required=False) 
+    reminder = fields.Nested(ReminderSchema, required=True)
+
+    noteid = fields.Int(required=False)
+    taskid = fields.Int(required=False)   
+

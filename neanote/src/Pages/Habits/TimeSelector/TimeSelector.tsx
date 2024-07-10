@@ -1,23 +1,21 @@
-import React, { useState } from 'react'
-import { Popover, PopoverTrigger } from '../../../../components/@/ui/popover'
-import { Button } from '../../../../components/@/ui/button'
-import {RadioGroup, RadioGroupItem}  from '../../../../components/@/ui/radio-group'
-import {Card, CardHeader,CardDescription,} from '../../../../components/@/ui/card'
 import { PopoverContent } from '@radix-ui/react-popover'
+import React, { useState } from 'react'
+import { Button } from '../../../../components/@/ui/button'
+import { Card, CardDescription } from '../../../../components/@/ui/card'
 import { Input } from '../../../../components/@/ui/input'
-import { Label } from '../../../../components/@/ui/label'
+import { Popover, PopoverTrigger } from '../../../../components/@/ui/popover'
+import { useHabits } from '../useHabits'
 
 function TimeSelector() {
+    const {currentHabit, updateCurrentHabit} = useHabits();
     const [selectedTime, setSelectedTime] = useState(''); //convert it to a store
-    const [repetition, setRepetition] = useState('daily');
+    const buttons = ['daily', 'weekly', 'monthly']
   
     const handleTimeSelect = (time) => {
+      updateCurrentHabit('reminder', {'reminder_time' : time, 'repetition': currentHabit?.reminder.repetition});
       setSelectedTime(time);
     };
   
-    const handleRepetitionChange = (value) => {
-      setRepetition(value);
-    };
   
     return (
       <div>
@@ -28,30 +26,23 @@ function TimeSelector() {
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-2">
-            <Card className="w-[150px] h-[200px]">
-              <CardHeader>
+            <Card className="w-[120px] h-[200px]">
+              <CardDescription className='flex flex-col p-2 gap-y-2 justify-center'>
                 <Input 
                   type="time" 
-                  value={selectedTime}
+                  value={currentHabit?.reminder.reminder_time}
                   onChange={(e) => handleTimeSelect(e.target.value)} 
                   className="flex justify-center" 
                 />
-              </CardHeader>
-              <CardDescription className='flex justify-center'>
-                <RadioGroup defaultValue="daily" value={repetition} onChange={handleRepetitionChange}>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="daily" id="daily" />
-                    <Label htmlFor="daily">Daily</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="weekly" id="weekly" />
-                    <Label htmlFor="weekly">Weekly</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="monthly" id="monthly" />
-                    <Label htmlFor="monthly">Monthly</Label>
-                  </div>
-                </RadioGroup>
+                {buttons.map((period) => (
+                  <Button
+                    key={period}
+                    variant={currentHabit?.reminder.repetition === period ? 'default' : 'secondary'}
+                    onClick={() => updateCurrentHabit('reminder', {'reminder_time' : currentHabit?.reminder.reminder_time , 'repetition': period})}
+                  >
+                    {period.charAt(0).toUpperCase() + period.slice(1)}
+                  </Button>
+                ))}
               </CardDescription>
             </Card>
           </PopoverContent>

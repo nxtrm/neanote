@@ -6,8 +6,10 @@ from flask_jwt_extended import (JWTManager, create_access_token,
                                 get_jwt_identity, jwt_required)
 from MySQLdb.cursors import DictCursor
 
-from formsValidation import LoginSchema, TagSchema, TaskSchema, UserSchema
+from formsValidation import HabitSchema, LoginSchema, TagSchema, TaskSchema, UserSchema
 from utils import token_required, verify_subtask_ownership, verify_tag_ownership, verify_task_ownership
+import pytz
+from datetime import datetime
 
 
 def register_routes(app, mysql, jwt):
@@ -346,6 +348,57 @@ def register_routes(app, mysql, jwt):
             raise
         finally:
             cur.close()
+
+
+#HABITS MODULE
+    @app.route('/api/habits/create', methods=['POST'])
+    @jwt_required()
+    @token_required
+    def create_habit():
+        userId = g.userId
+
+        habit_schema = HabitSchema()
+        data = habit_schema.load(request.get_json())
+
+        title = data['title']
+        content = data['content']
+        tags = data['tags']
+        reminder_time = data['reminder']['reminder_time']
+        repetition = data['reminder']['repetition']
+
+        cur = mysql.connection.cursor()
+        try:
+            cur.execute(
+                "INSERT INTO Notes (user_id, title, content, type) VALUES (%s, %s, %s, %s)",
+                (userId, title, content, 'habit')
+            )
+
+            cur.execute("SELECT LAST_INSERT_ID()")
+            noteId = cur.fetchone()[0]
+
+            # Convert reminder_time to GMT+0
+            reminder_time = datetime.strptime(reminder_time, "%H:%M").time()
+            reminder_time = datetime.combine(datetime.today(), reminder_time)
+            reminder_time = pytz.timezone('GMT').localize(reminder_time)
+
+            cur.execute(
+                "INSERT INTO Habits (note_id, reminder_time, streak, repetition) VALUES (%s, %s, %s, %s)",
+                (noteId, reminder_time, 0, repetition)
+            )
+
+            if len(tags)>0:
+                for tagId in tags:
+                    cur.execute(
+                        "INSERT INTO NoteTags (note_id, tag_id) VALUES (%s, %s)",
+                        (noteId, tagId)
+                    )
+           
+            mysql.connection.commit()
+            return jsonify({'message': 'Task created successfully'}), 200
+        except Exception as e:
+            mysql.connection.rollback()
+            raise
+
 
 #TAG MODULE
     @app.route('/api/tags/create', methods=['POST'])

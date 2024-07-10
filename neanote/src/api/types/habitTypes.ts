@@ -6,8 +6,13 @@ export interface Habit {
 
     title: string;
     content:string
-    reminder_time: string;
+    reminder: ReminderTime;
     streak: number;
     tags: Tag[];
     completed: boolean;
+}
+
+export interface ReminderTime {
+    reminder_time: string | undefined;
+    repetition: string | undefined;
 }

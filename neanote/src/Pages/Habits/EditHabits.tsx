@@ -11,7 +11,7 @@ import { Textarea } from '../../../components/@/ui/textarea';
 import TimeSelector from './TimeSelector/TimeSelector';
 
 function EditHabits() {
-  const {currentHabit, setSection, setCurrentHabit, updateCurrentHabit} = useHabits();
+  const {currentHabit, handleCreateHabit, setSection, setCurrentHabit, updateCurrentHabit} = useHabits();
   const navigate = useNavigate();
 
   const handleClose = () => {
@@ -57,6 +57,9 @@ function EditHabits() {
             onChange={(e) => updateCurrentHabit('content', e.target.value)}
           />
         </div>
+          <div className='pt-3 flex justify-end'>
+            <Button onClick={handleCreateHabit}>Save</Button>
+          </div>
         </div>
         
     </PageContainer>
