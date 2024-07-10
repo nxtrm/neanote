@@ -1,6 +1,6 @@
 import { create } from "zustand"
 import { immer } from "zustand/middleware/immer"
-import { Habit } from "../../api/types/habitTypes";
+import { Habit, HabitResponse } from "../../api/types/habitTypes";
 import { useTags } from "../Tags/useTags";
 import habitsApi from "../../api/habitsApi";
 
@@ -14,6 +14,7 @@ type HabitState = {
     loading: boolean;
     setLoading: (loading: boolean) => void;
 
+    fetchHabits: ()=> Promise<HabitResponse | false>;
     handleCreateHabit: () => void;
 }
 
@@ -59,6 +60,16 @@ export const useHabits = create<HabitState>()(
               }
             }
           },
+        
+          fetchHabits: async () => {
+            const response = await habitsApi.getAll();
+            if (response) {
+              set((state) => {
+                state.habits = response.data;
+              });
+            }
+            return response;
+          }
       
     }),
 ))

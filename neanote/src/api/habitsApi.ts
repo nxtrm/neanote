@@ -1,5 +1,6 @@
 import { showToast } from "../../components/Toast";
 import a from './api'
+import { HabitResponse } from "./types/habitTypes";
 
 const habitsApi = {
     create: async (title, tags, content, reminder) => {
@@ -23,17 +24,17 @@ const habitsApi = {
             return false;
         }
     },
-    // getAll : async () => {
-    //     try {
-    //         let response = await a.get<TaskResponse>(`/api/tasks/`);
+    getAll : async () => {
+        try {
+            let response = await a.get<HabitResponse>(`/api/habits`);
 
-    //         console.log(response.data)
-    //         return response.data;
-    //     } catch (error) {
-    //         showToast('e', error);
-    //         return false;
-    //     }
-    // },
+            console.log(response.data)
+            return response.data;
+        } catch (error) {
+            showToast('e', error);
+            return false;
+        }
+    },
 
     // update: async (taskUpdates: {}) => {
     //     try {

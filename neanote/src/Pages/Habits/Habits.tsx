@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import PageContainer from '../../../components/PageContainer/PageContainer'
 import { Button } from '../../../components/@/ui/button'
 import { FaPlus } from 'react-icons/fa6'
@@ -6,7 +6,7 @@ import { useHabits } from './useHabits';
 import { useNavigate } from 'react-router-dom';
 
 function Habits() {
-    const {setCurrentHabit, setSection} = useHabits();  
+    const {habits, setCurrentHabit, setSection, fetchHabits} = useHabits();  
     const navigate = useNavigate(); //plan out habits and steps in miro
     const handleAddHabitClick = () => {
         setCurrentHabit({
@@ -22,6 +22,27 @@ function Habits() {
         setSection('create');
         navigate('/habits/create')
       };
+
+    
+    const [lastFetchTime, setLastFetchTime] = useState<Date | null>(null);
+
+    useEffect(() => {
+        const fetchIfNeeded = () => {
+          // Check if never fetched or if 5 minutes have passed since the last fetch
+          if (!lastFetchTime || new Date().getTime() - lastFetchTime.getTime() > 300000) {
+            fetchHabits();
+            setLastFetchTime(new Date());
+          }
+        };
+    
+        fetchIfNeeded();
+    
+        // Set up a timer to refetch every 5 minutes
+        const intervalId = setInterval(fetchIfNeeded, 300000);
+    
+      // Clean up the interval on component unmount
+      return () => clearInterval(intervalId);
+    }, [fetchHabits, lastFetchTime]);
     
 
   return (
@@ -36,6 +57,12 @@ function Habits() {
             </Button>
           </div>
           <div className='flex flex-col gap-3'>
+            {habits.map((habit)=> (<div key={habit.habitid}>
+              {habit.title}
+              {habit.content}
+              {habit.reminder?.reminder_time}
+              {habit.reminder?.repetition}
+            </div>))}
           </div>
     </div></PageContainer>
   )

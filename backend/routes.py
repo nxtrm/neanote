@@ -6,9 +6,8 @@ from flask_jwt_extended import (JWTManager, create_access_token,
                                 get_jwt_identity, jwt_required)
 from MySQLdb.cursors import DictCursor
 
-from formsValidation import HabitSchema, LoginSchema, TagSchema, TaskSchema, UserSchema
+from formsValidation import HabitSchema, LoginSchema, TagSchema, TaskSchema, UpdateHabitSchema, UserSchema
 from utils import token_required, verify_subtask_ownership, verify_tag_ownership, verify_task_ownership
-import pytz
 from datetime import datetime
 
 
@@ -376,14 +375,9 @@ def register_routes(app, mysql, jwt):
             cur.execute("SELECT LAST_INSERT_ID()")
             noteId = cur.fetchone()[0]
 
-            # Convert reminder_time to GMT+0
-            reminder_time = datetime.strptime(reminder_time, "%H:%M").time()
-            reminder_time = datetime.combine(datetime.today(), reminder_time)
-            reminder_time = pytz.timezone('GMT').localize(reminder_time)
-
             cur.execute(
                 "INSERT INTO Habits (note_id, reminder_time, streak, repetition) VALUES (%s, %s, %s, %s)",
-                (noteId, reminder_time, 0, repetition)
+                (noteId, (reminder_time+':00'), 0, repetition)
             )
 
             if len(tags)>0:
@@ -399,6 +393,98 @@ def register_routes(app, mysql, jwt):
             mysql.connection.rollback()
             raise
 
+    @app.route('/api/habits/update', methods=['POST'])  
+    @jwt_required()
+    @token_required
+    def update_habit():
+        userId = g.userId
+
+        habit_schema = UpdateHabitSchema()
+        data = habit_schema.load(request.get_json())
+
+        cur = mysql.connection.cursor(cursorclass=DictCursor)
+        try:
+            note_id = data['noteid']
+            habit_id = data['habitid']
+
+            if verify_task_ownership(userId, habit_id, cur) == False:
+                return jsonify({'message': 'You do not have permission to update this habit'}), 403
+
+            query = """
+                    UPDATE Notes
+                    SET title = %s, content = %s
+                    WHERE id = %s AND user_id = %s
+                    """
+            cur.execute(query, (data['title'], data['content'], note_id))
+
+            reminder_time = data['reminder']['reminder_time']
+            repetition = data['reminder']['repetition']
+
+            cur.execute(
+                "UPDATE Habits SET reminder_time = %s, repetition = %s WHERE note_id = %s",
+                (reminder_time, repetition, note_id)
+            )
+
+            cur.execute("DELETE FROM NoteTags WHERE note_id = %s", (note_id,))
+            for tag in data['tags']:
+                cur.execute(
+                    "INSERT INTO NoteTags (note_id, tag_id) VALUES (%s, %s)",
+                    (note_id, tag['tagid'])
+                )
+            
+            mysql.connection.commit()
+            return jsonify({'message': 'Habit updated successfully'}), 200
+        except Exception as e:
+            mysql.connection.rollback()
+            raise
+        finally:
+            cur.close()
+        
+    @app.route('/api/habits', methods=['GET'])
+    @jwt_required()
+    @token_required
+    def getAll_habits():
+        userId = g.userId
+
+        cur= mysql.connection.cursor(cursorclass=DictCursor)
+
+        try:
+            habits={}
+            cur.execute(
+                '''SELECT n.id AS note_id, n.title, n.content, h.id AS habit_id, h.reminder_time, h.repetition, h.streak, t.id AS tagid, t.name, t.color FROM Notes n 
+                JOIN Habits h ON n.id = h.note_id JOIN NoteTags nt ON n.id = nt.note_id JOIN Tags t ON nt.tag_id = t.id WHERE n.user_id = %s AND n.type = %s''',
+                (userId, "habit",)
+            )
+            rows = cur.fetchall() #fix not fetching all data
+            for row in rows:
+                note_id = row['note_id']
+                if note_id not in habits:
+                    habits[note_id] = {
+                        'noteid': row['note_id'],
+                        'habitid': row['habit_id'],
+                        'title': row['title'],
+                        'content': row['content'],
+                        'streak': row['streak'],
+                        'reminder': {'reminder_time': str(row['reminder_time']), 'repetition': row['repetition']},
+                        'tags': []
+                    }
+
+                if row['tagid'] is not None:
+                    is_tag_present = any(tag['tagid'] == row['tagid'] for tag in habits[note_id]['tags'])
+                    if not is_tag_present:
+                        habits[note_id]['tags'].append({
+                            'tagid': row['tagid'],
+                            'name': row['name'],
+                            'color': row['color']
+                        })
+            habits_list = [value for key, value in habits.items()]
+            mysql.connection.commit()
+            return jsonify({'message': 'Habits fetched successfully', 'data': habits_list}), 200
+        except Exception as e:
+            mysql.connection.rollback()
+            raise
+        finally:
+            cur.close()
 
 #TAG MODULE
     @app.route('/api/tags/create', methods=['POST'])

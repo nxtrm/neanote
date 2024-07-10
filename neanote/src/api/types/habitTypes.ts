@@ -12,6 +12,11 @@ export interface Habit {
     completed: boolean;
 }
 
+export interface HabitResponse {
+    message: string
+    data: Habit[];
+}
+
 export interface ReminderTime {
     reminder_time: string | undefined;
     repetition: string | undefined;
