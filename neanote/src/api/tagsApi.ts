@@ -59,7 +59,7 @@ const tagsApi = {
 
     delete : async (tagid: number) => {
         try {
-            let response = await a.post(`/api/tags/delete`, {tagid})
+            let response = await a.put(`/api/tags/delete`, {tagid})
 
             if (response.status === 200) {
                 showToast('s', 'Tag has been deleted successfully');

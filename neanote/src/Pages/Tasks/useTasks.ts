@@ -5,7 +5,6 @@ import { Subtask, TaskPreview } from '../../api/types/taskTypes';
 import { Tag } from '../../api/types/tagTypes';
 import { useTags } from '../Tags/useTags';
 import { useNavigate } from 'react-router-dom';
-import { TaskSchema } from '../../formValidation';
 import { showToast } from '../../../components/Toast';
 
 type TaskState = {

@@ -6,6 +6,7 @@ import habitsApi from "../../api/habitsApi";
 
 type HabitState = {
     habits: Habit[];
+    pendingUpdates: Partial<Habit> | null;
     currentHabit: Habit | null;
     setCurrentHabit: (habit: Habit) => void;
     updateCurrentHabit: <K extends keyof Habit>(key: K, value: Habit[K]) => void;
@@ -13,9 +14,11 @@ type HabitState = {
     setSection: (section: string) => void;
     loading: boolean;
     setLoading: (loading: boolean) => void;
+    setCompleted: (habitid: number) => void;
 
     fetchHabits: ()=> Promise<HabitResponse | false>;
     handleCreateHabit: () => void;
+    handleUpdateHabit: () => void;
 }
 
 export const useHabits = create<HabitState>()(
@@ -24,6 +27,7 @@ export const useHabits = create<HabitState>()(
         currentHabit: null,
         loading:false,
         section: "all habits",
+        pendingUpdates: null,
 
         setCurrentHabit: (habit) => {
             set((state) => {
@@ -58,6 +62,64 @@ export const useHabits = create<HabitState>()(
                   state.section = 'all habits';
                 });
               }
+            }
+          },
+
+          handleUpdateHabit: async () => {
+            const { currentHabit } = get();
+            const { tags, selectedTagIds } = useTags.getState();
+      
+            if (currentHabit) {
+
+              const { habitid, noteid, title, content, streak, reminder } = currentHabit;
+              const filteredTags = tags.filter((tag) => selectedTagIds.includes(tag.tagid));
+      
+              const updatedHabit: Habit = {
+                ...currentHabit,
+                title,
+                tags: filteredTags,
+                streak,
+                content,
+                reminder,
+              };
+      
+              const previousHabits = get().habits;
+      
+              // optimistic update
+              set((state) => {
+                  state.habits = state.habits.map((habit) => (habit.habitid === habitid ? updatedHabit : habit));
+                  state.pendingUpdates = updatedHabit;
+                });
+      
+              const response = await habitsApi.update(updatedHabit);
+              if (!response) {
+                // revert update
+                set({ habits: previousHabits, pendingUpdates: null });
+              }
+      
+              set((state) => {
+                state.currentHabit = null;
+                state.section = 'all habits';
+              });
+            }
+
+          },
+
+          setCompleted: async (habitId) => {
+            set((state) => {
+              state.habits = state.habits.map((habit) => 
+                habit.habitid === habitId ? { ...habit, completed: !habit.completed } : habit
+              );
+            });
+            const response = await habitsApi.setCompleted(habitId);
+      
+            // Revert the state if the API call fails
+            if (!response) {
+              set((state) => {
+                state.habits = state.habits.map((habit) => 
+                 habit.habitid ===habitId ? { ...habit, completed: !habit.completed } :habit
+                );
+              });
             }
           },
         

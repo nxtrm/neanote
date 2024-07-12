@@ -4,6 +4,7 @@ import { Button } from '../../../components/@/ui/button'
 import { FaPlus } from 'react-icons/fa6'
 import { useHabits } from './useHabits';
 import { useNavigate } from 'react-router-dom';
+import HabitCard from './HabitCard/HabitCard';
 
 function Habits() {
     const {habits, setCurrentHabit, setSection, fetchHabits} = useHabits();  
@@ -58,10 +59,7 @@ function Habits() {
           </div>
           <div className='flex flex-col gap-3'>
             {habits.map((habit)=> (<div key={habit.habitid}>
-              {habit.title}
-              {habit.content}
-              {habit.reminder?.reminder_time}
-              {habit.reminder?.repetition}
+              <HabitCard habit={habit}/>
             </div>))}
           </div>
     </div></PageContainer>

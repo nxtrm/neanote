@@ -39,7 +39,7 @@ const tasksApi = {
 
     update: async (taskUpdates: {}) => {
         try {
-            const response = await a.post(`/api/tasks/update`, taskUpdates);
+            const response = await a.put(`/api/tasks/update`, taskUpdates);
             return true
         } catch (error) {
             showToast('e', error);
@@ -49,7 +49,7 @@ const tasksApi = {
 
     delete : async (taskId: number,noteId:number) => {
         try {
-            const response = await a.post(`/api/tasks/delete`, {taskId,noteId})
+            const response = await a.put(`/api/tasks/delete`, {taskId,noteId})
             if (response.status === 200) {
                 return true
         }
@@ -61,7 +61,7 @@ const tasksApi = {
 
     toggleCompleteness: async (taskId: number, subtaskId: number| null) => {
         try {
-            const response = await a.post(`/api/tasks/toggle`, {"taskid": taskId,"subtaskid": subtaskId });
+            const response = await a.put(`/api/tasks/toggle`, {"taskid": taskId,"subtaskid": subtaskId });
             if (response.status === 200) {
                 
             } else {

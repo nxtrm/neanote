@@ -64,6 +64,22 @@ def verify_task_ownership(user_id, task_id, cur):
         return False
     return True
 
+def verify_habit_ownership(user_id, habit_id, cur):
+    
+    query = """
+    SELECT Notes.user_id
+    FROM Habits
+    JOIN Notes ON Habits.note_id = Notes.id
+    WHERE Habits.id = %s
+    """
+    cur.execute(query, (habit_id,))
+    result = cur.fetchone()
+
+    if (len(result)<1) or (int(result['user_id']) != int(user_id)):
+        print("False")
+        return False
+    return True
+
 def verify_subtask_ownership(user_id, subtask_id, cur):
     query = """
     SELECT Notes.user_id

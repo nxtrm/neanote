@@ -37,18 +37,19 @@ class ReminderSchema(Schema):
     reminder_time = fields.Str(required=True)
     repetition = fields.Str(required=True)
 
-class UpdateHabitSchema(Schema):
-    title = fields.Str(required=True, validate=lambda s: len(s) > 0)
-    content = fields.Str(required=False)
-    tags = fields.List(fields.Nested(TagSchema), required=False) 
-    reminder = fields.Nested(ReminderSchema, required=True)
-
-class HabitSchema(Schema):
+class HabitCreateSchema(Schema):
     title = fields.Str(required=True, validate=lambda s: len(s) > 0)
     content = fields.Str(required=False)
     tags = fields.List(fields.Int(), required=False) 
     reminder = fields.Nested(ReminderSchema, required=True)
 
-    noteid = fields.Int(required=False)
-    taskid = fields.Int(required=False)   
+class HabitUpdateSchema(Schema):
+    title = fields.Str(required=True, validate=lambda s: len(s) > 0)
+    content = fields.Str(required=False)
+    tags = fields.List(fields.Nested(TagSchema), required=False) 
+    reminder = fields.Nested(ReminderSchema, required=True)
+    streak = fields.Int(required=True)
+
+    noteid = fields.Int(required=True)
+    habitid = fields.Int(required=True)   
 

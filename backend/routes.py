@@ -6,8 +6,8 @@ from flask_jwt_extended import (JWTManager, create_access_token,
                                 get_jwt_identity, jwt_required)
 from MySQLdb.cursors import DictCursor
 
-from formsValidation import HabitSchema, LoginSchema, TagSchema, TaskSchema, UpdateHabitSchema, UserSchema
-from utils import token_required, verify_subtask_ownership, verify_tag_ownership, verify_task_ownership
+from formsValidation import HabitCreateSchema, HabitUpdateSchema, LoginSchema, TagSchema, TaskSchema, UserSchema
+from utils import token_required, verify_habit_ownership, verify_subtask_ownership, verify_tag_ownership, verify_task_ownership
 from datetime import datetime
 
 
@@ -150,7 +150,7 @@ def register_routes(app, mysql, jwt):
         finally:
             cur.close()
         
-    @app.route('/api/tasks/update', methods=['POST'])
+    @app.route('/api/tasks/update', methods=['PUT'])
     @jwt_required()
     @token_required
     def update_task():
@@ -205,7 +205,7 @@ def register_routes(app, mysql, jwt):
         finally:        
             cur.close()
         
-    @app.route('/api/tasks/delete', methods=['POST'])
+    @app.route('/api/tasks/delete', methods=['PUT'])
     @jwt_required()
     @token_required
     def delete_task():
@@ -233,7 +233,7 @@ def register_routes(app, mysql, jwt):
             cur.close()
     
         
-    @app.route('/api/tasks/toggle', methods=['POST'])
+    @app.route('/api/tasks/toggle', methods=['PUT'])
     @jwt_required()
     @token_required
     def toggleTaskFields():
@@ -306,7 +306,7 @@ def register_routes(app, mysql, jwt):
                 LEFT JOIN Subtasks st ON t.id = st.task_id
                 LEFT JOIN NoteTags nt ON n.id = nt.note_id
                 LEFT JOIN Tags tg ON nt.tag_id = tg.id
-                WHERE n.user_id = %s
+                WHERE n.user_id = %s AND n.type = 'task'
             """, (userId,)) 
             rows = cur.fetchall()
             tasks = {}
@@ -356,7 +356,7 @@ def register_routes(app, mysql, jwt):
     def create_habit():
         userId = g.userId
 
-        habit_schema = HabitSchema()
+        habit_schema = HabitCreateSchema()
         data = habit_schema.load(request.get_json())
 
         title = data['title']
@@ -393,13 +393,13 @@ def register_routes(app, mysql, jwt):
             mysql.connection.rollback()
             raise
 
-    @app.route('/api/habits/update', methods=['POST'])  
+    @app.route('/api/habits/update', methods=['PUT'])  
     @jwt_required()
     @token_required
     def update_habit():
         userId = g.userId
 
-        habit_schema = UpdateHabitSchema()
+        habit_schema = HabitUpdateSchema()
         data = habit_schema.load(request.get_json())
 
         cur = mysql.connection.cursor(cursorclass=DictCursor)
@@ -407,7 +407,7 @@ def register_routes(app, mysql, jwt):
             note_id = data['noteid']
             habit_id = data['habitid']
 
-            if verify_task_ownership(userId, habit_id, cur) == False:
+            if verify_habit_ownership(userId, habit_id, cur) == False:
                 return jsonify({'message': 'You do not have permission to update this habit'}), 403
 
             query = """
@@ -415,7 +415,7 @@ def register_routes(app, mysql, jwt):
                     SET title = %s, content = %s
                     WHERE id = %s AND user_id = %s
                     """
-            cur.execute(query, (data['title'], data['content'], note_id))
+            cur.execute(query, (data['title'], data['content'], note_id, userId))
 
             reminder_time = data['reminder']['reminder_time']
             repetition = data['reminder']['repetition']
@@ -455,7 +455,7 @@ def register_routes(app, mysql, jwt):
                 JOIN Habits h ON n.id = h.note_id JOIN NoteTags nt ON n.id = nt.note_id JOIN Tags t ON nt.tag_id = t.id WHERE n.user_id = %s AND n.type = %s''',
                 (userId, "habit",)
             )
-            rows = cur.fetchall() #fix not fetching all data
+            rows = cur.fetchall() 
             for row in rows:
                 note_id = row['note_id']
                 if note_id not in habits:
@@ -477,6 +477,7 @@ def register_routes(app, mysql, jwt):
                             'name': row['name'],
                             'color': row['color']
                         })
+            
             habits_list = [value for key, value in habits.items()]
             mysql.connection.commit()
             return jsonify({'message': 'Habits fetched successfully', 'data': habits_list}), 200
@@ -485,6 +486,31 @@ def register_routes(app, mysql, jwt):
             raise
         finally:
             cur.close()
+    
+    @app.route('/api/habits/complete', methods=['PUT'])
+    @jwt_required()
+    @token_required
+    def complete_habit():
+        userId = g.userId
+
+        cur = mysql.connection.cursor(cursorclass=DictCursor)
+        data = request.get_json()
+        habit_id = data['habitid']
+
+        try:
+            if verify_habit_ownership(userId, habit_id, cur) == False:
+                return jsonify({'message': 'You do not have permission to update this habit'}), 403
+
+            cur.execute("UPDATE Habits SET streak = streak + 1 WHERE id = %s", (habit_id,))
+            mysql.connection.commit()
+            return jsonify({'message': 'Habit completed successfully'}), 200
+        except Exception as e:
+            mysql.connection.rollback()
+            raise
+        finally:
+            cur.close()
+            
+        
 
 #TAG MODULE
     @app.route('/api/tags/create', methods=['POST'])
@@ -580,7 +606,7 @@ def register_routes(app, mysql, jwt):
             cur.close()
             raise
         
-    @app.route('/api/tags/edit', methods=['POST'])
+    @app.route('/api/tags/edit', methods=['PUT'])
     @jwt_required()
     @token_required
     def editTag():
@@ -610,7 +636,7 @@ def register_routes(app, mysql, jwt):
         finally:
             cur.close()
     
-    @app.route('/api/tags/delete', methods=['POST'])
+    @app.route('/api/tags/delete', methods=['PUT'])
     @jwt_required()
     @token_required
     def deleteTag():

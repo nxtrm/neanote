@@ -36,15 +36,25 @@ const habitsApi = {
         }
     },
 
-    // update: async (taskUpdates: {}) => {
-    //     try {
-    //         const response = await a.post(`/api/tasks/update`, taskUpdates);
-    //         return true
-    //     } catch (error) {
-    //         showToast('e', error);
-    //         return false
-    //     }
-    // },
+    update: async (habitUpdates: {}) => {
+        try {
+            const response = await a.put(`/api/habits/update`, habitUpdates);
+            return true
+        } catch (error) {
+            showToast('e', error);
+            return false
+        }
+    },
+
+    setCompleted: async (habitId: number) => {
+        try {
+            const response = await a.put(`/api/habits/complete`, {habitId});
+            return true
+        } catch (error) {
+            showToast('e', error);
+            return false
+        }
+    },
 
     // delete : async (taskId: number,noteId:number) => {
     //     try {
