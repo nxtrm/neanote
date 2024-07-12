@@ -46,9 +46,9 @@ const habitsApi = {
         }
     },
 
-    setCompleted: async (habitId: number) => {
+    setCompleted: async (habitid: number) => {
         try {
-            const response = await a.put(`/api/habits/complete`, {habitId});
+            const response = await a.put(`/api/habits/complete`, {habitid});
             return true
         } catch (error) {
             showToast('e', error);

@@ -9,7 +9,7 @@ export interface Habit {
     reminder: ReminderTime;
     streak: number;
     tags: Tag[];
-    completed: boolean;
+    completed_today: boolean;
 }
 
 export interface HabitResponse {

@@ -108,7 +108,7 @@ export const useHabits = create<HabitState>()(
           setCompleted: async (habitId) => {
             set((state) => {
               state.habits = state.habits.map((habit) => 
-                habit.habitid === habitId ? { ...habit, completed: !habit.completed } : habit
+                habit.habitid === habitId ? { ...habit, completed: true } : habit
               );
             });
             const response = await habitsApi.setCompleted(habitId);
@@ -117,7 +117,7 @@ export const useHabits = create<HabitState>()(
             if (!response) {
               set((state) => {
                 state.habits = state.habits.map((habit) => 
-                 habit.habitid ===habitId ? { ...habit, completed: !habit.completed } :habit
+                 habit.habitid ===habitId ? { ...habit, completed: false } :habit
                 );
               });
             }

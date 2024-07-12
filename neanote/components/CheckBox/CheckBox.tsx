@@ -5,11 +5,12 @@ import { MdCheckBox, MdCheckBoxOutlineBlank} from "react-icons/md";
 interface Props {
     checked: boolean;
     onChange: () => void;
+    disabled?: boolean;
 }
 
-function CheckBox({ checked, onChange }: Props) {
+function CheckBox({ checked, onChange, disabled }: Props) {
     return (
-        <Button variant={"secondary"} size={"icon"} onClick={onChange}>
+        <Button disabled={disabled} variant={"secondary"} size={"icon"} onClick={onChange}>
             {checked ? <MdCheckBox /> : <MdCheckBoxOutlineBlank />}
         </Button>
     );

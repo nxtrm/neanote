@@ -376,8 +376,8 @@ def register_routes(app, mysql, jwt):
             noteId = cur.fetchone()[0]
 
             cur.execute(
-                "INSERT INTO Habits (note_id, reminder_time, streak, repetition) VALUES (%s, %s, %s, %s)",
-                (noteId, (reminder_time+':00'), 0, repetition)
+                "INSERT INTO Habits (note_id, reminder_time, streak, repetition, completed_today) VALUES (%s, %s, %s, %s, %s)",
+                (noteId, (reminder_time+':00'), 0, repetition, False)
             )
 
             if len(tags)>0:
@@ -451,7 +451,7 @@ def register_routes(app, mysql, jwt):
         try:
             habits={}
             cur.execute(
-                '''SELECT n.id AS note_id, n.title, n.content, h.id AS habit_id, h.reminder_time, h.repetition, h.streak, t.id AS tagid, t.name, t.color FROM Notes n 
+                '''SELECT n.id AS note_id, n.title, n.content, h.id AS habit_id, h.reminder_time, h.repetition, h.streak, h.completed_today, t.id AS tagid, t.name, t.color FROM Notes n 
                 JOIN Habits h ON n.id = h.note_id JOIN NoteTags nt ON n.id = nt.note_id JOIN Tags t ON nt.tag_id = t.id WHERE n.user_id = %s AND n.type = %s''',
                 (userId, "habit",)
             )
@@ -466,6 +466,7 @@ def register_routes(app, mysql, jwt):
                         'content': row['content'],
                         'streak': row['streak'],
                         'reminder': {'reminder_time': str(row['reminder_time']), 'repetition': row['repetition']},
+                        'completed_today': row['completed_today'],
                         'tags': []
                     }
 
@@ -501,7 +502,7 @@ def register_routes(app, mysql, jwt):
             if verify_habit_ownership(userId, habit_id, cur) == False:
                 return jsonify({'message': 'You do not have permission to update this habit'}), 403
 
-            cur.execute("UPDATE Habits SET streak = streak + 1 WHERE id = %s", (habit_id,))
+            cur.execute("UPDATE Habits SET streak = streak + 1, completed_today = %s WHERE id = %s", (True, habit_id,))
             mysql.connection.commit()
             return jsonify({'message': 'Habit completed successfully'}), 200
         except Exception as e:

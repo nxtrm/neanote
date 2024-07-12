@@ -25,7 +25,7 @@ function HabitCard({habit}: {habit: Habit}) {
     <div className='p-3 w-full rounded-xl border-[2px]'>
     <div className='flex flex-row items-center gap-3 justify-between'>
       <div className='flex flex-row items-center gap-3'>
-        <CheckBox checked={habit.completed} onChange={handleSetCompleted} />
+        <CheckBox checked={habit.completed_today} disabled={habit.completed_today} onChange={handleSetCompleted} />
         <h3 className='habit-title'>{habit.title}</h3>
       </div>                                                       
       <div className='flex flex-row items-center gap-1'>
