@@ -1,11 +1,13 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { Habit } from '../../../api/types/habitTypes'
 import CheckBox from '../../../../components/CheckBox/CheckBox'
 import{ Button } from '../../../../components/@/ui/button'
 import { FaEdit } from 'react-icons/fa'
 import { useNavigate } from 'react-router-dom'
 import { useHabits } from '../useHabits'
+import TagLabel from '../../../../components/TagLabel/TagLabel'
 import './HabitCard.css'
+import StreakLabel from './StreakCard'
 
 function HabitCard({habit}: {habit: Habit}) {
     const {setCurrentHabit, setSection, setCompleted} = useHabits();
@@ -20,6 +22,29 @@ function HabitCard({habit}: {habit: Habit}) {
     function handleSetCompleted() {
         setCompleted(habit.habitid);
     }
+  
+    const [screenSize, setScreenSize] = useState('large'); // Default to large
+
+    useEffect(() => {
+      const handleResize = () => {
+        if (window.innerWidth < 650) {
+          setScreenSize('small');
+        } else if (window.innerWidth >= 650 && window.innerWidth < 1024) {
+          setScreenSize('medium');
+        } else {
+          setScreenSize('large');
+        }
+      };
+  
+      // Set initial size
+      handleResize();
+  
+      window.addEventListener('resize', handleResize);
+      return () => window.removeEventListener('resize', handleResize);
+    }, []);
+  
+    const isTagCompressed = screenSize !== 'large';
+  
 
   return (
     <div className='p-3 w-full rounded-xl border-[2px]'>
@@ -29,10 +54,10 @@ function HabitCard({habit}: {habit: Habit}) {
         <h3 className='habit-title'>{habit.title}</h3>
       </div>                                                       
       <div className='flex flex-row items-center gap-1'>
-        {/* {habit.due_date  && <DateLabel collapsed={isDateCollapsed} date={habit.due_date} />} */}
-        {/* {habit.tags.map((tag, index) => (
+        <StreakLabel streak={habit.streak} completed_today={habit.completed_today} />
+        {habit.tags.map((tag, index) => (
           <TagLabel key={index} name={tag.name} color={tag.color} compressed={isTagCompressed}/>
-        ))} */}
+        ))}
         <Button variant="ghost" size={"icon"} onClick={()=>handleEditClick(habit)}><FaEdit/></Button>
       </div>
     </div>

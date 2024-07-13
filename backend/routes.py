@@ -450,13 +450,22 @@ def register_routes(app, mysql, jwt):
 
         try:
             habits={}
+            today_date = datetime.now().date()
             cur.execute(
-                '''SELECT n.id AS note_id, n.title, n.content, h.id AS habit_id, h.reminder_time, h.repetition, h.streak, h.completed_today, t.id AS tagid, t.name, t.color FROM Notes n 
-                JOIN Habits h ON n.id = h.note_id JOIN NoteTags nt ON n.id = nt.note_id JOIN Tags t ON nt.tag_id = t.id WHERE n.user_id = %s AND n.type = %s''',
-                (userId, "habit",)
+                '''SELECT n.id AS note_id, n.title, n.content, h.id AS habit_id, h.reminder_time, h.repetition, h.streak, 
+                IF(hc.completion_date IS NOT NULL AND DATE(hc.completion_date) = %s, TRUE, FALSE) AS completed_today, 
+                t.id AS tagid, t.name, t.color 
+                FROM Notes n 
+                JOIN Habits h ON n.id = h.note_id 
+                LEFT JOIN HabitCompletion hc ON h.id = hc.habit_id AND DATE(hc.completion_date) = %s
+                JOIN NoteTags nt ON n.id = nt.note_id 
+                JOIN Tags t ON nt.tag_id = t.id 
+                WHERE n.user_id = %s AND n.type = %s''',
+                (today_date, today_date, userId, "habit",)
             )
             rows = cur.fetchall() 
             for row in rows:
+
                 note_id = row['note_id']
                 if note_id not in habits:
                     habits[note_id] = {
@@ -499,10 +508,28 @@ def register_routes(app, mysql, jwt):
         habit_id = data['habitid']
 
         try:
-            if verify_habit_ownership(userId, habit_id, cur) == False:
+            if not verify_habit_ownership(userId, habit_id, cur):
                 return jsonify({'message': 'You do not have permission to update this habit'}), 403
-
-            cur.execute("UPDATE Habits SET streak = streak + 1, completed_today = %s WHERE id = %s", (True, habit_id,))
+            
+            # Retrieve the most recent completion date for the habit
+            cur.execute("SELECT MAX(completion_date) AS last_completion_date FROM HabitCompletion WHERE habit_id = %s", (habit_id,))
+            last_completion = cur.fetchone()
+            
+            # Check if there's a one-day gap or if it's completed in streak
+            if last_completion and last_completion['last_completion_date']:
+                last_date = last_completion['last_completion_date'].date()
+                today_date = datetime.now().date()
+                gap = (today_date - last_date).days
+                
+                if gap > 1:
+                    cur.execute("UPDATE Habits SET streak = 0 WHERE id = %s", (habit_id,))
+                elif gap == 1:
+                    cur.execute("UPDATE Habits SET streak = streak + 1 WHERE id = %s", (habit_id,))
+            else:
+                cur.execute("UPDATE Habits SET streak = 1 WHERE id = %s", (habit_id,))
+            
+            # Insert the new completion
+            cur.execute("INSERT INTO HabitCompletion (habit_id, completion_date) VALUES (%s, %s)", (habit_id, datetime.now()))
             mysql.connection.commit()
             return jsonify({'message': 'Habit completed successfully'}), 200
         except Exception as e:
