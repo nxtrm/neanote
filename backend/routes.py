@@ -1,14 +1,13 @@
-from datetime import datetime, timedelta
 from marshmallow import ValidationError
 from flask import Flask, g, jsonify, request
 from flask_cors import CORS
 from flask_jwt_extended import (JWTManager, create_access_token,
                                 get_jwt_identity, jwt_required)
 from MySQLdb.cursors import DictCursor
-
+from dateutil.relativedelta import relativedelta
 from formsValidation import HabitCreateSchema, HabitUpdateSchema, LoginSchema, TagSchema, TaskSchema, UserSchema
 from utils import token_required, verify_habit_ownership, verify_subtask_ownership, verify_tag_ownership, verify_task_ownership
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 def register_routes(app, mysql, jwt):
@@ -443,7 +442,7 @@ def register_routes(app, mysql, jwt):
     @app.route('/api/habits', methods=['GET'])
     @jwt_required()
     @token_required
-    def getAll_habits():
+    def getAll_habits(): #fix months and weeks completion
         userId = g.userId
 
         cur= mysql.connection.cursor(cursorclass=DictCursor)
@@ -497,6 +496,8 @@ def register_routes(app, mysql, jwt):
         finally:
             cur.close()
     
+
+
     @app.route('/api/habits/complete', methods=['PUT'])
     @jwt_required()
     @token_required
@@ -511,25 +512,33 @@ def register_routes(app, mysql, jwt):
             if not verify_habit_ownership(userId, habit_id, cur):
                 return jsonify({'message': 'You do not have permission to update this habit'}), 403
             
-            # Retrieve the most recent completion date for the habit
-            cur.execute("SELECT MAX(completion_date) AS last_completion_date FROM HabitCompletion WHERE habit_id = %s", (habit_id,))
-            last_completion = cur.fetchone()
+            # Retrieve habit repetition type and the most recent completion date
+            cur.execute("SELECT repetition, MAX(completion_date) AS last_completion_date FROM HabitCompletion JOIN Habits ON Habits.id = HabitCompletion.habit_id WHERE habit_id = %s GROUP BY repetition", (habit_id,))
+            habit_info = cur.fetchone()
             
-            # Check if there's a one-day gap or if it's completed in streak
-            if last_completion and last_completion['last_completion_date']:
-                last_date = last_completion['last_completion_date'].date()
-                today_date = datetime.now().date()
-                gap = (today_date - last_date).days
-                
-                if gap > 1:
-                    cur.execute("UPDATE Habits SET streak = 0 WHERE id = %s", (habit_id,))
-                elif gap == 1:
-                    cur.execute("UPDATE Habits SET streak = streak + 1 WHERE id = %s", (habit_id,))
+            today_date = datetime.now().date()
+            if habit_info and habit_info['last_completion_date']:
+                last_date = habit_info['last_completion_date'].date()
+                repetition = habit_info['repetition']
+                gap = None
+
+                if repetition == 'daily':
+                    gap = (today_date - last_date).days - 1
+                elif repetition == 'weekly':
+                    gap = (today_date - last_date).days // 7
+                elif repetition == 'monthly':
+                    gap = relativedelta(today_date, last_date).months + 12 * relativedelta(today_date, last_date).years
+
+                if gap is not None:
+                    if gap > 1:
+                        cur.execute("UPDATE Habits SET streak = 0 WHERE id = %s", (habit_id,))
+                    elif gap <= 1:
+                        cur.execute("UPDATE Habits SET streak = streak + 1 WHERE id = %s", (habit_id,))
             else:
                 cur.execute("UPDATE Habits SET streak = 1 WHERE id = %s", (habit_id,))
             
             # Insert the new completion
-            cur.execute("INSERT INTO HabitCompletion (habit_id, completion_date) VALUES (%s, %s)", (habit_id, datetime.now()))
+            cur.execute("INSERT INTO HabitCompletion (habit_id, completion_date) VALUES (%s, %s)", (habit_id, today_date))
             mysql.connection.commit()
             return jsonify({'message': 'Habit completed successfully'}), 200
         except Exception as e:

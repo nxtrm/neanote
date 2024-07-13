@@ -8,7 +8,7 @@ interface Props {
 function StreakLabel({ streak, completed_today }: Props) {
   
     const additionalStyles = completed_today ? {
-      boxShadow: '0 0 10px #32cd32', // Glow effect for completion today
+      boxShadow: '0 0 5px #32cd32', // Glow effect for completion today
       color: '#fff', 
       backgroundColor: '#32cd32',
     } : {};
@@ -21,7 +21,7 @@ function StreakLabel({ streak, completed_today }: Props) {
         }}
         className='text-sm text-primary bg-secondary h-6 flex items-center p-2 rounded-md'
       >
-        {`Streak: ${streak} day${streak !== 1 ? 's' : ''}`}
+        {`Streak: ${streak}`}
       </div>
     );
   }

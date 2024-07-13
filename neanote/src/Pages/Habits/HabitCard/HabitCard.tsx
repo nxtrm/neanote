@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router-dom'
 import { useHabits } from '../useHabits'
 import TagLabel from '../../../../components/TagLabel/TagLabel'
 import './HabitCard.css'
-import StreakLabel from './StreakCard'
+import StreakLabel from './StreakLabel'
 
 function HabitCard({habit}: {habit: Habit}) {
     const {setCurrentHabit, setSection, setCompleted} = useHabits();
