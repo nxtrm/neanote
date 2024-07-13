@@ -19,6 +19,7 @@ type HabitState = {
     fetchHabits: ()=> Promise<HabitResponse | false>;
     handleCreateHabit: () => void;
     handleUpdateHabit: () => void;
+    handleDelete: () => void;
 }
 
 export const useHabits = create<HabitState>()(
@@ -45,6 +46,20 @@ export const useHabits = create<HabitState>()(
 
         setSection: (section) => set({section}),
         setLoading: (loading) => set({loading}),
+
+        handleDelete:async () => {
+            const { currentHabit } = get();
+            if (currentHabit) {
+              const response = await habitsApi.delete(currentHabit.habitid, currentHabit.noteid );
+              if (response) {
+                set((state) => {
+                  state.habits = state.habits.filter((habit) => habit.habitid !== currentHabit.habitid);
+                  state.currentHabit = null;
+                  state.section = 'all habits';
+                });
+              }
+            }
+        },
 
         handleCreateHabit: async () => {
             const { currentHabit } = get();

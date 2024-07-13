@@ -47,6 +47,7 @@ class HabitUpdateSchema(Schema):
     title = fields.Str(required=True, validate=lambda s: len(s) > 0)
     content = fields.Str(required=False)
     tags = fields.List(fields.Nested(TagSchema), required=False) 
+    completed_today = fields.Bool(required=True)
     reminder = fields.Nested(ReminderSchema, required=True)
     streak = fields.Int(required=True)
 

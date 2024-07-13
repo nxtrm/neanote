@@ -56,17 +56,17 @@ const habitsApi = {
         }
     },
 
-    // delete : async (taskId: number,noteId:number) => {
-    //     try {
-    //         const response = await a.post(`/api/tasks/delete`, {taskId,noteId})
-    //         if (response.status === 200) {
-    //             return true
-    //     }
-    //     } catch (error) {
-    //         showToast('e', error);
-    //         return false
-    //     }
-    // },
+    delete : async (habitid: number,noteid:number) => {
+        try {
+            const response = await a.put(`/api/tasks/delete`, {habitid,noteid})
+            if (response.status === 200) {
+                return true
+        }
+        } catch (error) {
+            showToast('e', error);
+            return false
+        }
+    },
     
 }
 
