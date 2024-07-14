@@ -571,6 +571,35 @@ def register_routes(app, mysql, jwt):
         finally:
             cur.close()
 
+    @app.route('/api/habits/link', methods=['PUT'])
+    @jwt_required()
+    @token_required
+    def link_habit():
+        userId = g.userId
+
+        cur = mysql.connection.cursor(cursorclass=DictCursor)
+        data = request.get_json()
+        habit_id = data['habitid']
+        task_id = data['taskid']
+        action_type = data['type']
+
+        try:
+
+            if action_type == "link":
+                cur.execute("INSERT INTO HabitTasks VALUES (%s, %s)", (habit_id, task_id))
+            elif action_type == "unlink":
+                if not verify_habit_ownership(userId, habit_id, cur):
+                    return jsonify({'message': 'You do not have permission to update this habit'}), 403
+                cur.execute("DELETE FROM HabitTasks WHERE habit_id = %s AND task_id = %s", (habit_id, task_id))
+
+            mysql.connection.commit()
+            return jsonify({'message': 'Habit linked successfully'}), 200
+        except Exception as e:
+            mysql.connection.rollback()
+            raise
+        finally:
+            cur.close()
+
 
 #TAG MODULE
     @app.route('/api/tags/create', methods=['POST'])

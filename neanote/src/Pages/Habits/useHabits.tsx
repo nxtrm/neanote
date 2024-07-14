@@ -3,6 +3,7 @@ import { immer } from "zustand/middleware/immer"
 import { Habit, HabitResponse } from "../../api/types/habitTypes";
 import { useTags } from "../Tags/useTags";
 import habitsApi from "../../api/habitsApi";
+import { TaskPreview } from "../../api/types/taskTypes";
 
 type HabitState = {
     habits: Habit[];
@@ -20,6 +21,7 @@ type HabitState = {
     handleCreateHabit: () => void;
     handleUpdateHabit: () => void;
     handleDelete: () => void;
+    toggleLinkTask: (task: TaskPreview) => void;
 }
 
 export const useHabits = create<HabitState>()(
@@ -140,13 +142,40 @@ export const useHabits = create<HabitState>()(
           },
         
           fetchHabits: async () => {
-            const response = await habitsApi.getAll();
+            const response = await habitsApi.getAll(); //implement pagination
             if (response) {
               set((state) => {
                 state.habits = response.data;
               });
             }
             return response;
+          },
+
+          toggleLinkTask: async (task) => {
+            const { currentHabit } = get();
+            console.log("clicked")
+            if (currentHabit) {
+              const isLinked = currentHabit.linked_tasks.some((linkedTask) => linkedTask.taskid === task.taskid);
+              // Store a copy of the original linked tasks for potential rollback
+              const originalLinkedTasks = [...currentHabit.linked_tasks];
+          
+              set((state) => {
+                if (isLinked) {
+                  state.currentHabit!.linked_tasks = state.currentHabit!.linked_tasks.filter((linkedTask) => linkedTask.taskid !== task.taskid);
+                } else {
+                  state.currentHabit!.linked_tasks.push(task);
+                }
+              });
+          
+              try {
+                const response = await habitsApi.linkTask(currentHabit.habitid, task.taskid, isLinked ? 'unlink' : 'link');
+              } catch (error) {
+                // Rollback to the original state in case of an error
+                set((state) => {
+                  state.currentHabit!.linked_tasks = originalLinkedTasks;
+                });
+              }
+            }
           }
       
     }),

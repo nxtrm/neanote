@@ -1,11 +1,7 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify
 from flask_cors import CORS
-from flask_jwt_extended import JWTManager, create_access_token
-from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
+from flask_jwt_extended import JWTManager
 from flask_mysqldb import MySQL
-from datetime import datetime
-from MySQLdb.cursors import DictCursor
 import jwt
 from config import Config
 from routes import register_routes

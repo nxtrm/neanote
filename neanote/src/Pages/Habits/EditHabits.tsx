@@ -9,6 +9,7 @@ import { Input } from '../../../components/@/ui/input';
 import TagsDropdownMenu from '../Tags/components/TagsDropdownMenu';
 import { Textarea } from '../../../components/@/ui/textarea';
 import TimeSelector from './TimeSelector/TimeSelector';
+import LinkTasks from './LinkTasks/LinkTasks';
 
 function EditHabits() {
   const {currentHabit, handleCreateHabit, handleUpdateHabit, setSection, section, setCurrentHabit, updateCurrentHabit, handleDelete} = useHabits();
@@ -66,9 +67,12 @@ function EditHabits() {
             onChange={(e) => updateCurrentHabit('content', e.target.value)}
           />
         </div>
-          <div className='pt-3 flex gap-2 justify-end'>
+          <div className='pt-3 flex justify-between'>
+            <LinkTasks linked_tasks={currentHabit?.linked_tasks ? currentHabit.linked_tasks : []}/>
+            <div className='flex gap-2'>
             <Button variant='outline' onClick={handleDelete}>Delete</Button>
             <Button onClick={handleSaveHabit}>Save</Button>
+            </div>
           </div>
         </div>
         
