@@ -442,29 +442,38 @@ def register_routes(app, mysql, jwt):
     @app.route('/api/habits', methods=['GET'])
     @jwt_required()
     @token_required
-    def getAll_habits(): #fix months and weeks completion
+    def getAll_habits():
         userId = g.userId
 
-        cur= mysql.connection.cursor(cursorclass=DictCursor)
+        cur = mysql.connection.cursor(cursorclass=DictCursor)
 
         try:
-            habits={}
+            habits = {}
             today_date = datetime.now().date()
+
+            # Main query to fetch habits and their linked tasks
             cur.execute(
                 '''SELECT n.id AS note_id, n.title, n.content, h.id AS habit_id, h.reminder_time, h.repetition, h.streak, 
                 IF(hc.completion_date IS NOT NULL AND DATE(hc.completion_date) = %s, TRUE, FALSE) AS completed_today, 
-                t.id AS tagid, t.name, t.color 
+                t.id AS tagid, t.name, t.color, 
+                ln.id AS linked_note_id, ln.title AS linked_note_title, ln.content AS linked_note_content, 
+                lt.id AS linked_task_id, lt.completed AS linked_task_completed, lt.due_date AS linked_task_due_date, 
+                lst.id AS linked_subtask_id, lst.description AS linked_subtask_description, lst.completed AS linked_subtask_completed
                 FROM Notes n 
                 JOIN Habits h ON n.id = h.note_id 
                 LEFT JOIN HabitCompletion hc ON h.id = hc.habit_id AND DATE(hc.completion_date) = %s
+                LEFT JOIN HabitTasks ht ON h.id = ht.habit_id
+                LEFT JOIN Notes ln ON ht.task_id = ln.id
+                LEFT JOIN Tasks lt ON ln.id = lt.note_id
+                LEFT JOIN Subtasks lst ON lt.id = lst.task_id
                 JOIN NoteTags nt ON n.id = nt.note_id 
                 JOIN Tags t ON nt.tag_id = t.id 
                 WHERE n.user_id = %s AND n.type = %s''',
                 (today_date, today_date, userId, "habit",)
             )
-            rows = cur.fetchall() 
-            for row in rows:
 
+            rows = cur.fetchall()
+            for row in rows:
                 note_id = row['note_id']
                 if note_id not in habits:
                     habits[note_id] = {
@@ -475,7 +484,8 @@ def register_routes(app, mysql, jwt):
                         'streak': row['streak'],
                         'reminder': {'reminder_time': datetime.strptime(str(row['reminder_time']), '%H:%M:%S').strftime('%H:%M'), 'repetition': row['repetition']},
                         'completed_today': row['completed_today'],
-                        'tags': []
+                        'tags': [],
+                        'linked_tasks': []
                     }
 
                 if row['tagid'] is not None:
@@ -486,12 +496,36 @@ def register_routes(app, mysql, jwt):
                             'name': row['name'],
                             'color': row['color']
                         })
-            
+                
+                if row['linked_task_id'] is not None: #fix linked tasks not returned
+                    linked_task = next((task for task in habits[note_id]['linked_tasks'] if task['taskid'] == row['linked_task_id']), None)
+                    if not linked_task:
+                        linked_task = {
+                            'noteid': row['linked_note_id'],
+                            'taskid': row['linked_task_id'],
+                            'title': row['linked_note_title'],
+                            'content': row['linked_note_content'],
+                            'completed': row['linked_task_completed'] == 1,
+                            'due_date': row['linked_task_due_date'],
+                            'subtasks': []
+                        }
+                        habits[note_id]['linked_tasks'].append(linked_task)
+                    
+                    if row['linked_subtask_id'] is not None:
+                        is_subtask_present = any(subtask['subtask_id'] == row['linked_subtask_id'] for subtask in linked_task['subtasks'])
+                        if not is_subtask_present:
+                            linked_task['subtasks'].append({
+                                'subtask_id': row['linked_subtask_id'],
+                                'description': row['linked_subtask_description'],
+                                'completed': row['linked_subtask_completed'] == 1
+                            })
+
             habits_list = [value for key, value in habits.items()]
             mysql.connection.commit()
             return jsonify({'message': 'Habits fetched successfully', 'data': habits_list}), 200
         except Exception as e:
             mysql.connection.rollback()
+            print(f"An error occurred: {e}")  # Improved error logging
             raise
         finally:
             cur.close()
