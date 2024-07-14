@@ -68,6 +68,7 @@ export const useHabits = create<HabitState>()(
             if (currentHabit) {
               
               const {title, content, reminder} = currentHabit;
+              
               const response = await habitsApi.create(title, selectedTagIds, content, reminder);
       
               if (response) {

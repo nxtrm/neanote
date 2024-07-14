@@ -473,7 +473,7 @@ def register_routes(app, mysql, jwt):
                         'title': row['title'],
                         'content': row['content'],
                         'streak': row['streak'],
-                        'reminder': {'reminder_time': str(row['reminder_time']), 'repetition': row['repetition']},
+                        'reminder': {'reminder_time': datetime.strptime(str(row['reminder_time']), '%H:%M:%S').strftime('%H:%M'), 'repetition': row['repetition']},
                         'completed_today': row['completed_today'],
                         'tags': []
                     }
@@ -542,7 +542,7 @@ def register_routes(app, mysql, jwt):
             
             today_date = datetime.now().date()
             if habit_info and habit_info['last_completion_date']:
-                last_date = habit_info['last_completion_date'].date()
+                last_date = habit_info['last_completion_date'] 
                 repetition = habit_info['repetition']
                 gap = None
 

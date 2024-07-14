@@ -32,7 +32,7 @@ function TimeSelector() {
                   type="time" 
                   value={currentHabit?.reminder.reminder_time}
                   onChange={(e) => handleTimeSelect(e.target.value)} 
-                  className="flex justify-center" 
+                  className="flex text-center justify-center" 
                 />
                 {buttons.map((period) => (
                   <Button
