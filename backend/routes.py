@@ -448,33 +448,44 @@ def register_routes(app, mysql, jwt):
         userId = g.userId
         try:
             cur = mysql.connection.cursor(cursorclass=DictCursor)
-            cur.execute(
-                "SELECT n.id AS note_id, n.title, n.content, h.id AS habit_id, h.streak, t.id AS tagid, t.name, t.color, IF(hc.completion_date IS NOT NULL AND DATE(hc.completion_date) = CURDATE(), TRUE, FALSE) AS completed_today FROM Notes n JOIN Habits h ON n.id = h.note_id LEFT JOIN HabitCompletion hc ON h.id = hc.habit_id JOIN NoteTags nt ON n.id = nt.note_id JOIN Tags t ON nt.tag_id = t.id WHERE n.user_id = %s AND n.type = %s",
-                (userId, "habit",)
-            )
+            query = '''
+                SELECT n.id AS note_id, n.title, n.content, h.id AS habit_id, h.streak, 
+                    t.id AS tagid, t.name, t.color, 
+                    IF(hc.completion_date IS NOT NULL AND DATE(hc.completion_date) = CURDATE(), TRUE, FALSE) AS completed_today 
+                FROM Notes n 
+                JOIN Habits h ON n.id = h.note_id 
+                LEFT JOIN HabitCompletion hc ON h.id = hc.habit_id 
+                LEFT JOIN NoteTags nt ON n.id = nt.note_id 
+                LEFT JOIN Tags t ON nt.tag_id = t.id 
+                WHERE n.user_id = %s AND n.type = %s
+            '''
+            
+            cur.execute(query, (userId, "habit"))
             rows = cur.fetchall()
+  
             habits = {}
             for row in rows:
-                    note_id = row['note_id']
-                    if note_id not in habits:
-                        habits[note_id] = {
-                            'noteid': row['note_id'],
-                            'habitid': row['habit_id'],
-                            'title': row['title'].max_length(50)+ '...' if len(row['title']) > 50 else row['title'],
-                            'content': row['content'].max_length(100)+ '...' if len(row['content']) > 100 else row['content'],
-                            'streak': row['streak'],
-                            'completed_today': row['completed_today'],
-                            'tags': [],
-                        }
+                note_id = row['note_id']
+                if note_id not in habits:
+                    habits[note_id] = {
+                        'noteid': row['note_id'],
+                        'habitid': row['habit_id'],
+                        'title': row['title'][:50] + '...' if len(row['title']) > 50 else row['title'],
+                        'content': row['content'][:100] + '...' if len(row['content']) > 100 else row['content'],
+                        'streak': row['streak'],
+                        'completed_today': row['completed_today'],
+                        'tags': [],
+                    }
 
-                    if row['tagid'] is not None:
-                        is_tag_present = any(tag['tagid'] == row['tagid'] for tag in habits[note_id]['tags'])
-                        if not is_tag_present:
-                            habits[note_id]['tags'].append({
-                                'tagid': row['tagid'],
-                                'name': row['name'],
-                                'color': row['color']
-                            })
+                if row['tagid'] is not None:
+                    is_tag_present = any(tag['tagid'] == row['tagid'] for tag in habits[note_id]['tags'])
+                    if not is_tag_present:
+                        habits[note_id]['tags'].append({
+                            'tagid': row['tagid'],
+                            'name': row['name'],
+                            'color': row['color']
+                        })
+
             habits_list = [value for key, value in habits.items()]
             mysql.connection.commit()
             return jsonify({'message': 'Habit previews fetched successfully', 'data': habits_list}), 200
@@ -484,6 +495,7 @@ def register_routes(app, mysql, jwt):
             raise
         finally:
             cur.close()
+                
 
     @app.route('/api/habit', methods=['GET'])
     @jwt_required()
@@ -513,8 +525,8 @@ def register_routes(app, mysql, jwt):
                 LEFT JOIN Notes ln ON ht.task_id = ln.id
                 LEFT JOIN Tasks lt ON ln.id = lt.note_id
                 LEFT JOIN Subtasks lst ON lt.id = lst.task_id
-                JOIN NoteTags nt ON n.id = nt.note_id 
-                JOIN Tags t ON nt.tag_id = t.id 
+                LEFT JOIN NoteTags nt ON n.id = nt.note_id 
+                LEFT JOIN Tags t ON nt.tag_id = t.id 
                 WHERE n.user_id = %s AND n.type = %s AND n.id = %s AND h.id = %s''',
                 (today_date, today_date, userId, "habit", noteid, habitid)
             )

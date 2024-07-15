@@ -93,13 +93,16 @@ export const useHabits = create<HabitState>()(
               const { habitid, noteid, title, content, streak, reminder, completed_today } = currentHabit;
               const filteredTags = tags.filter((tag) => selectedTagIds.includes(tag.tagid));
       
-              const updatedHabit: Habit = {
-                ...currentHabit,
+              const updatedHabit: Partial<Habit> = {
+                habitid,
+                noteid,
+
                 title,
                 tags: filteredTags,
                 streak,
                 content,
                 reminder,
+                completed_today
               };
       
               const previousHabits = get().habitPreviews;
