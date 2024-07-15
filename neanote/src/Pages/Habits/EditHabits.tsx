@@ -10,6 +10,7 @@ import TagsDropdownMenu from '../Tags/components/TagsDropdownMenu';
 import { Textarea } from '../../../components/@/ui/textarea';
 import TimeSelector from './TimeSelector/TimeSelector';
 import LinkTasks from './LinkTasks/LinkTasks';
+import TaskCard from '../../../components/TaskCard/TaskCard';
 
 function EditHabits() {
   const {currentHabit, handleCreateHabit, handleUpdateHabit, setSection, section, setCurrentHabit, updateCurrentHabit, handleDelete} = useHabits();
@@ -66,6 +67,14 @@ function EditHabits() {
             placeholder='Describe your habit here'
             onChange={(e) => updateCurrentHabit('content', e.target.value)}
           />
+        </div>
+        <div className='flex flex-col pt-3 gap-2'>
+          {currentHabit?.linked_tasks ? currentHabit.linked_tasks.map((task) => {
+            return (
+              <TaskCard key={task.taskid} task={task} />
+            )
+
+          }): null}
         </div>
           <div className='pt-3 flex justify-between'>
             <LinkTasks linked_tasks={currentHabit?.linked_tasks ? currentHabit.linked_tasks : []}/>

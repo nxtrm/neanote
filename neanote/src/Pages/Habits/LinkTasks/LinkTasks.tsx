@@ -23,9 +23,6 @@ function LinkTasks({linked_tasks}: Props) {
   const {tasks, fetchTasks} = useTasks()
   const {toggleLinkTask} = useHabits()
 
-  const handleLinkTask = (task: TaskPreview) => {
-      toggleLinkTask(task)
-    }
 
   useEffect(() => {
           if (tasks.length < 1) {
@@ -49,14 +46,14 @@ function LinkTasks({linked_tasks}: Props) {
                 return (
                     <div key={task.taskid} className="flex border-2 rounded-xl p-2 justify-between items-center">
                         <p className='max-w-[300px] h-7 overflow-hidden'>{task.title}</p>
-                        <CheckBox onChange={() => handleLinkTask(task)} disabled={false} checked={isLinked}/>
+                        <CheckBox onChange={() => toggleLinkTask(task)} disabled={false} checked={isLinked}/>
                     </div>
                 )
             })}
         </div>
-        <DialogFooter>
+        {/* <DialogFooter>
           <Button type="submit">Save changes</Button>
-        </DialogFooter>
+        </DialogFooter> */}
       </DialogContent>
     </Dialog>
   )

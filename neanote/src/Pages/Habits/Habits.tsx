@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import HabitCard from './HabitCard/HabitCard';
 
 function Habits() {
-    const {habits, setCurrentHabit, setSection, fetchHabits} = useHabits();  
+    const {habitPreviews, setCurrentHabit, setSection, fetchHabitPreviews} = useHabits();  
     const navigate = useNavigate(); //plan out habits and steps in miro
     const handleAddHabitClick = () => {
         setCurrentHabit({
@@ -17,8 +17,9 @@ function Habits() {
           tags: [],
           content: '',
           reminder: {reminder_time: '', repetition: 'daily'},
-          completed: false,
-          streak: 0
+          completed_today: false,
+          streak: 0,
+          linked_tasks: []
         });
         setSection('create');
         navigate('/habits/create')
@@ -31,7 +32,7 @@ function Habits() {
         const fetchIfNeeded = () => {
           // Check if never fetched or if 5 minutes have passed since the last fetch
           if (!lastFetchTime || new Date().getTime() - lastFetchTime.getTime() > 300000) {
-            fetchHabits();
+            fetchHabitPreviews();
             setLastFetchTime(new Date());
           }
         };
@@ -43,7 +44,7 @@ function Habits() {
     
       // Clean up the interval on component unmount
       return () => clearInterval(intervalId);
-    }, [fetchHabits, lastFetchTime]);
+    }, [fetchHabitPreviews, lastFetchTime]);
     
 
   return (
@@ -58,7 +59,7 @@ function Habits() {
             </Button>
           </div>
           <div className='flex flex-col gap-3'>
-            {habits.map((habit)=> (<div key={habit.habitid}>
+            {habitPreviews.map((habit)=> (<div key={habit.habitid}>
               <HabitCard habit={habit}/>
             </div>))}
           </div>

@@ -378,6 +378,8 @@ def register_routes(app, mysql, jwt):
                 "INSERT INTO Habits (note_id, reminder_time, streak, repetition, completed_today) VALUES (%s, %s, %s, %s, %s)",
                 (noteId, (reminder_time+':00'), 0, repetition, False)
             )
+            cur.execute("SELECT LAST_INSERT_ID()")
+            habitId = cur.fetchone()[0]
 
             if len(tags)>0:
                 for tagId in tags:
@@ -387,7 +389,7 @@ def register_routes(app, mysql, jwt):
                     )
            
             mysql.connection.commit()
-            return jsonify({'message': 'Task created successfully'}), 200
+            return jsonify({'message': 'Task created successfully', 'data' : {noteId, habitId}}), 200
         except Exception as e:
             mysql.connection.rollback()
             raise
@@ -438,11 +440,56 @@ def register_routes(app, mysql, jwt):
             raise
         finally:
             cur.close()
-        
+    
+    @app.route('/api/habits/previews', methods=['GET'])
+    @jwt_required()
+    @token_required
+    def get_habit_previews():
+        userId = g.userId
+        try:
+            cur = mysql.connection.cursor(cursorclass=DictCursor)
+            cur.execute(
+                "SELECT n.id AS note_id, n.title, n.content, h.id AS habit_id, h.streak, t.id AS tagid, t.name, t.color, IF(hc.completion_date IS NOT NULL AND DATE(hc.completion_date) = CURDATE(), TRUE, FALSE) AS completed_today FROM Notes n JOIN Habits h ON n.id = h.note_id LEFT JOIN HabitCompletion hc ON h.id = hc.habit_id JOIN NoteTags nt ON n.id = nt.note_id JOIN Tags t ON nt.tag_id = t.id WHERE n.user_id = %s AND n.type = %s",
+                (userId, "habit",)
+            )
+            rows = cur.fetchall()
+            habits = {}
+            for row in rows:
+                    note_id = row['note_id']
+                    if note_id not in habits:
+                        habits[note_id] = {
+                            'noteid': row['note_id'],
+                            'habitid': row['habit_id'],
+                            'title': row['title'].max_length(50)+ '...' if len(row['title']) > 50 else row['title'],
+                            'content': row['content'].max_length(100)+ '...' if len(row['content']) > 100 else row['content'],
+                            'streak': row['streak'],
+                            'completed_today': row['completed_today'],
+                            'tags': [],
+                        }
+
+                    if row['tagid'] is not None:
+                        is_tag_present = any(tag['tagid'] == row['tagid'] for tag in habits[note_id]['tags'])
+                        if not is_tag_present:
+                            habits[note_id]['tags'].append({
+                                'tagid': row['tagid'],
+                                'name': row['name'],
+                                'color': row['color']
+                            })
+            habits_list = [value for key, value in habits.items()]
+            mysql.connection.commit()
+            return jsonify({'message': 'Habit previews fetched successfully', 'data': habits_list}), 200
+        except Exception as e:
+            mysql.connection.rollback()
+            print(f"An error occurred: {e}")  
+            raise
+        finally:
+            cur.close()
+            
+
     @app.route('/api/habits', methods=['GET'])
     @jwt_required()
     @token_required
-    def getAll_habits():
+    def get_All_habits():
         userId = g.userId
 
         cur = mysql.connection.cursor(cursorclass=DictCursor)
@@ -507,9 +554,12 @@ def register_routes(app, mysql, jwt):
                             'content': row['linked_note_content'],
                             'completed': row['linked_task_completed'] == 1,
                             'due_date': row['linked_task_due_date'],
+                            'tags': [],
                             'subtasks': []
                         }
+                        
                         habits[note_id]['linked_tasks'].append(linked_task)
+                        print(habits[note_id]['linked_tasks'])
                     
                     if row['linked_subtask_id'] is not None:
                         is_subtask_present = any(subtask['subtask_id'] == row['linked_subtask_id'] for subtask in linked_task['subtasks'])

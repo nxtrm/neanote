@@ -1,12 +1,12 @@
 import { create } from "zustand"
 import { immer } from "zustand/middleware/immer"
-import { Habit, HabitResponse } from "../../api/types/habitTypes";
+import { Habit,HabitPreview,  HabitPreviewResponse,  HabitResponse } from "../../api/types/habitTypes";
 import { useTags } from "../Tags/useTags";
 import habitsApi from "../../api/habitsApi";
 import { TaskPreview } from "../../api/types/taskTypes";
 
 type HabitState = {
-    habits: Habit[];
+    habitPreviews: HabitPreview[];
     pendingUpdates: Partial<Habit> | null;
     currentHabit: Habit | null;
     setCurrentHabit: (habit: Habit) => void;
@@ -17,7 +17,7 @@ type HabitState = {
     setLoading: (loading: boolean) => void;
     setCompleted: (habitid: number) => void;
 
-    fetchHabits: ()=> Promise<HabitResponse | false>;
+    fetchHabitPreviews: ()=> Promise<HabitPreviewResponse | false>;
     handleCreateHabit: () => void;
     handleUpdateHabit: () => void;
     handleDelete: () => void;
@@ -26,7 +26,7 @@ type HabitState = {
 
 export const useHabits = create<HabitState>()(
     immer((set, get) => ({
-        habits: [],
+        habitPreviews: [],
         currentHabit: null,
         loading:false,
         section: "all habits",
@@ -55,7 +55,7 @@ export const useHabits = create<HabitState>()(
               const response = await habitsApi.delete(currentHabit.habitid, currentHabit.noteid );
               if (response) {
                 set((state) => {
-                  state.habits = state.habits.filter((habit) => habit.habitid !== currentHabit.habitid);
+                  state.habitPreviews = state.habitPreviews.filter((habit) => habit.habitid !== currentHabit.habitid);
                   state.currentHabit = null;
                   state.section = 'all habits';
                 });
@@ -75,7 +75,7 @@ export const useHabits = create<HabitState>()(
       
               if (response) {
                 set((state) => {
-                  state.habits.push(currentHabit)
+                  state.habitPreviews.push({habitid: response.data.habitid, noteid: response.data.noteid, title, content, streak: 0, completed_today: false, tags: []});
                   state.currentHabit = null;
                   state.section = 'all habits';
                 });
@@ -89,7 +89,7 @@ export const useHabits = create<HabitState>()(
       
             if (currentHabit) {
 
-              const { habitid, noteid, title, content, streak, reminder } = currentHabit;
+              const { habitid, noteid, title, content, streak, reminder, completed_today } = currentHabit;
               const filteredTags = tags.filter((tag) => selectedTagIds.includes(tag.tagid));
       
               const updatedHabit: Habit = {
@@ -101,18 +101,18 @@ export const useHabits = create<HabitState>()(
                 reminder,
               };
       
-              const previousHabits = get().habits;
+              const previousHabits = get().habitPreviews;
       
               // optimistic update
               set((state) => {
-                  state.habits = state.habits.map((habit) => (habit.habitid === habitid ? updatedHabit : habit));
+                  state.habitPreviews = state.habitPreviews.map((habit) => (habit.habitid === habitid ? {habitid, noteid, title, tags, streak, content, completed_today} : habit));
                   state.pendingUpdates = updatedHabit;
                 });
       
               const response = await habitsApi.update(updatedHabit);
               if (!response) {
                 // revert update
-                set({ habits: previousHabits, pendingUpdates: null });
+                set({ habitPreviews: previousHabits, pendingUpdates: null });
               }
       
               set((state) => {
@@ -125,7 +125,7 @@ export const useHabits = create<HabitState>()(
 
           setCompleted: async (habitId) => {
             set((state) => {
-              state.habits = state.habits.map((habit) => 
+              state.habitPreviews = state.habitPreviews.map((habit) => 
                 habit.habitid === habitId ? { ...habit, completed_today: true } : habit
               );
             });
@@ -134,18 +134,19 @@ export const useHabits = create<HabitState>()(
             // Revert the state if the API call fails
             if (!response) {
               set((state) => {
-                state.habits = state.habits.map((habit) => 
+                state.habitPreviews = state.habitPreviews.map((habit) => 
                  habit.habitid ===habitId ? { ...habit, completed_today: false } :habit
                 );
               });
             }
           },
         
-          fetchHabits: async () => {
-            const response = await habitsApi.getAll(); //implement pagination
+          fetchHabitPreviews: async () => {
+            const response = await habitsApi.getHabitPreviews(); //implement pagination
+            console.log(response)
             if (response) {
               set((state) => {
-                state.habits = response.data;
+                state.habitPreviews = response.data;
               });
             }
             return response;

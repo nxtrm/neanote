@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Habit } from '../../../api/types/habitTypes'
+import { Habit, HabitPreview } from '../../../api/types/habitTypes'
 import CheckBox from '../../../../components/CheckBox/CheckBox'
 import{ Button } from '../../../../components/@/ui/button'
 import { FaEdit } from 'react-icons/fa'
@@ -9,7 +9,7 @@ import TagLabel from '../../../../components/TagLabel/TagLabel'
 import './HabitCard.css'
 import StreakLabel from './StreakLabel'
 
-function HabitCard({habit}: {habit: Habit}) {
+function HabitCard({habit}: {habit: HabitPreview}) {
     const {setCurrentHabit, setSection, setCompleted} = useHabits();
     const navigate = useNavigate()
 
@@ -58,7 +58,10 @@ function HabitCard({habit}: {habit: Habit}) {
         {habit.tags.map((tag, index) => (
           <TagLabel key={index} name={tag.name} color={tag.color} compressed={isTagCompressed}/>
         ))}
-        <Button variant="ghost" size={"icon"} onClick={()=>handleEditClick(habit)}><FaEdit/></Button>
+        <Button variant="ghost" size={"icon"} onClick={
+          // ()=>handleEditClick(habit)
+          () => console.log('edit')
+        }><FaEdit/></Button>
       </div>
     </div>
     {habit.content && <p className="text-md pl-1 pt-2">{habit.content}</p>}
