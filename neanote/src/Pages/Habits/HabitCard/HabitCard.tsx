@@ -64,7 +64,7 @@ function HabitCard({habit}: {habit: HabitPreview}) {
         }><FaEdit/></Button>
       </div>
     </div>
-    {habit.content && <p className="text-md pl-1 pt-2">{habit.content}</p>}
+    {habit.content && <p className="habit-content">{habit.content}</p>}
 
   </div>
   )

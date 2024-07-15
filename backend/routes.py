@@ -470,8 +470,8 @@ def register_routes(app, mysql, jwt):
                     habits[note_id] = {
                         'noteid': row['note_id'],
                         'habitid': row['habit_id'],
-                        'title': row['title'][:50] + '...' if len(row['title']) > 50 else row['title'],
-                        'content': row['content'][:100] + '...' if len(row['content']) > 100 else row['content'],
+                        'title': row['title'][:50] + '...' if len(row['title']) > 100 else row['title'],
+                        'content': row['content'][:100] + '...' if len(row['content']) > 200 else row['content'],
                         'streak': row['streak'],
                         'completed_today': row['completed_today'],
                         'tags': [],
