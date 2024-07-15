@@ -449,20 +449,27 @@ def register_routes(app, mysql, jwt):
         try:
             cur = mysql.connection.cursor(cursorclass=DictCursor)
             query = '''
-                SELECT n.id AS note_id, n.title, n.content, h.id AS habit_id, h.streak, 
-                    t.id AS tagid, t.name, t.color, 
-                    IF(hc.completion_date IS NOT NULL AND DATE(hc.completion_date) = CURDATE(), TRUE, FALSE) AS completed_today 
+                SELECT 
+                    n.id AS note_id, 
+                    n.title, 
+                    n.content, 
+                    h.id AS habit_id, 
+                    h.streak, 
+                    GROUP_CONCAT(DISTINCT t.id) AS tagids, 
+                    GROUP_CONCAT(DISTINCT t.name) AS names, 
+                    GROUP_CONCAT(DISTINCT t.color) AS colors, 
+                    MAX(IF(hc.completion_date IS NOT NULL AND hc.completion_date = CURDATE(), TRUE, FALSE)) AS completed 
                 FROM Notes n 
                 JOIN Habits h ON n.id = h.note_id 
-                LEFT JOIN HabitCompletion hc ON h.id = hc.habit_id 
+                LEFT JOIN HabitCompletion hc ON h.id = hc.habit_id AND hc.completion_date = CURDATE()
                 LEFT JOIN NoteTags nt ON n.id = nt.note_id 
                 LEFT JOIN Tags t ON nt.tag_id = t.id 
                 WHERE n.user_id = %s AND n.type = %s
+                GROUP BY n.id, h.id
             '''
             
             cur.execute(query, (userId, "habit"))
             rows = cur.fetchall()
-  
             habits = {}
             for row in rows:
                 note_id = row['note_id']
@@ -470,21 +477,23 @@ def register_routes(app, mysql, jwt):
                     habits[note_id] = {
                         'noteid': row['note_id'],
                         'habitid': row['habit_id'],
-                        'title': row['title'][:50] + '...' if len(row['title']) > 100 else row['title'],
-                        'content': row['content'][:100] + '...' if len(row['content']) > 200 else row['content'],
+                        'title': row['title'][:50] + '...' if len(row['title']) > 50 else row['title'],
+                        'content': row['content'][:100] + '...' if len(row['content']) > 100 else row['content'],
                         'streak': row['streak'],
-                        'completed_today': row['completed_today'],
+                        'completed_today': row['completed'],
                         'tags': [],
                     }
 
-                if row['tagid'] is not None:
-                    is_tag_present = any(tag['tagid'] == row['tagid'] for tag in habits[note_id]['tags'])
-                    if not is_tag_present:
-                        habits[note_id]['tags'].append({
-                            'tagid': row['tagid'],
-                            'name': row['name'],
-                            'color': row['color']
-                        })
+                tag_ids = row['tagids'].split(',') if row['tagids'] else []
+                tag_names = row['names'].split(',') if row['names'] else []
+                tag_colors = row['colors'].split(',') if row['colors'] else []
+
+                for tag_id, tag_name, tag_color in zip(tag_ids, tag_names, tag_colors):
+                    habits[note_id]['tags'].append({
+                        'tagid': tag_id,
+                        'name': tag_name,
+                        'color': tag_color
+                    })
 
             habits_list = [value for key, value in habits.items()]
             mysql.connection.commit()
@@ -512,14 +521,14 @@ def register_routes(app, mysql, jwt):
             # Main query to fetch the specific habit and its linked tasks
             cur.execute(
                 '''SELECT n.id AS note_id, n.title, n.content, h.id AS habit_id, h.reminder_time, h.repetition, h.streak, 
-                IF(hc.completion_date IS NOT NULL AND DATE(hc.completion_date) = %s, TRUE, FALSE) AS completed_today, 
+                IF(hc.completion_date IS NOT NULL AND DATE(hc.completion_date) = CURDATE(), TRUE, FALSE) AS completed_today, 
                 t.id AS tagid, t.name, t.color, 
                 ln.id AS linked_note_id, ln.title AS linked_note_title, ln.content AS linked_note_content, 
                 lt.id AS linked_task_id, lt.completed AS linked_task_completed, lt.due_date AS linked_task_due_date, 
                 lst.id AS linked_subtask_id, lst.description AS linked_subtask_description, lst.completed AS linked_subtask_completed
                 FROM Notes n 
                 JOIN Habits h ON n.id = h.note_id 
-                LEFT JOIN HabitCompletion hc ON h.id = hc.habit_id AND DATE(hc.completion_date) = %s
+                LEFT JOIN HabitCompletion hc ON h.id = hc.habit_id
                 LEFT JOIN HabitTasks ht ON h.id = ht.habit_id
                 LEFT JOIN Notes ln ON ht.task_id = ln.id
                 LEFT JOIN Tasks lt ON ln.id = lt.note_id
@@ -527,7 +536,7 @@ def register_routes(app, mysql, jwt):
                 LEFT JOIN NoteTags nt ON n.id = nt.note_id 
                 LEFT JOIN Tags t ON nt.tag_id = t.id 
                 WHERE n.user_id = %s AND n.type = %s AND n.id = %s''',
-                (today_date, today_date, userId, "habit", noteid)
+                ( today_date, userId, "habit", noteid)
             )
 
             rows = cur.fetchall()
@@ -638,7 +647,7 @@ def register_routes(app, mysql, jwt):
             
             today_date = datetime.now().date()
             if habit_info and habit_info['last_completion_date']:
-                last_date = habit_info['last_completion_date'] 
+                last_date = habit_info['last_completion_date']
                 repetition = habit_info['repetition']
                 gap = None
 
@@ -652,13 +661,15 @@ def register_routes(app, mysql, jwt):
                 if gap is not None:
                     if gap > 1:
                         cur.execute("UPDATE Habits SET streak = 0 WHERE id = %s", (habit_id,))
-                    elif gap <= 1:
+                    elif gap <= 1 and today_date != last_date:
                         cur.execute("UPDATE Habits SET streak = streak + 1 WHERE id = %s", (habit_id,))
+                        # Move the INSERT INTO HabitCompletion here, inside the condition to increase streak
+                        cur.execute("INSERT INTO HabitCompletion (habit_id, completion_date) VALUES (%s, %s)", (habit_id, today_date))
             else:
                 cur.execute("UPDATE Habits SET streak = 1 WHERE id = %s", (habit_id,))
-            
-            # Insert the new completion
-            cur.execute("INSERT INTO HabitCompletion (habit_id, completion_date) VALUES (%s, %s)", (habit_id, today_date))
+                # If there's no last completion date, it means it's the first completion. Insert it.
+                cur.execute("INSERT INTO HabitCompletion (habit_id, completion_date) VALUES (%s, %s)", (habit_id, today_date))
+
             mysql.connection.commit()
             return jsonify({'message': 'Habit completed successfully'}), 200
         except Exception as e:
