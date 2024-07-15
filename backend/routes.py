@@ -484,21 +484,21 @@ def register_routes(app, mysql, jwt):
             raise
         finally:
             cur.close()
-            
 
-    @app.route('/api/habits', methods=['GET'])
+    @app.route('/api/habit', methods=['GET'])
     @jwt_required()
     @token_required
-    def get_All_habits():
+    def get_habit():
         userId = g.userId
-
+        noteid = request.args.get('noteid')
+        habitid = request.args.get('habitid')
         cur = mysql.connection.cursor(cursorclass=DictCursor)
 
         try:
-            habits = {}
+            habit = None
             today_date = datetime.now().date()
 
-            # Main query to fetch habits and their linked tasks
+            # Main query to fetch the specific habit and its linked tasks
             cur.execute(
                 '''SELECT n.id AS note_id, n.title, n.content, h.id AS habit_id, h.reminder_time, h.repetition, h.streak, 
                 IF(hc.completion_date IS NOT NULL AND DATE(hc.completion_date) = %s, TRUE, FALSE) AS completed_today, 
@@ -515,15 +515,14 @@ def register_routes(app, mysql, jwt):
                 LEFT JOIN Subtasks lst ON lt.id = lst.task_id
                 JOIN NoteTags nt ON n.id = nt.note_id 
                 JOIN Tags t ON nt.tag_id = t.id 
-                WHERE n.user_id = %s AND n.type = %s''',
-                (today_date, today_date, userId, "habit",)
+                WHERE n.user_id = %s AND n.type = %s AND n.id = %s AND h.id = %s''',
+                (today_date, today_date, userId, "habit", noteid, habitid)
             )
 
             rows = cur.fetchall()
             for row in rows:
-                note_id = row['note_id']
-                if note_id not in habits:
-                    habits[note_id] = {
+                if habit is None:
+                    habit = {
                         'noteid': row['note_id'],
                         'habitid': row['habit_id'],
                         'title': row['title'],
@@ -536,16 +535,16 @@ def register_routes(app, mysql, jwt):
                     }
 
                 if row['tagid'] is not None:
-                    is_tag_present = any(tag['tagid'] == row['tagid'] for tag in habits[note_id]['tags'])
+                    is_tag_present = any(tag['tagid'] == row['tagid'] for tag in habit['tags'])
                     if not is_tag_present:
-                        habits[note_id]['tags'].append({
+                        habit['tags'].append({
                             'tagid': row['tagid'],
                             'name': row['name'],
                             'color': row['color']
                         })
                 
-                if row['linked_task_id'] is not None: #fix linked tasks not returned
-                    linked_task = next((task for task in habits[note_id]['linked_tasks'] if task['taskid'] == row['linked_task_id']), None)
+                if row['linked_task_id'] is not None:
+                    linked_task = next((task for task in habit['linked_tasks'] if task['taskid'] == row['linked_task_id']), None)
                     if not linked_task:
                         linked_task = {
                             'noteid': row['linked_note_id'],
@@ -557,9 +556,7 @@ def register_routes(app, mysql, jwt):
                             'tags': [],
                             'subtasks': []
                         }
-                        
-                        habits[note_id]['linked_tasks'].append(linked_task)
-                        print(habits[note_id]['linked_tasks'])
+                        habit['linked_tasks'].append(linked_task)
                     
                     if row['linked_subtask_id'] is not None:
                         is_subtask_present = any(subtask['subtask_id'] == row['linked_subtask_id'] for subtask in linked_task['subtasks'])
@@ -570,15 +567,19 @@ def register_routes(app, mysql, jwt):
                                 'completed': row['linked_subtask_completed'] == 1
                             })
 
-            habits_list = [value for key, value in habits.items()]
             mysql.connection.commit()
-            return jsonify({'message': 'Habits fetched successfully', 'data': habits_list}), 200
+            if habit:
+                return jsonify({'message': 'Habit fetched successfully', 'data': habit}), 200
+            else:
+                return jsonify({'message': 'Habit not found'}), 404
+
         except Exception as e:
             mysql.connection.rollback()
             print(f"An error occurred: {e}")  # Improved error logging
             raise
         finally:
             cur.close()
+
     
     @app.route('/api/habits/delete', methods=['PUT']) #make it archive instead of deleting later
     @jwt_required()

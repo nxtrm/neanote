@@ -32,7 +32,7 @@ export interface HabitCreateResponse {
 
 export interface HabitResponse {
     message: string
-    data: Habit[] ;
+    data: Habit ;
 }
 
 export interface HabitPreviewResponse {

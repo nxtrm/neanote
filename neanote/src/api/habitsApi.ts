@@ -24,21 +24,32 @@ const habitsApi = {
             return false;
         }
     },
-    getAll : async () => {
+    // getAll : async () => {
+    //     try {
+    //         let response = await a.get<HabitResponse>(`/api/habits`);
+
+    //         return response.data;
+    //     } catch (error) {
+    //         showToast('e', error);
+    //         return false;
+    //     }
+    // },
+
+    getHabitPreviews: async () => {
         try {
-            let response = await a.get<HabitResponse>(`/api/habits`);
+            let response = await a.get<HabitPreviewResponse>(`/api/habits/previews`);
 
             return response.data;
         } catch (error) {
             showToast('e', error);
             return false;
         }
-    },
+    }
+    ,
 
-    getHabitPreviews: async () => {
+    getHabit: async (habitid: number, noteid: number) => {
         try {
-            let response = await a.get<HabitPreviewResponse>(`/api/habits/previews`);
-
+            let response = await a.get<HabitResponse>(`/api/habit`, {params: {habitid, noteid}});
             return response.data;
         } catch (error) {
             showToast('e', error);

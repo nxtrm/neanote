@@ -10,11 +10,11 @@ import './HabitCard.css'
 import StreakLabel from './StreakLabel'
 
 function HabitCard({habit}: {habit: HabitPreview}) {
-    const {setCurrentHabit, setSection, setCompleted} = useHabits();
+    const {setCurrentHabit, fetchHabit, setSection, setCompleted} = useHabits();
     const navigate = useNavigate()
 
-    function handleEditClick(habit: Habit) {
-        setCurrentHabit(habit);
+    function handleEditClick(habitId, noteId) {
+        fetchHabit(habitId, noteId);
         setSection('edit');
         navigate('/habits/edit');
     }
@@ -59,8 +59,8 @@ function HabitCard({habit}: {habit: HabitPreview}) {
           <TagLabel key={index} name={tag.name} color={tag.color} compressed={isTagCompressed}/>
         ))}
         <Button variant="ghost" size={"icon"} onClick={
-          // ()=>handleEditClick(habit)
-          () => console.log('edit')
+          ()=>handleEditClick(habit.habitid, habit.noteid)
+          // () => console.log('edit')
         }><FaEdit/></Button>
       </div>
     </div>
