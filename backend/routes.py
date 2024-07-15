@@ -503,7 +503,6 @@ def register_routes(app, mysql, jwt):
     def get_habit():
         userId = g.userId
         noteid = request.args.get('noteid')
-        habitid = request.args.get('habitid')
         cur = mysql.connection.cursor(cursorclass=DictCursor)
 
         try:
@@ -527,8 +526,8 @@ def register_routes(app, mysql, jwt):
                 LEFT JOIN Subtasks lst ON lt.id = lst.task_id
                 LEFT JOIN NoteTags nt ON n.id = nt.note_id 
                 LEFT JOIN Tags t ON nt.tag_id = t.id 
-                WHERE n.user_id = %s AND n.type = %s AND n.id = %s AND h.id = %s''',
-                (today_date, today_date, userId, "habit", noteid, habitid)
+                WHERE n.user_id = %s AND n.type = %s AND n.id = %s''',
+                (today_date, today_date, userId, "habit", noteid)
             )
 
             rows = cur.fetchall()

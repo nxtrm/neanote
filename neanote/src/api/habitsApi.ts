@@ -47,9 +47,9 @@ const habitsApi = {
     }
     ,
 
-    getHabit: async (habitid: number, noteid: number) => {
+    getHabit: async (noteid: number) => {
         try {
-            let response = await a.get<HabitResponse>(`/api/habit`, {params: {habitid, noteid}});
+            let response = await a.get<HabitResponse>(`/api/habit`, {params: {noteid}});
             return response.data;
         } catch (error) {
             showToast('e', error);

@@ -13,9 +13,9 @@ function HabitCard({habit}: {habit: HabitPreview}) {
     const {setCurrentHabit, fetchHabit, setSection, setCompleted} = useHabits();
     const navigate = useNavigate()
 
-    function handleEditClick(habitId, noteId) {
-        fetchHabit(habitId, noteId);
+    function handleEditClick(noteId) {
         setSection('edit');
+        localStorage.setItem('currentHabitId', noteId.toString());
         navigate('/habits/edit');
     }
 
@@ -59,7 +59,7 @@ function HabitCard({habit}: {habit: HabitPreview}) {
           <TagLabel key={index} name={tag.name} color={tag.color} compressed={isTagCompressed}/>
         ))}
         <Button variant="ghost" size={"icon"} onClick={
-          ()=>handleEditClick(habit.habitid, habit.noteid)
+          ()=>handleEditClick(habit.noteid)
           // () => console.log('edit')
         }><FaEdit/></Button>
       </div>

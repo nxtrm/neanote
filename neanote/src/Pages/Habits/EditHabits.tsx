@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import PageContainer from '../../../components/PageContainer/PageContainer'
 import { Button } from '../../../components/@/ui/button'
 import { MdCancel } from 'react-icons/md'
@@ -13,10 +13,19 @@ import LinkTasks from './LinkTasks/LinkTasks';
 import TaskCard from '../../../components/TaskCard/TaskCard';
 
 function EditHabits() {
-  const {currentHabit, handleCreateHabit, handleUpdateHabit, setSection, section, setCurrentHabit, updateCurrentHabit, handleDelete} = useHabits();
+  const {currentHabit, handleCreateHabit, handleUpdateHabit, fetchHabit, setSection, section, setCurrentHabit, updateCurrentHabit, handleDelete} = useHabits();
   const navigate = useNavigate();
 
+  useEffect(() => {
+    const noteIdStr = localStorage.getItem('currentHabitId');
+    if (noteIdStr) {
+      const noteId = parseInt(noteIdStr, 10); 
+      fetchHabit(noteId);
+    }
+  }, []);
+
   const handleClose = () => {
+    localStorage.removeItem('currentHabitId');
     useHabits.setState({
       currentHabit: null,
       section: 'all habits',

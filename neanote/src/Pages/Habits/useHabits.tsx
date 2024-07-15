@@ -18,7 +18,7 @@ type HabitState = {
     setCompleted: (habitid: number) => void;
 
     fetchHabitPreviews: ()=> Promise<HabitPreviewResponse | false>;
-    fetchHabit: (habitId: number, noteId: number) => Promise<HabitResponse | false>;
+    fetchHabit: (noteId: number) => Promise<HabitResponse | false>;
     handleCreateHabit: () => void;
     handleUpdateHabit: () => void;
     handleDelete: () => void;
@@ -156,8 +156,8 @@ export const useHabits = create<HabitState>()(
             return response;
           },
 
-          fetchHabit : async (habitId: number, noteId:number) => {
-            const response = await habitsApi.getHabit(habitId, noteId);
+          fetchHabit : async (noteId:number) => {
+            const response = await habitsApi.getHabit(noteId);
             if (response) {
               set((state) => {
                 state.currentHabit = response.data;
