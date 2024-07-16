@@ -11,6 +11,8 @@ import { useTasks } from './useTasks';
 import PageContainer from '../../../components/PageContainer/PageContainer';
 import { useNavigate } from 'react-router-dom';
 import { useTags } from '../Tags/useTags';
+import CheckBox from '../../../components/CheckBox/CheckBox';
+
 
 //Fix Tags dropdown menu
 //ensure that all temporary ocmponents like currentTask are wiped
@@ -19,7 +21,8 @@ import { useTags } from '../Tags/useTags';
 function EditTasks() {
   const {
     currentTask,
-    setSection,
+    toggleTaskCompleted,
+    toggleSubtaskCompleted,
     fetchTask,
     updateCurrentTask,
     handleAddSubtask,
@@ -64,7 +67,14 @@ function EditTasks() {
     navigate('/tasks');
   }
 
+  const toggleCompleted = () => {
+    if (currentTask) {
+      toggleTaskCompleted(currentTask.taskid);
+    }
 
+};
+
+  if (currentTask) {
   return (
     <PageContainer>
       <div className='p-1'>
@@ -86,6 +96,9 @@ function EditTasks() {
 
         {/* Title and tags */}
         <div className='flex flex-row items-center gap-2'>
+          <div className='w-10'> {/* fix not being updated in real time*/}
+            <CheckBox checked={currentTask.completed} onChange={toggleCompleted} /> 
+          </div>
           <Input
             className='border rounded-md w-full h-10 leading-tight focus:outline-none focus:shadow-outline'
             placeholder='Title'
@@ -105,6 +118,7 @@ function EditTasks() {
           />
           {currentTask?.subtasks.map((subtask, index) => (
             <div key={subtask.subtask_id} className='flex pt-3 gap-2 items-center'>
+              <CheckBox checked={subtask.completed} onChange={()=>toggleSubtaskCompleted(currentTask.taskid, subtask.subtask_id)} />
               <Input type='text' value={subtask.description} onChange={(e) => updateCurrentTask('subtasks', currentTask.subtasks.map(st => st.subtask_id === subtask.subtask_id ? { ...st, description: e.target.value } : st))} />
               <Button onClick={() => handleRemoveSubtask(subtask.subtask_id)} variant='secondary' size='icon'>
                 <FaRegTrashAlt />
@@ -134,6 +148,7 @@ function EditTasks() {
       </div>
     </PageContainer>
   );
+}
 }
 
 export default EditTasks;

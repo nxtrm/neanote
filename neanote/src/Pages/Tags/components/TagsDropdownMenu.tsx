@@ -23,7 +23,7 @@ function TagsDropdownMenu({ onTagsSelected }) {
       <DialogTrigger asChild>
         <Button variant="secondary">Tags</Button>
       </DialogTrigger>
-      <DialogContent className="mx-auto w-full max-w-sm py-10">
+      <DialogContent className="mx-auto w-[10%] max-w-sm py-10">
         {tags.map((tag, index) => (
           <TagLabel
             key={index}

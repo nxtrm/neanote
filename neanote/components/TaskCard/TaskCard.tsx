@@ -14,8 +14,8 @@ import SubTaskCard from './SubTaskCard';
 import './TaskCard.css';
 
 
-function TaskCard({ task }: { task: Task }) { //Add Combine DateLabel and TagLabel into a new component which will have a specific width depending on the display size and collapse/uncollapse components based on it
-    const {
+function TaskCard({ task }: { task: Task }) { 
+  const {
       toggleTaskCompleted,
       setSection,
       loading,
@@ -31,8 +31,6 @@ function TaskCard({ task }: { task: Task }) { //Add Combine DateLabel and TagLab
       localStorage.setItem('currentTaskId', noteId.toString());
       navigate('/tasks/edit');
   }
-
-    console.log(task)
 
     const [screenSize, setScreenSize] = useState('large'); // Default to large
 
