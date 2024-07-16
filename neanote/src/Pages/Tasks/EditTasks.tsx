@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Separator } from '@radix-ui/react-separator';
 import { Button } from '../../../components/@/ui/button';
 import { FaRegTrashAlt, FaPlus } from 'react-icons/fa';
@@ -20,6 +20,7 @@ function EditTasks() {
   const {
     currentTask,
     setSection,
+    fetchTask,
     updateCurrentTask,
     handleAddSubtask,
     handleRemoveSubtask,
@@ -29,7 +30,16 @@ function EditTasks() {
   } = useTasks();
   const navigate = useNavigate();
 
+  useEffect(() => {
+    const noteIdStr = localStorage.getItem('currentTaskId');
+    if (noteIdStr) {
+      const noteId = parseInt(noteIdStr, 10); 
+      fetchTask(noteId);
+    }
+  }, []);
+
   const handleClose = () => {
+    localStorage.removeItem('currentTaskId');
     useTasks.setState({
       currentTask: null,
       section: 'all tasks',

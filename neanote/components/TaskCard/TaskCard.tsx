@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { FaEdit } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import TagLabel from '../../components/TagLabel/TagLabel';
-import { TaskPreview } from '../../src/api/types/taskTypes';
+import { Task } from '../../src/api/types/taskTypes';
 import { useTags } from '../../src/Pages/Tags/useTags';
 import { useTasks } from '../../src/Pages/Tasks/useTasks';
 import { Button } from '../@/ui/button';
@@ -14,7 +14,7 @@ import SubTaskCard from './SubTaskCard';
 import './TaskCard.css';
 
 
-function TaskCard({ task }: { task: TaskPreview }) { //Add Combine DateLabel and TagLabel into a new component which will have a specific width depending on the display size and collapse/uncollapse components based on it
+function TaskCard({ task }: { task: Task }) { //Add Combine DateLabel and TagLabel into a new component which will have a specific width depending on the display size and collapse/uncollapse components based on it
     const {
       toggleTaskCompleted,
       setSection,
@@ -32,12 +32,11 @@ function TaskCard({ task }: { task: TaskPreview }) { //Add Combine DateLabel and
     };
     const navigate = useNavigate()
 
-    const handleEditClick = (task: TaskPreview) => {
-      setCurrentTask(task);
-      setSelectedTagIds(task.tags.map(tag => tag.tagid));
+    function handleEditClick(noteId) {
       setSection('edit');
+      localStorage.setItem('currentTaskId', noteId.toString());
       navigate('/tasks/edit');
-    };
+  }
 
     const [screenSize, setScreenSize] = useState('large'); // Default to large
 
@@ -81,7 +80,7 @@ function TaskCard({ task }: { task: TaskPreview }) { //Add Combine DateLabel and
             {task.tags.map((tag, index) => (
               <TagLabel key={index} name={tag.name} color={tag.color} compressed={isTagCompressed}/>
             ))}
-            <Button variant="ghost" size={"icon"} onClick={()=>handleEditClick(task)}><FaEdit/></Button>
+            <Button variant="ghost" size={"icon"} onClick={()=>handleEditClick(task.noteid)}><FaEdit/></Button>
           </div>
         </div>
         {task.content && <p className="text-md pl-1 pt-2">{task.content}</p>}

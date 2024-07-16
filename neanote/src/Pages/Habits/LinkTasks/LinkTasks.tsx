@@ -9,13 +9,13 @@ import {
     DialogTitle,
     DialogTrigger,
   } from "../../../../components/@/ui/dialog";
-import { TaskPreview } from '../../../api/types/taskTypes';
+import { Task } from '../../../api/types/taskTypes';
 import { useTasks } from '../../Tasks/useTasks';
 import CheckBox from '../../../../components/CheckBox/CheckBox';
 import { useHabits } from '../useHabits';
 
   interface Props {
-    linked_tasks: TaskPreview[]
+    linked_tasks: Task[]
 
   }
 

@@ -3,7 +3,7 @@ import { immer } from "zustand/middleware/immer"
 import { Habit,HabitPreview,  HabitPreviewResponse,  HabitResponse } from "../../api/types/habitTypes";
 import { useTags } from "../Tags/useTags";
 import habitsApi from "../../api/habitsApi";
-import { TaskPreview } from "../../api/types/taskTypes";
+import { Task } from "../../api/types/taskTypes";
 
 type HabitState = {
     habitPreviews: HabitPreview[];
@@ -22,7 +22,7 @@ type HabitState = {
     handleCreateHabit: () => void;
     handleUpdateHabit: () => void;
     handleDelete: () => void;
-    toggleLinkTask: (task: TaskPreview) => void;
+    toggleLinkTask: (task: Task) => void;
 }
 
 export const useHabits = create<HabitState>()(
@@ -147,7 +147,6 @@ export const useHabits = create<HabitState>()(
         
           fetchHabitPreviews: async () => {
             const response = await habitsApi.getHabitPreviews(); //implement pagination
-            console.log(response)
             if (response) {
               set((state) => {
                 state.habitPreviews = response.data;

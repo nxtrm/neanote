@@ -1,11 +1,11 @@
 import { showToast } from "../../components/Toast";
 import a from './api'
-import { TaskPreview, TaskResponse } from "./types/taskTypes";
+import { TaskPreviewResponse, TaskResponse } from "./types/taskTypes";
 
 const tasksApi = {
     create: async (title, tags, content, subtasks,due_date) => {
         try {
-            let response = await a.post<TaskResponse>(`/api/tasks/create`, {
+            let response = await a.post(`/api/tasks/create`, {
                 title,
                 tags,
                 content,
@@ -25,17 +25,28 @@ const tasksApi = {
             return false;
         }
     },
-    getAll : async () => {
+    getTaskPreviews : async () => {
         try {
-            let response = await a.get<TaskResponse>(`/api/tasks/`);
+            let response = await a.get<TaskPreviewResponse>(`/api/tasks/previews`);
 
-            console.log(response.data)
             return response.data;
         } catch (error) {
             showToast('e', error);
             return false;
         }
     },
+
+    
+    getTask: async (noteid: number) => {
+        try {
+            let response = await a.get<TaskResponse>(`/api/task`, {params: {noteid}});
+            return response.data;
+        } catch (error) {
+            showToast('e', error);
+            return false;
+        }
+    }
+    ,
 
     update: async (taskUpdates: {}) => {
         try {

@@ -7,7 +7,7 @@ import PageContainer from '../../../components/PageContainer/PageContainer';
 import { useNavigate } from 'react-router-dom';
 
 const Tasks: React.FC = () => {
-  const { tasks, setSection, fetchTasks, setCurrentTask } = useTasks();
+  const { tasks, setSection, fetchTaskPreviews, setCurrentTask } = useTasks();
   const navigate = useNavigate();
 
   const [lastFetchTime, setLastFetchTime] = useState<Date | null>(null);
@@ -16,7 +16,7 @@ const Tasks: React.FC = () => {
     const fetchIfNeeded = () => {
       // Check if never fetched or if 5 minutes have passed since the last fetch
       if (!lastFetchTime || new Date().getTime() - lastFetchTime.getTime() > 300000) {
-        fetchTasks();
+        fetchTaskPreviews();
         setLastFetchTime(new Date());
       }
     };
@@ -28,7 +28,7 @@ const Tasks: React.FC = () => {
 
   // Clean up the interval on component unmount
   return () => clearInterval(intervalId);
-}, [fetchTasks, lastFetchTime]);
+}, [fetchTaskPreviews, lastFetchTime]);
 
   const handleAddTaskClick = () => {
     setCurrentTask({

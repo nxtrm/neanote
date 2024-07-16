@@ -1,5 +1,5 @@
 import { Tag } from "./tagTypes";
-import { TaskPreview } from "./taskTypes";
+import { Task } from "./taskTypes";
 
 export interface Habit {
     habitid: number;
@@ -10,7 +10,7 @@ export interface Habit {
     reminder: ReminderTime;
     streak: number;
     tags: Tag[];
-    linked_tasks : TaskPreview[]
+    linked_tasks : Task[]
     completed_today: boolean;
 }
 

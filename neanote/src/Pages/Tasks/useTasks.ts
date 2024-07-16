@@ -1,22 +1,18 @@
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import tasksApi from '../../api/tasksApi';
-import { Subtask, TaskPreview } from '../../api/types/taskTypes';
-import { Tag } from '../../api/types/tagTypes';
+import { Task, TaskResponse } from '../../api/types/taskTypes';
 import { useTags } from '../Tags/useTags';
-import { useNavigate } from 'react-router-dom';
-import { showToast } from '../../../components/Toast';
 
 type TaskState = {
   loading:boolean;
   setLoading: (loading: boolean) => void;
   section: string;
-  currentTask: TaskPreview | null;
-  tasks: TaskPreview[];
-  pendingUpdates: Partial<TaskPreview> | null;
+  currentTask: Task | null;
+  tasks: Task[];
+  pendingUpdates: Partial<Task> | null;
   setSection: (section: string) => void;
-  updateCurrentTask: (key: keyof TaskPreview, value: any) => void;
-  fetchTasks: () => Promise<void>;
+  updateCurrentTask: (key: keyof Task, value: any) => void;
   handleAddSubtask: () => void;
   handleRemoveSubtask: (subtaskId: number) => void;
   handleSaveTask: () => Promise<void>;
@@ -24,7 +20,10 @@ type TaskState = {
   handleDeleteTask: (taskId: number | undefined, noteId: number | undefined) => Promise<void>;
   toggleTaskCompleted: (taskId: number) => Promise<void>;
   toggleSubtaskCompleted: (subtaskId: number, taskId: number) => Promise<void>;
-  setCurrentTask: (task: TaskPreview) => void;
+  setCurrentTask: (task: Task) => void;
+  
+  fetchTaskPreviews: () => Promise<void>;
+  fetchTask: (noteId: number) => Promise<TaskResponse | false>;
 };
 
 export const useTasks = create<TaskState>()(
@@ -40,17 +39,17 @@ export const useTasks = create<TaskState>()(
 
     setSection: (section) => set({ section }),
 
-    updateCurrentTask: <K extends keyof TaskPreview>(key: K, value: TaskPreview[K]) => 
+    updateCurrentTask: <K extends keyof Task>(key: K, value: Task[K]) => 
       set((state) => {
         if (state.currentTask) {
           state.currentTask[key] = value;
         }
       }),
 
-    fetchTasks: async () => {
+    fetchTaskPreviews: async () => {
       const setLoading = useTasks.getState().setLoading;
       setLoading(true);
-      const fetchedTasks = await tasksApi.getAll();
+      const fetchedTasks = await tasksApi.getTaskPreviews();
       if (fetchedTasks) {
         try {
           set({ tasks: fetchedTasks.data });
@@ -60,6 +59,18 @@ export const useTasks = create<TaskState>()(
         }
       }
     },
+
+    fetchTask : async (noteId:number) => {
+      const response = await tasksApi.getTask(noteId);
+      if (response) {
+        set((state) => {
+          state.currentTask = response.data;
+        });
+      }
+      return response
+    }
+    ,
+    
 
     handleAddSubtask: () => 
       set((state) => {
@@ -116,7 +127,7 @@ export const useTasks = create<TaskState>()(
         const { taskid, noteid, title, content, subtasks, due_date } = currentTask;
         const filteredTags = tags.filter((tag) => selectedTagIds.includes(tag.tagid));
 
-        const updatedTask: TaskPreview = {
+        const updatedTask: Task = {
           ...currentTask,
           title,
           tags: filteredTags,

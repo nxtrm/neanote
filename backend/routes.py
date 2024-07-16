@@ -277,20 +277,19 @@ def register_routes(app, mysql, jwt):
             
 
             
-    @app.route('/api/tasks/', methods=['GET'])
+    @app.route('/api/tasks/previews', methods=['GET'])
     @jwt_required()
     @token_required
-    def getAllPreviews(): 
+    def get_task_previews(): 
         try:
             userId = g.userId
             cur = mysql.connection.cursor(cursorclass=DictCursor)
             cur.execute(""" 
                 SELECT 
                     n.id AS note_id, 
-                    n.title AS note_title, 
-                    n.content AS note_content, 
-                    n.created_at AS task_created_at, 
-                    n.type AS note_type, 
+                    n.title AS title, 
+                    n.content AS content, 
+                    n.type AS type, 
                     t.id AS task_id, 
                     t.completed AS task_completed, 
                     t.due_date AS task_due_date, 
@@ -315,8 +314,8 @@ def register_routes(app, mysql, jwt):
                     tasks[note_id] = {
                         'noteid': row['note_id'],
                         'taskid': row['task_id'],
-                        'title': row['note_title'],
-                        'content': row['note_content'],
+                        'title': row['title'][:50] + '...' if len(row['title']) > 50 else row['title'],
+                        'content': row['content'][:100] + '...' if len(row['content']) > 100 else row['content'],
                         'completed': row['task_completed'] == 1,
                         'due_date': row['task_due_date'],
                         'subtasks': [],
@@ -342,11 +341,78 @@ def register_routes(app, mysql, jwt):
             return jsonify({"data": tasks_list, 'message': "Tasks fetched successfully"}), 200
         except Exception as e:
             mysql.connection.rollback()
-            print(f"An error occurred: {e}")  # Improved error logging
+            print(f"An error occurred: {e}") 
+            raise
+        finally:
+            cur.close()\
+            
+    @app.route('/api/task', methods=['GET'])
+    @jwt_required()
+    @token_required
+    def get_task():
+        try:
+            userId = g.userId
+            noteid = request.args.get('noteid')
+            cur = mysql.connection.cursor(cursorclass=DictCursor)
+            cur.execute(""" 
+                SELECT 
+                    n.id AS note_id, 
+                    n.title AS note_title, 
+                    n.content AS note_content, 
+                    n.created_at AS task_created_at, 
+                    n.type AS note_type, 
+                    t.id AS task_id, 
+                    t.completed AS task_completed, 
+                    t.due_date AS task_due_date, 
+                    st.id AS subtask_id, 
+                    st.description AS subtask_description, 
+                    st.completed AS subtask_completed, 
+                    tg.id AS tagid, 
+                    tg.name AS tag_name, 
+                    tg.color AS tag_color
+                FROM Notes n
+                LEFT JOIN Tasks t ON n.id = t.note_id
+                LEFT JOIN Subtasks st ON t.id = st.task_id
+                LEFT JOIN NoteTags nt ON n.id = nt.note_id
+                LEFT JOIN Tags tg ON nt.tag_id = tg.id
+                WHERE n.user_id = %s AND n.id = %s AND n.type = 'task'
+            """, (userId, noteid)) 
+            rows = cur.fetchall()
+            task = None
+            for row in rows:
+                if task is None:
+                    task = {
+                        'noteid': row['note_id'],
+                        'taskid': row['task_id'],
+                        'title': row['note_title'],
+                        'content': row['note_content'],
+                        'completed': row['task_completed'] == 1,
+                        'due_date': row['task_due_date'],
+                        'subtasks': [],
+                        'tags': []
+                    }
+                if row['subtask_id'] is not None:
+                    task['subtasks'].append({
+                        'subtask_id': row['subtask_id'],
+                        'description': row['subtask_description'],
+                        'completed': row['subtask_completed'] == 1
+                    })
+                if row['tagid'] is not None:
+                    task['tags'].append({
+                        'tagid': row['tagid'],
+                        'name': row['tag_name'],
+                        'color': row['tag_color']
+                    })
+            if task:
+                return jsonify({"data": task, 'message': "Task fetched successfully"}), 200
+            else:
+                return jsonify({'message': "Task not found"}), 404
+        except Exception as e:
+            mysql.connection.rollback()
+            print(f"An error occurred: {e}") 
             raise
         finally:
             cur.close()
-
 
 #HABITS MODULE
     @app.route('/api/habits/create', methods=['POST'])
@@ -516,7 +582,6 @@ def register_routes(app, mysql, jwt):
 
         try:
             habit = None
-            today_date = datetime.now().date()
 
             # Main query to fetch the specific habit and its linked tasks
             cur.execute(
@@ -536,7 +601,7 @@ def register_routes(app, mysql, jwt):
                 LEFT JOIN NoteTags nt ON n.id = nt.note_id 
                 LEFT JOIN Tags t ON nt.tag_id = t.id 
                 WHERE n.user_id = %s AND n.type = %s AND n.id = %s''',
-                ( today_date, userId, "habit", noteid)
+                (userId, "habit", noteid)
             )
 
             rows = cur.fetchall()
