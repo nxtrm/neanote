@@ -326,7 +326,7 @@ def register_routes(app, mysql, jwt):
                     if not is_subtask_present:
                         tasks[note_id]['subtasks'].append({
                             'subtask_id': row['subtask_id'],
-                            'description': row['subtask_description'],
+                            'description': row['subtask_description'][:100] + '...' if len(row['subtask_description']) > 100 else row['subtask_description'],
                             'completed': row['subtask_completed'] == 1
                         })
                 if row['tagid'] is not None:

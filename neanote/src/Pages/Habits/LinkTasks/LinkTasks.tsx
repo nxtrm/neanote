@@ -20,15 +20,15 @@ import { useHabits } from '../useHabits';
   }
 
 function LinkTasks({linked_tasks}: Props) {
-  const {tasks, fetchTasks} = useTasks()
+  const {tasks, fetchTaskPreviews} = useTasks()
   const {toggleLinkTask} = useHabits()
 
 
   useEffect(() => {
           if (tasks.length < 1) {
-            fetchTasks()
+            fetchTaskPreviews()
           }
-  },[tasks, fetchTasks])
+  },[tasks, fetchTaskPreviews])
 
   return (
     <Dialog>

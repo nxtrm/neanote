@@ -18,14 +18,8 @@ function TaskCard({ task }: { task: Task }) { //Add Combine DateLabel and TagLab
     const {
       toggleTaskCompleted,
       setSection,
-      setCurrentTask,
       loading,
     } = useTasks()
-
-    const {
-      selectedTagIds,
-      setSelectedTagIds,
-    } = useTags();
 
     const toggleCompleted = () => {
         toggleTaskCompleted(task.taskid);
@@ -37,6 +31,8 @@ function TaskCard({ task }: { task: Task }) { //Add Combine DateLabel and TagLab
       localStorage.setItem('currentTaskId', noteId.toString());
       navigate('/tasks/edit');
   }
+
+    console.log(task)
 
     const [screenSize, setScreenSize] = useState('large'); // Default to large
 
