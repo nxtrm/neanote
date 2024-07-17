@@ -284,20 +284,20 @@ def register_routes(app, mysql, jwt):
         try:
             userId = g.userId
 
-            #Pagination
+            # Pagination
             page = int(request.args.get('page', 1))  # Default to page 1
             per_page = int(request.args.get('per_page', 10))  # Default to 10 items per page
             offset = (page - 1) * per_page
 
             cur = mysql.connection.cursor(cursorclass=DictCursor)
 
-            # Fetch the total count of tasks for pagination metacata
-            # cur.execute(""" 
-            #     SELECT COUNT(DISTINCT n.id) AS total
-            #     FROM Notes n
-            #     WHERE n.user_id = %s AND n.type = 'task'
-            # """, (userId,))
-            # total = cur.fetchone()['total']
+            # Fetch the total count of tasks for pagination metadata
+            cur.execute(""" 
+                SELECT COUNT(DISTINCT n.id) AS total
+                FROM Notes n
+                WHERE n.user_id = %s AND n.type = 'task'
+            """, (userId,))
+            total = cur.fetchone()['total']
 
             cur.execute(""" 
                 SELECT 
@@ -356,13 +356,17 @@ def register_routes(app, mysql, jwt):
                             'color': row['tag_color']
                         })
             tasks_list = [value for key, value in tasks.items()]
-            return jsonify({"tasks": tasks_list, 'nextPage': page+1, 'message': "Tasks fetched successfully"}), 200
+            
+            nextPage = page + 1 if (offset + per_page) < total else None
+            
+            return jsonify({"tasks": tasks_list, 'nextPage': nextPage, 'message': "Tasks fetched successfully"}), 200
         except Exception as e:
             mysql.connection.rollback()
             print(f"An error occurred: {e}") 
-            raise
+            return jsonify({'message': 'An error occurred', 'error': str(e)}), 500
         finally:
             cur.close()
+
             
     @app.route('/api/task', methods=['GET'])
     @jwt_required()

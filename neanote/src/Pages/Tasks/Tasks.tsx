@@ -72,27 +72,31 @@ const Tasks: React.FC = () => {
 
   return (
     <PageContainer>
-    
-      <div className='px-1 py-1'>
-        <div className='flex flex-row justify-between pb-2'>
-            <p className='pl-1 text-2xl font-bold'>Tasks</p>
-              <Button size='sm' className='gap-2' onClick={handleAddTaskClick}>
-                <FaPlus />  
-                 Add Task
-              </Button>
-            </div>
-            <div className='flex flex-col gap-3'>
-              {data?.pages.map((page) => (
-                page.pages.map((task, i) => (
-                  <TaskCard key={task.taskid} task={task} />
-                ))
+      <div className="px-1 py-1">
+        <div className="flex flex-row justify-between pb-2">
+          <p className="pl-1 text-2xl font-bold">Tasks</p>
+          <Button size="sm" className="gap-2" onClick={handleAddTaskClick}>
+            <FaPlus />
+            Add Task
+          </Button>
+        </div>
+        <div className="flex flex-col gap-3">
+          {data?.pages.map((page, pageIndex) => (
+            <React.Fragment key={pageIndex}>
+              {page.pages.map((task) => (
+                <TaskCard key={task.taskid} task={task} />
               ))}
-            {hasNextPage && (
-              <Button onClick={() => fetchNextPage()} disabled={!hasNextPage || isFetchingNextPage}>
-                {isFetchingNextPage ? 'Loading more...' : 'Load More'}
-              </Button>
-            )}
-          </div>
+            </React.Fragment>
+          ))}
+          {hasNextPage && (
+            <Button
+              onClick={() => fetchNextPage()}
+              disabled={!hasNextPage || isFetchingNextPage}
+            >
+              {isFetchingNextPage ? 'Loading more...' : 'Load More'}
+            </Button>
+          )}
+        </div>
       </div>
     </PageContainer>
   );
