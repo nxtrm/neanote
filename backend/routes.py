@@ -5,7 +5,7 @@ from flask_jwt_extended import (JWTManager, create_access_token,
                                 get_jwt_identity, jwt_required)
 from MySQLdb.cursors import DictCursor
 from dateutil.relativedelta import relativedelta
-from formsValidation import HabitCreateSchema, HabitUpdateSchema, LoginSchema, TagSchema, TaskSchema, UserSchema
+from formsValidation import HabitCreateSchema, HabitUpdateSchema, LoginSchema, TagSchema, TaskCreateSchema, TaskSchema, UserSchema
 from utils import token_required, verify_habit_ownership, verify_subtask_ownership, verify_tag_ownership, verify_task_ownership
 from datetime import datetime, timedelta
 
@@ -90,7 +90,7 @@ def register_routes(app, mysql, jwt):
     def create_task():
         userId = g.userId
 
-        task_schema = TaskSchema()
+        task_schema = TaskCreateSchema()
         data = task_schema.load(request.get_json())
         title = data['title']
         tags = data['tags']
@@ -283,7 +283,22 @@ def register_routes(app, mysql, jwt):
     def get_task_previews(): 
         try:
             userId = g.userId
+
+            #Pagination
+            page = int(request.args.get('page', 1))  # Default to page 1
+            per_page = int(request.args.get('per_page', 10))  # Default to 10 items per page
+            offset = (page - 1) * per_page
+
             cur = mysql.connection.cursor(cursorclass=DictCursor)
+
+            # Fetch the total count of tasks for pagination metacata
+            # cur.execute(""" 
+            #     SELECT COUNT(DISTINCT n.id) AS total
+            #     FROM Notes n
+            #     WHERE n.user_id = %s AND n.type = 'task'
+            # """, (userId,))
+            # total = cur.fetchone()['total']
+
             cur.execute(""" 
                 SELECT 
                     n.id AS note_id, 
@@ -305,7 +320,10 @@ def register_routes(app, mysql, jwt):
                 LEFT JOIN NoteTags nt ON n.id = nt.note_id
                 LEFT JOIN Tags tg ON nt.tag_id = tg.id
                 WHERE n.user_id = %s AND n.type = 'task'
-            """, (userId,)) 
+                ORDER BY n.created_at DESC
+                LIMIT %s OFFSET %s
+            """, (userId, per_page, offset)) 
+
             rows = cur.fetchall()
             tasks = {}
             for row in rows:
@@ -338,13 +356,13 @@ def register_routes(app, mysql, jwt):
                             'color': row['tag_color']
                         })
             tasks_list = [value for key, value in tasks.items()]
-            return jsonify({"data": tasks_list, 'message': "Tasks fetched successfully"}), 200
+            return jsonify({"tasks": tasks_list, 'nextPage': page+1, 'message': "Tasks fetched successfully"}), 200
         except Exception as e:
             mysql.connection.rollback()
             print(f"An error occurred: {e}") 
             raise
         finally:
-            cur.close()\
+            cur.close()
             
     @app.route('/api/task', methods=['GET'])
     @jwt_required()

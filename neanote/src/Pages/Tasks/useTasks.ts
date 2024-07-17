@@ -22,7 +22,7 @@ type TaskState = {
   toggleSubtaskCompleted: (subtaskId: number, taskId: number) => Promise<void>;
   setCurrentTask: (task: Task) => void;
   
-  fetchTaskPreviews: () => Promise<void>;
+  fetchTaskPreviews: (pageParam:number) => Promise<void>;
   fetchTask: (noteId: number) => Promise<TaskResponse | false>;
 };
 
@@ -46,19 +46,13 @@ export const useTasks = create<TaskState>()(
         }
       }),
 
-    fetchTaskPreviews: async () => {
-      const setLoading = useTasks.getState().setLoading;
-      setLoading(true);
-      const fetchedTasks = await tasksApi.getTaskPreviews();
-      if (fetchedTasks) {
-        try {
-          set({ tasks: fetchedTasks.data });
-        } 
-        finally {
-          setLoading(false);
+      fetchTaskPreviews: async (pageParam: number) => {
+        const setLoading = useTasks.getState().setLoading;
+        const fetchedTasks = await tasksApi.getTaskPreviews(pageParam);
+        if (fetchedTasks) { 
+          set({ tasks: fetchedTasks.data })
         }
-      }
-    },
+      },
 
     fetchTask : async (noteId:number) => {
       const response = await tasksApi.getTask(noteId);

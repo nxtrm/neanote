@@ -33,6 +33,13 @@ class TaskSchema(Schema):
     noteid = fields.Int(required=False)
     taskid = fields.Int(required=False)
 
+class TaskCreateSchema(Schema):
+    title = fields.Str(required=True, validate=lambda s: len(s) > 0)
+    content = fields.Str(required=False)
+    due_date = fields.Str(required=False)
+    tags = fields.List(fields.Int(), required=False)
+    subtasks = fields.List(fields.Nested(SubtaskSchema), required=False)  
+
 class ReminderSchema(Schema):
     reminder_time = fields.Str(required=True)
     repetition = fields.Str(required=True)

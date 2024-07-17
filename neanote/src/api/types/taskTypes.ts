@@ -28,6 +28,7 @@ export interface Task {
 
 
   export interface TaskPreviewResponse {
-    data: Task[] | undefined;
+    tasks: Task[];
+    nextPage: number;
     message: string;
   }

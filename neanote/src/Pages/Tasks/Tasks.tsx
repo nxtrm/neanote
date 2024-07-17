@@ -5,30 +5,55 @@ import TaskCard from '../../../components/TaskCard/TaskCard';
 import { useTasks } from './useTasks';
 import PageContainer from '../../../components/PageContainer/PageContainer';
 import { useNavigate } from 'react-router-dom';
+import { useInfiniteQuery } from '@tanstack/react-query'
+import tasksApi from '../../api/tasksApi';
 
 const Tasks: React.FC = () => {
   const { tasks, setSection, fetchTaskPreviews, setCurrentTask } = useTasks();
   const navigate = useNavigate();
 
-  const [lastFetchTime, setLastFetchTime] = useState<Date | null>(null);
+//   const [lastFetchTime, setLastFetchTime] = useState<Date | null>(null);
 
-  useEffect(() => {
-    const fetchIfNeeded = () => {
-      // Check if never fetched or if 5 minutes have passed since the last fetch
-      if (!lastFetchTime || new Date().getTime() - lastFetchTime.getTime() > 300000) {
-        fetchTaskPreviews();
-        setLastFetchTime(new Date());
-      }
-    };
+//   useEffect(() => {
+//     const fetchIfNeeded = () => {
+//       // Check if never fetched or if 5 minutes have passed since the last fetch
+//       if (!lastFetchTime || new Date().getTime() - lastFetchTime.getTime() > 300000) {
+//         fetchTaskPreviews();
+//         setLastFetchTime(new Date());
+//       }
+//     };
 
-    fetchIfNeeded();
+//     fetchIfNeeded();
 
-    // Set up a timer to refetch every 5 minutes
-    const intervalId = setInterval(fetchIfNeeded, 300000);
+//     // Set up a timer to refetch every 5 minutes
+//     const intervalId = setInterval(fetchIfNeeded, 300000);
 
-  // Clean up the interval on component unmount
-  return () => clearInterval(intervalId);
-}, [fetchTaskPreviews, lastFetchTime]);
+//   // Clean up the interval on component unmount
+//   return () => clearInterval(intervalId);
+// }, [fetchTaskPreviews, lastFetchTime]);
+
+  const {
+    data,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isFetching,
+    isFetchingNextPage,
+    status,
+  } = useInfiniteQuery({
+    initialPageParam: 0,
+    queryKey: ['tasks'],
+    queryFn: async ({ pageParam}) =>  {
+      const response = await tasksApi.getTaskPreviews(pageParam)
+      console.log("data", response.data)
+      console.log("nextPage", response.nextPage)
+      return {
+        pages: response.data, 
+        nextPage: response.nextPage,
+      };
+    },
+    getNextPageParam: (lastPage, allPages) => lastPage.nextPage,
+  });
 
   const handleAddTaskClick = () => {
     setCurrentTask({
@@ -49,19 +74,25 @@ const Tasks: React.FC = () => {
     <PageContainer>
     
       <div className='px-1 py-1'>
-
-      <div className='flex flex-row justify-between pb-2'>
-              <p className='pl-1 text-2xl font-bold'>Tasks</p>
+        <div className='flex flex-row justify-between pb-2'>
+            <p className='pl-1 text-2xl font-bold'>Tasks</p>
               <Button size='sm' className='gap-2' onClick={handleAddTaskClick}>
                 <FaPlus />  
                  Add Task
               </Button>
             </div>
             <div className='flex flex-col gap-3'>
-              {tasks.map((task) => (
-                <TaskCard key={task.taskid} task={task} />
+              {data?.pages.map((page) => (
+                page.pages.map((task, i) => (
+                  <TaskCard key={task.taskid} task={task} />
+                ))
               ))}
-            </div>
+            {hasNextPage && (
+              <Button onClick={() => fetchNextPage()} disabled={!hasNextPage || isFetchingNextPage}>
+                {isFetchingNextPage ? 'Loading more...' : 'Load More'}
+              </Button>
+            )}
+          </div>
       </div>
     </PageContainer>
   );

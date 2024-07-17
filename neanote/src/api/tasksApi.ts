@@ -25,14 +25,16 @@ const tasksApi = {
             return false;
         }
     },
-    getTaskPreviews : async () => {
+    getTaskPreviews : async (pageParam) => {
         try {
-            let response = await a.get<TaskPreviewResponse>(`/api/tasks/previews`);
-
-            return response.data;
+            let response = await a.get<TaskPreviewResponse>(`/api/tasks/previews`, {params: {pageParam}});
+            return {
+                data: response.data.tasks,
+                nextPage: response.data.nextPage, 
+            };
         } catch (error) {
             showToast('e', error);
-            return false;
+            throw error
         }
     },
 
