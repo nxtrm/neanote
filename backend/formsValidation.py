@@ -61,3 +61,17 @@ class HabitUpdateSchema(Schema):
     noteid = fields.Int(required=True)
     habitid = fields.Int(required=True)   
 
+class MilestoneSchema(Schema) :
+    description = fields.Str(required=True, validate=lambda s: len(s) > 0)
+    completed = fields.Bool(required=True)
+
+    goalid = fields.Int(required=True)
+    milestoneid = fields.Int(required=True)
+
+class GoalCreateSchema(Schema) :
+    title = fields.Str(required=True, validate=lambda s: len(s) > 0)
+    content = fields.Str(required=False)
+    due_date = fields.Str(required=False)
+    tags = fields.List(fields.Int(), required=False)
+    milestones = fields.List(fields.Nested(MilestoneSchema), required=False)
+

@@ -13,6 +13,8 @@ export interface Goal {
 
 export interface Milestone {
     milestoneid: number;
+    goalid: number;
+
     description: string;
     completed: boolean;
     index: number;

@@ -3,6 +3,7 @@ import { immer } from "zustand/middleware/immer"
 import { Goal } from "../../api/types/goalTypes";
 import { v4 as uuidv4 } from 'uuid';
 import { useTags } from "../Tags/useTags";
+import goalsApi from "../../api/goalsApi";
 
 type GoalState = {
     goalPreviews: Goal[];
@@ -49,8 +50,8 @@ export const useGoals = create<GoalState>()(
                     due_date: undefined,
                     tags: [], 
                     milestones: [
-                    { milestoneid: uuidv4(), description: '', completed: false, index: 0 },
-                    { milestoneid: uuidv4(), description: '', completed: false, index:1 }
+                    { milestoneid: uuidv4(), description: '', completed: false, index: 0, goalid: -1 },
+                    { milestoneid: uuidv4(), description: '', completed: false, index:1, goalid: -1 }
                 ]};
             })
         },
@@ -76,44 +77,42 @@ export const useGoals = create<GoalState>()(
           },
 
           handleUpdateGoal: async () => {
-            const { currentGoal } = get();
+            const { currentGoal, resetCurrentGoal } = get();
             const { tags, selectedTagIds } = useTags.getState();
       
             if (currentGoal) {
 
-              const { habitid, noteid, title, content, streak, reminder, completed_today } = currentGoal;
+              const { goalid, noteid, title, content, due_date, milestones } = currentGoal;
               const filteredTags = tags.filter((tag) => selectedTagIds.includes(tag.tagid));
       
               const updatedGoal: Partial<Goal> = {
-                habitid,
+                goalid,
                 noteid,
 
                 title,
-                tags: filteredTags,
-                streak,
+                tags: filteredTags, 
                 content,
-                reminder,
-                completed_today
+                due_date,
+                milestones
               };
       
-              const previousGoals = get().habitPreviews;
+              const previousGoals = get().goalPreviews;
       
               // optimistic update
               set((state) => {
-                  state.habitPreviews = state.habitPreviews.map((habit) => (habit.habitid === habitid ? {habitid, noteid, title, tags, streak, content, completed_today} : habit));
-                  state.pendingUpdates = updatedGoal;
+                  state.goalPreviews = state.goalPreviews.map((goal) => (goal.goalid === goalid ? {goalid, noteid, title, tags, due_date, milestones, content} : goal));
                 });
       
-              const response = await habitsApi.update(updatedGoal);
+              const response = await goalsApi.update(updatedGoal);
               if (!response) {
                 // revert update
-                set({ habitPreviews: previousGoals, pendingUpdates: null });
+                set({ goalPreviews: previousGoals});
               }
       
               set((state) => {
-                state.currentGoal = null;
-                state.section = 'all habits';
+                state.section = 'all goals';
               });
+              resetCurrentGoal
             }
 
           },
@@ -126,7 +125,8 @@ export const useGoals = create<GoalState>()(
                     milestoneid: uuidv4(), 
                     description: '', 
                     completed: false, 
-                    index: milestones.length 
+                    index: milestones.length,
+                    goalid: -1
                 });
                 milestones.forEach((ms, idx) => ms.index = idx);
               }

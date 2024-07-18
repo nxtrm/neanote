@@ -25,6 +25,15 @@ const goalsApi = {
             return false;
         }
     },
+    update: async (goalUpdates: {}) => {
+        try {
+            const response = await a.put(`/api/goals/update`, goalUpdates);
+            return true
+        } catch (error) {
+            showToast('e', error);
+            return false
+        }
+    },
 }
 
 export default goalsApi

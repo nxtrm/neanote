@@ -5,7 +5,7 @@ from flask_jwt_extended import (JWTManager, create_access_token,
                                 get_jwt_identity, jwt_required)
 from MySQLdb.cursors import DictCursor
 from dateutil.relativedelta import relativedelta
-from formsValidation import HabitCreateSchema, HabitUpdateSchema, LoginSchema, TagSchema, TaskCreateSchema, TaskSchema, UserSchema
+from formsValidation import GoalCreateSchema, HabitCreateSchema, HabitUpdateSchema, LoginSchema, TagSchema, TaskCreateSchema, TaskSchema, UserSchema
 from utils import token_required, verify_habit_ownership, verify_subtask_ownership, verify_tag_ownership, verify_task_ownership
 from datetime import datetime, timedelta
 
@@ -798,6 +798,49 @@ def register_routes(app, mysql, jwt):
             raise
         finally:
             cur.close()
+
+#GOALS MODULE
+    @app.route('/api/goals/create', methods=['POST'])
+    @jwt_required()
+    @token_required
+    def create_goal():
+        userId = g.userId
+
+        goal_schema = GoalCreateSchema()
+        data = goal_schema.loag(request.get_json())
+        cur = mysql.connection.cursor(cursorclass=DictCursor)
+
+        try:
+            cur.execute(
+                "INSERT INTO Notes (user_id, title, content, type) VALUES (%s, %s, %s, %s)",
+                (userId, data['title'], data['content'], 'goal')
+            )
+            cur.execute("SELECT LAST_INSERT_ID()")
+            noteId = cur.fetchone()[0]
+
+            cur.execute(
+                "INSERT INTO Goals (note_id, due_date, completed) VALUES (%s, %s, %s)",
+                (noteId, data['due_date'], False)
+            )
+            cur.execute("SELECT LAST_INSERT_ID()")
+            goalId = cur.fetchone()[0]
+
+            if len(data['tags'])>0:
+                for tagId in data['tags']:
+                    cur.execute(
+                        "INSERT INTO NoteTags (note_id, tag_id) VALUES (%s, %s)",
+                        (noteId, tagId)
+                    )
+            
+            mysql.connection.commit()
+            return jsonify({'message': 'Goal created successfully', 'data' : {noteId, goalId}}), 200
+        except Exception as e:
+            mysql.connection.rollback()
+            raise
+        finally:
+            cur.close()
+
+
 
 
 #TAG MODULE

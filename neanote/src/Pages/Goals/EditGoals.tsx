@@ -12,6 +12,7 @@ import { DatePicker } from '../Tasks/DatePicker/DatePicker';
 import { MdCancel } from 'react-icons/md';
 import { useTags } from '../Tags/useTags';
 import { useNavigate } from 'react-router-dom';
+import { Textarea } from '../../../components/@/ui/textarea';
 
 
 function EditGoals() {
@@ -36,12 +37,12 @@ function EditGoals() {
         } else {
           await handleUpdateGoal();
         }
-        navigate('/tasks');
+        navigate('/goals');
       }
     
       const handleDelete = async () => {
         // await handleDeleteGoal(currentGoal?.goalid, currentGoal?.noteid)
-        navigate('/tasks');
+        navigate('/goals');
       }
 
     return (
@@ -59,7 +60,11 @@ function EditGoals() {
                 </div>
                 <Label className="block mb-2">Title</Label>
                 <div className="flex flex-row gap-2 mb-4">
-  
+                    <Textarea
+                        value={currentGoal.content}
+                        placeholder='Describe your task here'
+                        onChange={(e) => updateCurrentGoal('content', e.target.value)}
+                    />
   
                     <Input
                         type="text"
