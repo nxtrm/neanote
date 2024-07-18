@@ -12,26 +12,6 @@ const Tasks: React.FC = () => {
   const { tasks, setSection, fetchTaskPreviews, setCurrentTask } = useTasks();
   const navigate = useNavigate();
 
-//   const [lastFetchTime, setLastFetchTime] = useState<Date | null>(null);
-
-//   useEffect(() => {
-//     const fetchIfNeeded = () => {
-//       // Check if never fetched or if 5 minutes have passed since the last fetch
-//       if (!lastFetchTime || new Date().getTime() - lastFetchTime.getTime() > 300000) {
-//         fetchTaskPreviews();
-//         setLastFetchTime(new Date());
-//       }
-//     };
-
-//     fetchIfNeeded();
-
-//     // Set up a timer to refetch every 5 minutes
-//     const intervalId = setInterval(fetchIfNeeded, 300000);
-
-//   // Clean up the interval on component unmount
-//   return () => clearInterval(intervalId);
-// }, [fetchTaskPreviews, lastFetchTime]);
-
   const {
     data,
     error,
@@ -45,8 +25,6 @@ const Tasks: React.FC = () => {
     queryKey: ['tasks'],
     queryFn: async ({ pageParam}) =>  {
       const response = await tasksApi.getTaskPreviews(pageParam)
-      console.log("data", response.data)
-      console.log("nextPage", response.nextPage)
       return {
         pages: response.data, 
         nextPage: response.nextPage,

@@ -688,29 +688,34 @@ def register_routes(app, mysql, jwt):
             cur.close()
 
     
-    @app.route('/api/habits/delete', methods=['PUT']) #make it archive instead of deleting later
+    @app.route('/api/habits/delete', methods=['PUT'])
     @jwt_required()
     @token_required
     def delete_habit():
         userId = g.userId
+        cur = mysql.connection.cursor(cursorclass=DictCursor)
         try:
-            cur = mysql.connection.cursor(cursorclass=DictCursor)
             data = request.get_json()
             habit_id = data['habitid']
             note_id = data['noteid']
 
             if verify_habit_ownership(userId, habit_id, cur) == False:
                 return jsonify({'message': 'You do not have permission to update this habit'}), 403
-
+            
+            cur.execute("DELETE FROM NoteTags WHERE note_id = %s", (note_id,))
+            cur.execute("DELETE FROM HabitTasks WHERE habit_id = %s", (habit_id,))
             cur.execute("DELETE FROM HabitCompletion WHERE habit_id = %s", (habit_id,))
             cur.execute("DELETE FROM Habits WHERE id = %s", (habit_id,))
             cur.execute("DELETE FROM Notes WHERE id = %s", (note_id,))
+                        
             mysql.connection.commit()
-            cur.close()
             return jsonify({'message': 'Habit deleted successfully'}), 200
         except Exception as e:
-            mysql.connection.rollback()
+            if mysql.connection:
+                mysql.connection.rollback()
             raise
+        finally:
+            cur.close()
     
 
 
