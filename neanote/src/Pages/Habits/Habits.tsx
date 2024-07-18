@@ -8,7 +8,7 @@ import HabitCard from './HabitCard/HabitCard';
 
 function Habits() {
     const {habitPreviews, setCurrentHabit, setSection, fetchHabitPreviews} = useHabits();  
-    const navigate = useNavigate(); //plan out habits and steps in miro
+    const navigate = useNavigate(); 
     const handleAddHabitClick = () => {
         setCurrentHabit({
           habitid: -1,

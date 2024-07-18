@@ -9,7 +9,7 @@ import { useTags } from "../useTags";
 import TagLabel from "./TagLabel";
 import { Tag, Tags } from "lucide-react";
 
-function TagsDropdownMenu({ onTagsSelected }) {
+function TagsDropdownMenu() {
   const { tags, fetchTags} = useTags();
 
   React.useEffect(() => {
@@ -23,7 +23,7 @@ function TagsDropdownMenu({ onTagsSelected }) {
       <DialogTrigger asChild>
         <Button variant="secondary">Tags</Button>
       </DialogTrigger>
-      <DialogContent className="mx-auto w-[10%] max-w-sm py-10">
+      <DialogContent className="mx-auto max-w-sm py-10">
         {tags.map((tag, index) => (
           <TagLabel
             key={index}

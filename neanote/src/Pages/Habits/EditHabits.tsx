@@ -73,7 +73,7 @@ function EditHabits() {
               value={currentHabit?.title || ''}
               onChange={(e) => updateCurrentHabit('title', e.target.value)}
             />
-            <TagsDropdownMenu onTagsSelected={() => console.log('selected')} />
+            <TagsDropdownMenu />
           </div>
           <div>
           <Textarea

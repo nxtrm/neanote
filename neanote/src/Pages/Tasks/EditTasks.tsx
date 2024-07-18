@@ -106,7 +106,7 @@ function EditTasks() {
             value={currentTask?.title || ''}
             onChange={(e) => updateCurrentTask('title', e.target.value)}
           />
-          <TagsDropdownMenu onTagsSelected={() => console.log('selected')} />
+          <TagsDropdownMenu />
         </div>
 
         {/* Input Field */}
