@@ -22,6 +22,9 @@ function EditHabits() {
     if (noteIdStr) {
       const noteId = parseInt(noteIdStr, 10); 
       fetchHabit(noteId);
+      useTags.setState({
+        selectedTagIds: [],
+      })
     }
   }, []);
 

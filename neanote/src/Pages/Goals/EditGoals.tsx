@@ -8,29 +8,59 @@ import { Input } from '../../../components/@/ui/input';
 import { Label } from '../../../components/@/ui/label';
 import { useGoals } from './useGoals';
 import TagsDropdownMenu from '../Tags/components/TagsDropdownMenu';
+import { DatePicker } from '../Tasks/DatePicker/DatePicker';
+import { MdCancel } from 'react-icons/md';
+import { useTags } from '../Tags/useTags';
+import { useNavigate } from 'react-router-dom';
 
 
 function EditGoals() {
-    const {currentGoal, handleAddMilestone, handleRemoveMilestone, updateCurrentGoal} = useGoals();
+    const {currentGoal, section, resetCurrentGoal,handleCreateGoal, handleUpdateGoal, handleAddMilestone, handleRemoveMilestone, updateCurrentGoal} = useGoals();
+    const navigate = useNavigate();
 
-    const [startingPoint, setStartingPoint] = useState('');
-    const [endingPoint, setEndingPoint] = useState('');
-    const [milestones, setMilestones] = useState<Milestone[]>([]);
+    const handleClose = () => {
+        localStorage.removeItem('currentTaskId');
+        useGoals.setState({
+          section: 'all goals',
+        })
+        useTags.setState({
+          selectedTagIds: [],
+        })
+        resetCurrentGoal()
+        navigate('/goals');
+      };
 
-    const handleSubmit = () => {
-        // Handle form submission logic here
-        console.log('Starting Point:', startingPoint);
-        console.log('Ending Point:', endingPoint);
-        console.log('Milestones:', milestones);
-        // Perform the save action
-    };
+      const handleSave = async () => {
+        if (currentGoal?.goalid === -1) {
+          await handleCreateGoal();
+        } else {
+          await handleUpdateGoal();
+        }
+        navigate('/tasks');
+      }
+    
+      const handleDelete = async () => {
+        // await handleDeleteGoal(currentGoal?.goalid, currentGoal?.noteid)
+        navigate('/tasks');
+      }
 
     return (
         <PageContainer>
             <div className="p-2">
-                <h1 className="text-2xl font-bold mb-4">Edit Goal</h1>
+                <div className='flex row justify-between'>
+
+                    <h1 className="text-2xl font-bold mb-4">{section == "edit goal" ? 'Edit Goal' : 'Create Goal'}</h1>
+                    <div className='flex gap-2'>
+                        <DatePicker onDateChange={(date) => updateCurrentGoal('due_date', date)} data={currentGoal?.due_date} includeTime={false} />
+                        <Button size='icon' onClick={handleClose}>
+                            <MdCancel size={15} />
+                        </Button>
+                    </div>
+                </div>
                 <Label className="block mb-2">Title</Label>
                 <div className="flex flex-row gap-2 mb-4">
+  
+  
                     <Input
                         type="text"
                         value={currentGoal?.title}
@@ -41,16 +71,21 @@ function EditGoals() {
                 </div>
 
                 <div className="mb-4">
-                    {currentGoal?.milestones.map((milestone, index) => (
+                    {currentGoal?.milestones.map((milestone) => (
                         <div key={milestone.milestoneid} className="flex w-full items-center mb-2">
                                     <Input
                                         type="text"
                                         value={milestone.description}
                                         onChange={(e) => updateCurrentGoal('milestones', currentGoal.milestones.map(ms => ms.milestoneid === milestone.milestoneid ? { ...ms, description: e.target.value } : ms))}
-                                        placeholder={`Milestone ${index + 1}`}
+                                        placeholder={milestone.index === 0 || milestone.index === currentGoal?.milestones.length - 1   ? "Starting Point" : `Milestone ${milestone.index + 1}`}
                                         className="flex-grow p-2 border rounded mr-2"
                                     />
-                                    <Button size="icon" variant={"secondary"} onClick={() => handleRemoveMilestone(index)}>
+                                    <Button size="icon" variant={"secondary"} 
+                                            disabled={
+                                                milestone.index === 0 || // First item
+                                                milestone.index === currentGoal?.milestones.length - 1 // Last item
+                                            } 
+                                            onClick={() => handleRemoveMilestone(milestone.milestoneid)}>
                                         <FaRegTrashAlt />
                                     </Button>
                         </div>
@@ -61,9 +96,12 @@ function EditGoals() {
                     <Button size="sm"  className="gap-2 mt-2" onClick={handleAddMilestone}>
                             <FaPlus /> Add Milestone
                         </Button>
+                    {section == "edit task" && <Button variant="outline" onClick={handleDelete}>
+                            Delete
+                    </Button>}
 
-                    <Button size="sm" className="gap-2" onClick={handleSubmit}>
-                        Save Goal
+                    <Button onClick={handleSave}>
+                        Save
                     </Button>
                 </div>
             </div>

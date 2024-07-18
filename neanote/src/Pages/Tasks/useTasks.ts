@@ -3,6 +3,7 @@ import { immer } from 'zustand/middleware/immer';
 import tasksApi from '../../api/tasksApi';
 import { Task, TaskResponse } from '../../api/types/taskTypes';
 import { useTags } from '../Tags/useTags';
+import { v4 as uuidv4 } from 'uuid';
 
 type TaskState = {
   loading:boolean;
@@ -69,7 +70,7 @@ export const useTasks = create<TaskState>()(
     handleAddSubtask: () => 
       set((state) => {
         if (state.currentTask) {
-          state.currentTask.subtasks.push({ subtask_id: state.currentTask.subtasks.length + 1, description: '', completed: false });
+          state.currentTask.subtasks.push({ subtask_id: uuidv4(), description: '', completed: false });
         }
       }),
 

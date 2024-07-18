@@ -13,14 +13,10 @@ import { useNavigate } from 'react-router-dom';
 import { useTags } from '../Tags/useTags';
 import CheckBox from '../../../components/CheckBox/CheckBox';
 
-
-//Fix Tags dropdown menu
-//ensure that all temporary ocmponents like currentTask are wiped
-//maybe add server querying
-
 function EditTasks() {
   const {
     currentTask,
+    section,
     toggleTaskCompleted,
     toggleSubtaskCompleted,
     fetchTask,
@@ -38,6 +34,9 @@ function EditTasks() {
     if (noteIdStr) {
       const noteId = parseInt(noteIdStr, 10); 
       fetchTask(noteId);
+      useTags.setState({
+        selectedTagIds: [],
+      })
     }
   }, []);
 
@@ -135,9 +134,9 @@ function EditTasks() {
                       </div>
                     </Button>
                     <div className='flex flex-row gap-2'>
-                        <Button variant="outline" onClick={handleDelete}>
+                        {section == "edit task" && <Button variant="outline" onClick={handleDelete}>
                             Delete
-                        </Button>
+                        </Button>}
                         <Button onClick={handleSave}
                         >
                             Save

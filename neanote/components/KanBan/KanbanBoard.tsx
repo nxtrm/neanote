@@ -6,6 +6,7 @@ import { FaPlusCircle } from "react-icons/fa";
 import { Column, Id, Task } from "../../types";
 import ColumnContainer from "./ColumnContainer";
 import TaskCard from "./TaskCard";
+import React from "react";
 
 function KanbanBoard() {
     const [columns, setColumns] = useState<Column[]>([])

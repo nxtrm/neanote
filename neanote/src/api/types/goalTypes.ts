@@ -23,3 +23,8 @@ export interface GoalsPreview {
     nextPage: number;
     message: string;
 }
+
+export interface GoalCreateResponse {
+    message: string
+    data: {goalid: number, noteid: number};
+}

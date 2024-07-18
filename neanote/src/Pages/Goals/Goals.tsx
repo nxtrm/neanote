@@ -7,20 +7,10 @@ import { useGoals } from './useGoals';
 
 function Goals() {
   const navigate = useNavigate(); 
-  const {setCurrentGoal, setSection} = useGoals();
+  const {resetCurrentGoal, setSection} = useGoals();
 
   const handleAddGoalClick = () => {
-        setCurrentGoal({
-          goalid: -1,
-          noteid: -1,
-          title: '',
-          content: '',
-          due_date: undefined,
-          milestones: [
-          ],
-          tags: [],
-
-        });
+        resetCurrentGoal();
         setSection('create');
         navigate('/goals/create')
   }
