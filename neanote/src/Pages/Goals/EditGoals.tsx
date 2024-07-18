@@ -59,12 +59,8 @@ function EditGoals() {
                     </div>
                 </div>
                 <Label className="block mb-2">Title</Label>
-                <div className="flex flex-row gap-2 mb-4">
-                    <Textarea
-                        value={currentGoal.content}
-                        placeholder='Describe your task here'
-                        onChange={(e) => updateCurrentGoal('content', e.target.value)}
-                    />
+                <div className="flex flex-row gap-2">
+
   
                     <Input
                         type="text"
@@ -74,8 +70,17 @@ function EditGoals() {
                     />
                     <TagsDropdownMenu/>
                 </div>
+                <div className='py-2'>
+
+                        <Textarea
+                            value={currentGoal.content}
+                            placeholder='Describe your task here'
+                            onChange={(e) => updateCurrentGoal('content', e.target.value)}
+                            />
+                </div>
 
                 <div className="mb-4">
+
                     {currentGoal?.milestones.map((milestone) => (
                         <div key={milestone.milestoneid} className="flex w-full items-center mb-2">
                                     <Input

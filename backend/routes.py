@@ -784,12 +784,13 @@ def register_routes(app, mysql, jwt):
 
         try:
 
+
             if action_type == "link":
                 cur.execute("INSERT INTO HabitTasks VALUES (%s, %s)", (habit_id, task_id))
             elif action_type == "unlink":
                 if not verify_habit_ownership(userId, habit_id, cur):
                     return jsonify({'message': 'You do not have permission to update this habit'}), 403
-                cur.execute("DELETE FROM HabitTasks WHERE habit_id = %s AND task_id = %s", (habit_id, task_id))
+                cur.execute("DELETE FROM HabitTasks WHERE habit_id = %s AND task_id = %s", (habit_id, task_id,))
 
             mysql.connection.commit()
             return jsonify({'message': 'Habit linked successfully'}), 200
@@ -799,7 +800,7 @@ def register_routes(app, mysql, jwt):
         finally:
             cur.close()
 
-#GOALS MODULE
+    #GOALS MODULE
     @app.route('/api/goals/create', methods=['POST'])
     @jwt_required()
     @token_required
@@ -807,39 +808,57 @@ def register_routes(app, mysql, jwt):
         userId = g.userId
 
         goal_schema = GoalCreateSchema()
-        data = goal_schema.loag(request.get_json())
-        cur = mysql.connection.cursor(cursorclass=DictCursor)
-
+        data = goal_schema.load(request.get_json())
+        
         try:
+
+            title = data['title']
+            content = data['content']
+            tags = data['tags']
+            milestones= data['milestones']
+            due_date = data.get('due_date')
+            
+
+            cur = mysql.connection.cursor()
+
+            if due_date is not None:
+                due_date = datetime.fromisoformat(due_date.rstrip("Z"))
+
+
             cur.execute(
                 "INSERT INTO Notes (user_id, title, content, type) VALUES (%s, %s, %s, %s)",
-                (userId, data['title'], data['content'], 'goal')
+                (userId, title, content, 'goal')
             )
+
             cur.execute("SELECT LAST_INSERT_ID()")
             noteId = cur.fetchone()[0]
 
             cur.execute(
-                "INSERT INTO Goals (note_id, due_date, completed) VALUES (%s, %s, %s)",
-                (noteId, data['due_date'], False)
+                "INSERT INTO Goals (note_id, due_date) VALUES (%s, %s)",
+                (noteId, due_date,)
             )
             cur.execute("SELECT LAST_INSERT_ID()")
             goalId = cur.fetchone()[0]
 
-            if len(data['tags'])>0:
-                for tagId in data['tags']:
+            if len(milestones)>0:
+                for milestone in milestones:
+                    cur.execute(
+                        "INSERT INTO Milestones (goal_id, description, completed, ms_index) VALUES (%s, %s, %s, %s)",
+                        (goalId, milestone['description'], False, milestone['index'])
+                    )
+
+            if len(tags)>0:
+                for tagId in tags:
                     cur.execute(
                         "INSERT INTO NoteTags (note_id, tag_id) VALUES (%s, %s)",
                         (noteId, tagId)
                     )
-            
+           
             mysql.connection.commit()
-            return jsonify({'message': 'Goal created successfully', 'data' : {noteId, goalId}}), 200
+            return jsonify({'message': 'Task created successfully', 'data' : {'noteId': noteId, 'goalId': goalId}}), 200
         except Exception as e:
             mysql.connection.rollback()
             raise
-        finally:
-            cur.close()
-
 
 
 
