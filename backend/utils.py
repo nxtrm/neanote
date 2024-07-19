@@ -80,6 +80,39 @@ def verify_habit_ownership(user_id, habit_id, cur):
         return False
     return True
 
+def verify_goal_ownership(user_id, goal_id, cur):
+    
+    query = """
+    SELECT Notes.user_id
+    FROM Goals
+    JOIN Notes ON Goals.note_id = Notes.id
+    WHERE Goals.id = %s
+    """
+    cur.execute(query, (goal_id,))
+    result = cur.fetchone()
+
+    if (len(result)<1) or (int(result['user_id']) != int(user_id)):
+        print("False")
+        return False
+    return True
+
+def verify_milestone_ownership(user_id, milestone_id, cur):
+    query = """
+        SELECT Notes.user_id
+        FROM Milestones
+        JOIN Goals ON Milestones.goal_id = Goals.id
+        JOIN Notes ON Goals.note_id = Notes.id
+        WHERE Milestones.id = %s
+    """
+    cur.execute(query, (milestone_id,))
+    result = cur.fetchone()
+    print(result)
+
+    if (len(result)<1) or (int(result['user_id']) != int(user_id)):
+        return False
+    return True
+
+
 def verify_subtask_ownership(user_id, subtask_id, cur):
     query = """
     SELECT Notes.user_id

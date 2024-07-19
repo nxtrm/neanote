@@ -18,6 +18,7 @@ type GoalState = {
 
     handleAddMilestone: () => void
     handleRemoveMilestone: (milestoneid) => void
+    handleMilestoneCompletion: (goalid:number, milestoneid:number) => Promise<void>
 
     section:string
     setSection: (section: string) => void;
@@ -138,14 +139,14 @@ export const useGoals = create<GoalState>()(
               }
             }),
 
-            fetchGoalPreviews: async (pageParam: number) => {
+        fetchGoalPreviews: async (pageParam: number) => {
               const fetchedGoals = await goalsApi.get_previews(pageParam);
               if (fetchedGoals) { 
                 set({ goalPreviews: fetchedGoals.data })
               }
             },
 
-            fetchGoal: async(noteId:number) => {
+        fetchGoal: async(noteId:number) => {
               const response = await goalsApi.getGoal(noteId);
               console.log(response)
               if (response) {
@@ -156,14 +157,30 @@ export const useGoals = create<GoalState>()(
               return response
             },
         
-            handleRemoveMilestone: (milestoneid) => {
+        handleRemoveMilestone: (milestoneid) => {
                 set((state) => {
+
                     if (state.currentGoal) {
                         const milestones = state.currentGoal.milestones.filter((milestone) => milestone.milestoneid !== milestoneid);
                         milestones.forEach((ms, idx) => ms.index = idx);
                         state.currentGoal.milestones = milestones;
                     }
                 })
+            },
+        
+        handleMilestoneCompletion: async (goalid, milestoneid) => {
+              set((state) => {
+                state.goalPreviews = state.goalPreviews.map((goal) => {
+                  if (goal.goalid === goalid) {
+                    const newMilestones = goal.milestones.map((milestone) => 
+                      milestone.milestoneid === milestoneid ? { ...milestone, completed: !milestone.completed } : milestone
+                    );
+                    return { ...goal, milestones: newMilestones };
+                  }
+                  return goal;
+                });
+              });
+              await goalsApi.completeMilestone(goalid, milestoneid);
             },
 
         updateCurrentGoal: <K extends keyof Goal>(key: K, value: Goal[K]) => 

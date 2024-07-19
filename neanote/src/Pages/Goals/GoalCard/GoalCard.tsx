@@ -9,12 +9,16 @@ import { Goal } from '../../../api/types/goalTypes';
 import { useGoals } from '../useGoals';
 import {Progress} from '../../../../components/@/ui/progress';
 import './GoalCard.css';
+import { Label } from '../../../../components/@/ui/label';
+import CheckBox from "../../../../components/CheckBox/CheckBox";
+
 
 function GoalCard({ goal }: { goal: Goal }) { 
     const {
 
         setSection,
         loading,
+        handleMilestoneCompletion
       } = useGoals()
   
       const navigate = useNavigate()
@@ -25,9 +29,9 @@ function GoalCard({ goal }: { goal: Goal }) {
         navigate('/goals/edit');
     }
   
-      const [screenSize, setScreenSize] = useState('large'); 
+    const [screenSize, setScreenSize] = useState('large'); 
   
-      useEffect(() => {
+    useEffect(() => {
         const handleResize = () => {
           if (window.innerWidth < 650) {
             setScreenSize('small');
@@ -42,25 +46,34 @@ function GoalCard({ goal }: { goal: Goal }) {
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
       }, []);
-    
-      const isDateCollapsed = screenSize === 'small';
-      const isTagCompressed = screenSize !== 'large';
 
-      const calculateProgress = () => {
+    useEffect(() => {    
+        const progress = calculateProgress();
+
+        var next_milestone =  goal.milestones
+                .filter(milestone => !milestone.completed)
+                .sort((a, b) => a.index - b.index)[0]},[goal.milestones]) //recalculate progressbars on milestone change
+    
+    const isDateCollapsed = screenSize === 'small';
+    const isTagCompressed = screenSize !== 'large';
+
+    const calculateProgress = () => {
         const sortedMilestones = [...goal.milestones].sort((a, b) => a.index - b.index);
         const completedMilestones = sortedMilestones.filter(milestone => milestone.completed).length;
         return (completedMilestones / sortedMilestones.length) * 100;
         };
 
-      const progress = calculateProgress();
-    
-  
+    const progress = calculateProgress();
+
+    var next_milestone =  goal.milestones
+            .filter(milestone => !milestone.completed)
+            .sort((a, b) => a.index - b.index)[0]
         
-      if (loading) {
+    if (loading) {
           return <SkeletonCard />;
         }
         
-      return (
+    return (
             <div className='p-3 w-full rounded-xl border-[2px]'>
                 <div className='flex flex-row items-center gap-3 justify-between'>
                     <div className='flex flex-row items-center gap-3'>
@@ -74,9 +87,19 @@ function GoalCard({ goal }: { goal: Goal }) {
                         <Button variant="ghost" size={"icon"} onClick={() => handleEditClick(goal.noteid)}><FaEdit /></Button>
                     </div>
                 </div>
-                <div className='mt-2'>
+                <div className='mt-3'>
                     <Progress value={progress}/>
-                    {/* <p className="text-sm text-right">{`${progress.toFixed(0)}% Complete`}</p> */}
+                        {next_milestone && (
+                            <div className='pt-4 flex flex-col gap-3'>
+                                    <Label>Next milestone</Label>
+                                    <div className='flex flex-row gap-2'>
+                                        <CheckBox checked={next_milestone.completed} onChange={() => handleMilestoneCompletion(goal.goalid, next_milestone.milestoneid)} />
+                                        <p className="text-md pl-1 pt-2">
+                                            {next_milestone.description}
+                                        </p>
+                                    </div>
+                            </div>
+                            )}
                 </div>
                 {goal.content && <p className="text-md pl-1 pt-2">{goal.content}</p>}
             </div>

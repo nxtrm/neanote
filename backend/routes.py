@@ -6,7 +6,7 @@ from flask_jwt_extended import (JWTManager, create_access_token,
 from MySQLdb.cursors import DictCursor
 from dateutil.relativedelta import relativedelta
 from formsValidation import GoalCreateSchema, HabitCreateSchema, HabitUpdateSchema, LoginSchema, TagSchema, TaskCreateSchema, TaskSchema, UserSchema
-from utils import token_required, verify_habit_ownership, verify_subtask_ownership, verify_tag_ownership, verify_task_ownership
+from utils import token_required, verify_goal_ownership, verify_habit_ownership, verify_milestone_ownership, verify_subtask_ownership, verify_tag_ownership, verify_task_ownership
 from datetime import datetime, timedelta
 
 
@@ -1029,6 +1029,34 @@ def register_routes(app, mysql, jwt):
             raise
         finally:
             cur.close()
+
+    @app.route('/api/goals/milestone/complete', methods=['PUT'])
+    @jwt_required()
+    @token_required   
+    def complete_milestone():
+        userId = g.userId
+        try:
+            cur = mysql.connection.cursor(cursorclass=DictCursor)
+            data = request.get_json()
+            milestone_id = data['milestoneid']
+            goal_id = data['goalid']
+
+            if not verify_milestone_ownership(userId, milestone_id, cur):
+                return jsonify({'message': 'You do not have permission to update this milestone'}), 403
+            
+            cur.execute("""UPDATE Milestones SET completed = CASE 
+                                            WHEN completed = 1 THEN 0 
+                                            ELSE 1 
+                                        END  = TRUE WHERE id = %s""", (milestone_id,))
+            mysql.connection.commit()
+            return jsonify({'message': 'Milestone toggled successfully'}), 200
+        except Exception as e:
+            mysql.connection.rollback()
+            print(f"An error occurred: {e}")  
+            raise
+        finally:
+            cur.close()
+
 
 
 

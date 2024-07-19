@@ -47,6 +47,19 @@ const goalsApi = {
             return false;
     }},
 
+    completeMilestone: async (goalid:number,milestoneid: number) => {
+        try {
+            const response = await a.put(`/api/goals/milestone/complete`, {goalid, milestoneid});
+            if (response.status === 200) {
+                return true
+            }
+            return false
+        } catch (error) {
+            showToast('e', error);
+            return false
+        }
+    },
+
     update: async (goalUpdates: {}) => {
         try {
             const response = await a.put(`/api/goals/update`, goalUpdates);
