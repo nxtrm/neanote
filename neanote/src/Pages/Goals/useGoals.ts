@@ -1,6 +1,6 @@
 import { create } from "zustand"
 import { immer } from "zustand/middleware/immer"
-import { Goal } from "../../api/types/goalTypes";
+import { Goal, GoalsPreview } from "../../api/types/goalTypes";
 import { v4 as uuidv4 } from 'uuid';
 import { useTags } from "../Tags/useTags";
 import goalsApi from "../../api/goalsApi";
@@ -13,6 +13,7 @@ type GoalState = {
     updateCurrentGoal: <K extends keyof Goal>(key: K, value: Goal[K]) => void;
     handleCreateGoal: () => Promise<void>;
     handleUpdateGoal: () => Promise<void>;
+    fetchGoalPreviews: (pageParam: number) => Promise<void>;
 
     handleAddMilestone: () => void
     handleRemoveMilestone: (milestoneid) => void
@@ -131,6 +132,13 @@ export const useGoals = create<GoalState>()(
                 milestones.forEach((ms, idx) => ms.index = idx);
               }
             }),
+
+            fetchGoalPreviews: async (pageParam: number) => {
+              const fetchedGoals = await goalsApi.get_previews(pageParam);
+              if (fetchedGoals) { 
+                set({ goalPreviews: fetchedGoals.data })
+              }
+            },
         
             handleRemoveMilestone: (milestoneid) => {
                 set((state) => {

@@ -59,7 +59,7 @@ function EditGoals() {
                     </div>
                 </div>
                 <Label className="block mb-2">Title</Label>
-                <div className="flex flex-row gap-2">
+                <div className="flex flex-row gap-2 ">
 
   
                     <Input

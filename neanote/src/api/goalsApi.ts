@@ -1,6 +1,6 @@
 import { showToast } from "../../components/Toast";
 import a from "./api";
-import { GoalCreateResponse } from "./types/goalTypes";
+import { GoalCreateResponse, GoalsPreview } from "./types/goalTypes";
 
 const goalsApi = {
     create: async (title, tags, content, due_date, milestones) => {
@@ -25,6 +25,19 @@ const goalsApi = {
             return false;
         }
     },
+    get_previews: async (page: number) => {
+        try {
+            const response = await a.get<GoalsPreview>(`/api/goals/previews?page=${page}`);
+            return {
+                data: response.data.goals,
+                nextPage: response.data.nextPage, 
+            };
+        } catch (error) {
+            showToast('e', error);
+            return false;
+        }
+    },
+
     update: async (goalUpdates: {}) => {
         try {
             const response = await a.put(`/api/goals/update`, goalUpdates);

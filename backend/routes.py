@@ -860,6 +860,100 @@ def register_routes(app, mysql, jwt):
             mysql.connection.rollback()
             raise
 
+    @app.route('/api/goals/previews', methods=['GET'])
+    @jwt_required()
+    @token_required
+    def get_goal_previews():
+        userId = g.userId
+        try:
+            # Pagination
+            page = int(request.args.get('page', 1))  # Default to page 1
+            per_page = int(request.args.get('per_page', 10))  # Default to 10 items per page
+            offset = (page - 1) * per_page
+
+            cur = mysql.connection.cursor(cursorclass=DictCursor)
+
+            # Fetch the total count of tasks for pagination metadata
+            cur.execute(""" 
+                SELECT COUNT(DISTINCT n.id) AS total
+                FROM Notes n
+                WHERE n.user_id = %s AND n.type = 'task'
+            """, (userId,))
+            total = cur.fetchone()['total']
+
+            query = """ 
+                SELECT 
+                    n.id AS note_id, 
+                    n.title AS title, 
+                    n.content AS content, 
+                    n.type AS type, 
+                    g.id AS goal_id, 
+                    g.due_date AS due_date, 
+                    m.id AS milestone_id, 
+                    m.description AS description, 
+                    m.completed AS completed, 
+                    m.ms_index AS ms_index,
+                    tg.id AS tagid, 
+                    tg.name AS tag_name, 
+                    tg.color AS tag_color
+                FROM Notes n
+                LEFT JOIN Goals g ON n.id = g.note_id
+                LEFT JOIN Milestones m ON m.id = m.goal_id
+                LEFT JOIN NoteTags nt ON n.id = nt.note_id
+                LEFT JOIN Tags tg ON nt.tag_id = tg.id
+                WHERE n.user_id = %s AND n.type = 'goal'
+                ORDER BY n.created_at DESC
+                LIMIT %s OFFSET %s
+            """
+            
+            cur.execute(query, (userId, per_page, offset))
+            rows = cur.fetchall()
+            goals = {}
+            for row in rows:
+                note_id = row['note_id']
+                if note_id not in goals:
+                    goals[note_id] = {
+                        'noteid': row['note_id'],
+                        'goalid': row['goal_id'],
+                        'title': row['title'][:50] + '...' if len(row['title']) > 50 else row['title'],
+                        'content': row['content'][:100] + '...' if len(row['content']) > 100 else row['content'],
+                        'due_date': row['due_date'],
+                        'tags': [],
+                        'milestones': []
+                    }
+                
+                if row['milestone_id'] is not None:
+                    is_milestone_present = any(milestone['milestone_id'] == row['milestone_id'] for milestone in goals[note_id]['milestones'])
+                    if not is_milestone_present:
+                        goals[note_id]['milestones'].append({
+                            'milestoneid': row['milestone_id'],
+                            'description': row['description'][:100] + '...' if len(row['description']) > 100 else row['description'],
+                            'completed': row['completed'] == 1,
+                            'index': row['ms_index']
+                        })
+
+                if row['tagid'] is not None:
+                    is_tag_present = any(tag['tagid'] == row['tagid'] for tag in goals[note_id]['tags'])
+                    if not is_tag_present:
+                       goals[note_id]['tags'].append({
+                            'tagid': row['tagid'],
+                            'name': row['tag_name'],
+                            'color': row['tag_color']
+                        })
+
+            goals_list = [value for key, value in goals.items()]
+            mysql.connection.commit()
+            nextPage = page + 1 if (offset + per_page) < total else None
+            
+            return jsonify({"goals":  goals_list, 'nextPage': nextPage, 'message': "Goals fetched successfully"}), 200
+        except Exception as e:
+            mysql.connection.rollback()
+            print(f"An error occurred: {e}")  
+            raise
+        finally:
+            cur.close()
+
+
 
 
 #TAG MODULE
