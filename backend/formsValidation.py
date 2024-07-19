@@ -69,6 +69,25 @@ class MilestoneCreateSchema(Schema) :
     goalid = fields.Int(required=False)
     milestoneid = fields.Str(required=True)
 
+class MilestoneUpdateSchema(Schema) :
+    description = fields.Str(required=True, validate=lambda s: len(s) > 0)
+    completed = fields.Bool(required=True)
+    index = fields.Int(required=True)
+
+    goalid = fields.Int(required=False)
+    milestoneid = fields.Int(required=True)
+
+class GoalUpdateSchema(Schema):
+    title = fields.Str(required=True, validate=lambda s: len(s) > 0)
+    content = fields.Str(required=False)
+    tags = fields.List(fields.Nested(TagSchema), required=False) 
+    due_date = fields.Str(required=False)
+    tags = fields.List(fields.Int(), required=False)
+    milestones = fields.List(fields.Nested(MilestoneUpdateSchema), required=False)
+
+    noteid = fields.Int(required=True)
+    goalid = fields.Int(required=True)   
+
 class GoalCreateSchema(Schema) :
     title = fields.Str(required=True, validate=lambda s: len(s) > 0)
     content = fields.Str(required=False)

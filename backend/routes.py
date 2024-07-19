@@ -5,7 +5,7 @@ from flask_jwt_extended import (JWTManager, create_access_token,
                                 get_jwt_identity, jwt_required)
 from MySQLdb.cursors import DictCursor
 from dateutil.relativedelta import relativedelta
-from formsValidation import GoalCreateSchema, HabitCreateSchema, HabitUpdateSchema, LoginSchema, TagSchema, TaskCreateSchema, TaskSchema, UserSchema
+from formsValidation import GoalCreateSchema, GoalUpdateSchema, HabitCreateSchema, HabitUpdateSchema, LoginSchema, TagSchema, TaskCreateSchema, TaskSchema, UserSchema
 from utils import token_required, verify_goal_ownership, verify_habit_ownership, verify_milestone_ownership, verify_subtask_ownership, verify_tag_ownership, verify_task_ownership
 from datetime import datetime, timedelta
 
@@ -1057,7 +1057,61 @@ def register_routes(app, mysql, jwt):
         finally:
             cur.close()
 
+    @app.route('/api/goals/update', methods=['PUT'])  
+    @jwt_required()
+    @token_required
+    def update_goal():
+        userId = g.userId
 
+        goal_schema = GoalUpdateSchema()
+        data = goal_schema.load(request.get_json())
+
+        cur = mysql.connection.cursor(cursorclass=DictCursor)
+        try:
+            note_id = data['noteid']
+            goal_id = data['goalid']
+            due_date = data.get('due_date')
+
+            if verify_goal_ownership(userId, goal_id, cur) == False:
+                return jsonify({'message': 'You do not have permission to update this goal'}), 403
+
+            query = """
+                    UPDATE Notes
+                    SET title = %s, content = %s
+                    WHERE id = %s AND user_id = %s
+                    """
+            cur.execute(query, (data['title'], data['content'], note_id, userId))
+
+            # if due_date is not None:
+            #     parsed_date = datetime.strptime(due_date, "%Y-%m-%dT%H:%M:%S.%fZ")
+            #     formatted_date = parsed_date.strftime("%Y-%m-%d %H:%M:%S")
+            #     cur.execute(
+            #         "UPDATE Goals SET due_date = %s WHERE note_id = %s",
+            #         (formatted_date, note_id)
+            #     )
+
+            cur.execute("DELETE FROM NoteTags WHERE note_id = %s", (note_id,))
+            for tag in data['tags']:
+                cur.execute(
+                    "INSERT INTO NoteTags (note_id, tag_id) VALUES (%s, %s)",
+                    (note_id, tag['tagid'])
+                )
+            
+            cur.execute("DELETE FROM Milestones WHERE goal_id = %s", (goal_id,))
+            if data.get('milestones') is not None:
+                for milestone in data['milestones']:
+                    cur.execute(
+                        "INSERT INTO Milestones (goal_id, description, completed, ms_index) VALUES (%s, %s, %s, %s)",
+                        (goal_id, milestone['description'], milestone['completed'], milestone['index'])
+                    )
+            
+            mysql.connection.commit()
+            return jsonify({'message': 'Goal updated successfully'}), 200
+        except Exception as e:
+            mysql.connection.rollback()
+            raise
+        finally:
+            cur.close()
 
 
 #TAG MODULE
