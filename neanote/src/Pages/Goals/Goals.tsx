@@ -4,6 +4,7 @@ import { Button } from '../../../components/@/ui/button'
 import { FaPlus } from 'react-icons/fa6'
 import { useNavigate } from 'react-router-dom';
 import { useGoals } from './useGoals';
+import GoalCard from './GoalCard/GoalCard';
 
 function Goals() {
   const navigate = useNavigate(); 
@@ -31,11 +32,9 @@ function Goals() {
             </div>
             <div className="flex flex-col gap-3">
                 {goalPreviews.map((goal) => (
-                    <div key={goal.goalid} className="flex flex-row justify-between border-b-2 py-2">
-                        <div>
-                            <p className="font-bold">{goal.title}</p>
-                          </div>
-                      </div>))}
+                    <div key={goal.goalid} >
+                            <GoalCard goal={goal}/>
+                    </div>))}
             </div>
         </div>
     </PageContainer>

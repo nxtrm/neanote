@@ -20,6 +20,9 @@ type GoalState = {
 
     section:string
     setSection: (section: string) => void;
+
+    loading:boolean;
+    setLoading: (loading: boolean) => void;
 }
 
 export const useGoals = create<GoalState>()(
@@ -35,9 +38,10 @@ export const useGoals = create<GoalState>()(
             ],
             tags: [],
           },
-          
-        // loading:false,
         section: "all goals",
+        
+        loading: false,
+        setLoading: (loading) => set({loading}),
 
         setSection: (section) => set({section}),
 

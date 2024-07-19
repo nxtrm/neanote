@@ -873,11 +873,11 @@ def register_routes(app, mysql, jwt):
 
             cur = mysql.connection.cursor(cursorclass=DictCursor)
 
-            # Fetch the total count of tasks for pagination metadata
+            # Fetch the total count of goals for pagination metadata
             cur.execute(""" 
                 SELECT COUNT(DISTINCT n.id) AS total
                 FROM Notes n
-                WHERE n.user_id = %s AND n.type = 'task'
+                WHERE n.user_id = %s AND n.type = 'goal'
             """, (userId,))
             total = cur.fetchone()['total']
 
@@ -886,9 +886,8 @@ def register_routes(app, mysql, jwt):
                     n.id AS note_id, 
                     n.title AS title, 
                     n.content AS content, 
-                    n.type AS type, 
                     g.id AS goal_id, 
-                    g.due_date AS due_date, 
+                    g.due_date AS due_date,
                     m.id AS milestone_id, 
                     m.description AS description, 
                     m.completed AS completed, 
@@ -898,16 +897,17 @@ def register_routes(app, mysql, jwt):
                     tg.color AS tag_color
                 FROM Notes n
                 LEFT JOIN Goals g ON n.id = g.note_id
-                LEFT JOIN Milestones m ON m.id = m.goal_id
+                LEFT JOIN Milestones m ON g.id = m.goal_id
                 LEFT JOIN NoteTags nt ON n.id = nt.note_id
                 LEFT JOIN Tags tg ON nt.tag_id = tg.id
                 WHERE n.user_id = %s AND n.type = 'goal'
                 ORDER BY n.created_at DESC
                 LIMIT %s OFFSET %s
             """
-            
+
             cur.execute(query, (userId, per_page, offset))
             rows = cur.fetchall()
+
             goals = {}
             for row in rows:
                 note_id = row['note_id']
@@ -921,31 +921,30 @@ def register_routes(app, mysql, jwt):
                         'tags': [],
                         'milestones': []
                     }
-                
+
                 if row['milestone_id'] is not None:
-                    is_milestone_present = any(milestone['milestone_id'] == row['milestone_id'] for milestone in goals[note_id]['milestones'])
-                    if not is_milestone_present:
-                        goals[note_id]['milestones'].append({
-                            'milestoneid': row['milestone_id'],
-                            'description': row['description'][:100] + '...' if len(row['description']) > 100 else row['description'],
-                            'completed': row['completed'] == 1,
-                            'index': row['ms_index']
-                        })
+                    milestone = {
+                        'milestoneid': row['milestone_id'],
+                        'description': row['description'][:100] + '...' if len(row['description']) > 100 else row['description'],
+                        'completed': row['completed'] == 1,
+                        'index': row['ms_index']
+                    }
+                    goals[note_id]['milestones'].append(milestone)
 
                 if row['tagid'] is not None:
-                    is_tag_present = any(tag['tagid'] == row['tagid'] for tag in goals[note_id]['tags'])
-                    if not is_tag_present:
-                       goals[note_id]['tags'].append({
-                            'tagid': row['tagid'],
-                            'name': row['tag_name'],
-                            'color': row['tag_color']
-                        })
+                    tag = {
+                        'tagid': row['tagid'],
+                        'name': row['tag_name'],
+                        'color': row['tag_color']
+                    }
+                    if tag not in goals[note_id]['tags']:
+                        goals[note_id]['tags'].append(tag)
 
             goals_list = [value for key, value in goals.items()]
             mysql.connection.commit()
             nextPage = page + 1 if (offset + per_page) < total else None
-            
-            return jsonify({"goals":  goals_list, 'nextPage': nextPage, 'message': "Goals fetched successfully"}), 200
+
+            return jsonify({"goals": goals_list, 'nextPage': nextPage, 'message': "Goals fetched successfully"}), 200
         except Exception as e:
             mysql.connection.rollback()
             print(f"An error occurred: {e}")  

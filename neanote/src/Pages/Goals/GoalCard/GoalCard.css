@@ -1,0 +1,15 @@
+.goal-title {
+    font-size: 1.25rem; /* text-xl */
+    font-weight: bold; /* font-bold */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 250px; /* Default max-width for larger displays */
+    flex-grow: 1;
+}
+
+@media (max-width: 650px) {
+    .goal-title {
+        max-width: 150px; /* Max-width for small displays */
+    }
+}

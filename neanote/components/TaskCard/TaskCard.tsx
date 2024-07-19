@@ -89,14 +89,6 @@ function TaskCard({ task }: { task: Task }) {
               <SubTaskCard subtask={subtask} taskId={task.taskid}/>
             </div>
         ))}
-
-        {/* <div className="flex flex-wrap gap-2 mt-2">
-          {task.tags.map((tag, index) => (
-            <span key={index} className="bg-blue-200 text-blue-800 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded">
-              {tag}
-            </span>
-          ))}
-        </div> */}
       </div>
     );
   }

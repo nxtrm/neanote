@@ -9,7 +9,7 @@ import { useInfiniteQuery } from '@tanstack/react-query'
 import tasksApi from '../../api/tasksApi';
 
 const Tasks: React.FC = () => {
-  const { tasks, setSection, fetchTaskPreviews, setCurrentTask } = useTasks();
+  const { tasks, setSection, fetchTaskPreviews,  setCurrentTask, } = useTasks();
   const navigate = useNavigate();
 
   const {
@@ -17,6 +17,7 @@ const Tasks: React.FC = () => {
     error,
     fetchNextPage,
     hasNextPage,
+   
     isFetching,
     isFetchingNextPage,
     status,
