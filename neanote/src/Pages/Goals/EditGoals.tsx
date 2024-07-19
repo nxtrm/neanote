@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import PageContainer from '../../../components/PageContainer/PageContainer'
 import { Milestone } from '../../api/types/goalTypes';
 import { Button } from '../../../components/@/ui/button';
@@ -16,11 +16,22 @@ import { Textarea } from '../../../components/@/ui/textarea';
 
 
 function EditGoals() {
-    const {currentGoal, section, resetCurrentGoal,handleCreateGoal, handleUpdateGoal, handleAddMilestone, handleRemoveMilestone, updateCurrentGoal} = useGoals();
+    const {currentGoal, section, fetchGoal, resetCurrentGoal,handleCreateGoal, handleUpdateGoal, handleAddMilestone, handleRemoveMilestone, updateCurrentGoal} = useGoals();
     const navigate = useNavigate();
 
+    useEffect(() => {
+        const noteIdStr = localStorage.getItem('currentGoalId');
+        if (noteIdStr) {
+          const noteId = parseInt(noteIdStr, 10); 
+          fetchGoal(noteId);
+          useTags.setState({
+            selectedTagIds: [],
+          })
+        }
+      }, []);
+
     const handleClose = () => {
-        localStorage.removeItem('currentTaskId');
+        localStorage.removeItem('currentGoalId');
         useGoals.setState({
           section: 'all goals',
         })

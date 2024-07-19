@@ -26,6 +26,11 @@ export interface GoalsPreview {
     message: string;
 }
 
+export interface GoalResponse {
+    goal: Goal;
+    message: string;
+}
+
 export interface GoalCreateResponse {
     message: string
     data: {goalid: number, noteid: number};

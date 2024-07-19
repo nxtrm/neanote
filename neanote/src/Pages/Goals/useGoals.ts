@@ -1,6 +1,6 @@
 import { create } from "zustand"
 import { immer } from "zustand/middleware/immer"
-import { Goal, GoalsPreview } from "../../api/types/goalTypes";
+import { Goal, GoalResponse, GoalsPreview } from "../../api/types/goalTypes";
 import { v4 as uuidv4 } from 'uuid';
 import { useTags } from "../Tags/useTags";
 import goalsApi from "../../api/goalsApi";
@@ -14,6 +14,7 @@ type GoalState = {
     handleCreateGoal: () => Promise<void>;
     handleUpdateGoal: () => Promise<void>;
     fetchGoalPreviews: (pageParam: number) => Promise<void>;
+    fetchGoal: (noteId: number) => Promise<false | GoalResponse>;
 
     handleAddMilestone: () => void
     handleRemoveMilestone: (milestoneid) => void
@@ -39,7 +40,7 @@ export const useGoals = create<GoalState>()(
             tags: [],
           },
         section: "all goals",
-        
+
         loading: false,
         setLoading: (loading) => set({loading}),
 
@@ -142,6 +143,17 @@ export const useGoals = create<GoalState>()(
               if (fetchedGoals) { 
                 set({ goalPreviews: fetchedGoals.data })
               }
+            },
+
+            fetchGoal: async(noteId:number) => {
+              const response = await goalsApi.getGoal(noteId);
+              console.log(response)
+              if (response) {
+                set((state) => {
+                  state.currentGoal = response.goal;
+                });
+              }
+              return response
             },
         
             handleRemoveMilestone: (milestoneid) => {

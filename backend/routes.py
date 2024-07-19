@@ -952,6 +952,83 @@ def register_routes(app, mysql, jwt):
         finally:
             cur.close()
 
+    @app.route('/api/goal', methods=['GET'])
+    @jwt_required()
+    @token_required
+    def get_goal():
+        userId = g.userId
+        try:
+            noteid=request.args.get('noteId')
+            cur = mysql.connection.cursor(cursorclass=DictCursor)
+
+            query = """ 
+                SELECT 
+                    n.id AS note_id, 
+                    n.title AS title, 
+                    n.content AS content, 
+                    g.id AS goal_id, 
+                    g.due_date AS due_date,
+                    m.id AS milestone_id, 
+                    m.description AS description, 
+                    m.completed AS completed, 
+                    m.ms_index AS ms_index,
+                    tg.id AS tagid, 
+                    tg.name AS tag_name, 
+                    tg.color AS tag_color
+                FROM Notes n
+                LEFT JOIN Goals g ON n.id = g.note_id
+                LEFT JOIN Milestones m ON g.id = m.goal_id
+                LEFT JOIN NoteTags nt ON n.id = nt.note_id
+                LEFT JOIN Tags tg ON nt.tag_id = tg.id
+                WHERE n.user_id = %s AND n.type = 'goal' AND n.id = %s
+            """
+
+            cur.execute(query, (userId, noteid))
+            rows = cur.fetchall()
+
+            goal = None
+            for row in rows:
+                if goal is None:
+                    goal = {
+                        'noteid': row['note_id'],
+                        'goalid': row['goal_id'],
+                        'title': row['title'],
+                        'content': row['content'],
+                        'due_date': row['due_date'],
+                        'tags': [],
+                        'milestones': []
+                    }
+
+                if row['milestone_id'] is not None:
+                    milestone = {
+                        'milestoneid': row['milestone_id'],
+                        'description': row['description'],
+                        'completed': row['completed'] == 1,
+                        'index': row['ms_index']
+                    }
+                    goal['milestones'].append(milestone)
+
+                if row['tagid'] is not None:
+                    tag = {
+                        'tagid': row['tagid'],
+                        'name': row['tag_name'],
+                        'color': row['tag_color']
+                    }
+                    if tag not in goal['tags']:
+                        goal['tags'].append(tag)
+
+            mysql.connection.commit()
+
+            if goal:
+                return jsonify({"goal": goal, 'message': "Goal fetched successfully"}), 200
+            else:
+                return jsonify({'message': "Goal not found"}), 404
+        except Exception as e:
+            mysql.connection.rollback()
+            print(f"An error occurred: {e}")  
+            raise
+        finally:
+            cur.close()
 
 
 

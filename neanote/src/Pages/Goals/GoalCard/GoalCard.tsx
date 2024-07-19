@@ -74,11 +74,11 @@ function GoalCard({ goal }: { goal: Goal }) {
                         <Button variant="ghost" size={"icon"} onClick={() => handleEditClick(goal.noteid)}><FaEdit /></Button>
                     </div>
                 </div>
-                {goal.content && <p className="text-md pl-1 pt-2">{goal.content}</p>}
                 <div className='mt-2'>
                     <Progress value={progress}/>
-                    <p className="text-sm text-right">{`${progress.toFixed(0)}% Complete`}</p>
+                    {/* <p className="text-sm text-right">{`${progress.toFixed(0)}% Complete`}</p> */}
                 </div>
+                {goal.content && <p className="text-md pl-1 pt-2">{goal.content}</p>}
             </div>
         );
     }
