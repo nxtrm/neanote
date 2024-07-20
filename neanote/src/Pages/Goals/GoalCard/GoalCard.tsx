@@ -24,7 +24,7 @@ function GoalCard({ goal }: { goal: Goal }) {
       const navigate = useNavigate()
   
       function handleEditClick(noteId) {
-        setSection('edit');
+        setSection('edit goal');
         localStorage.setItem('currentGoalId', noteId.toString());
         navigate('/goals/edit');
     }

@@ -13,6 +13,7 @@ import { MdCancel } from 'react-icons/md';
 import { useTags } from '../Tags/useTags';
 import { useNavigate } from 'react-router-dom';
 import { Textarea } from '../../../components/@/ui/textarea';
+import DeleteDialog from '../../../components/DeleteDialog/DeleteDialog';
 
 
 function EditGoals() {
@@ -91,7 +92,7 @@ function EditGoals() {
                 </div>
 
                 <div className="mb-4">
-
+                  <Label className="block mb-2">Milestones</Label>
                     {currentGoal?.milestones.map((milestone) => (
                         <div key={milestone.milestoneid} className="flex w-full items-center mb-2">
                                     <Input
@@ -117,13 +118,17 @@ function EditGoals() {
                     <Button size="sm"  className="gap-2 mt-2" onClick={handleAddMilestone}>
                             <FaPlus /> Add Milestone
                         </Button>
-                    {section == "edit task" && <Button variant="outline" onClick={handleDelete}>
-                            Delete
-                    </Button>}
-
+                      <div className='gap-2 flex flex-row'>
+                    {section == "edit goal" && 
+                      <DeleteDialog handleDelete={handleDelete}>
+                        <Button variant="outline" >
+                                Delete
+                        </Button>
+                      </DeleteDialog>}
                     <Button onClick={handleSave}>
                         Save
                     </Button>
+                      </div>
                 </div>
             </div>
         </PageContainer>
