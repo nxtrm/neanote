@@ -14,10 +14,11 @@ import { useTags } from '../Tags/useTags';
 import { useNavigate } from 'react-router-dom';
 import { Textarea } from '../../../components/@/ui/textarea';
 import DeleteDialog from '../../../components/DeleteDialog/DeleteDialog';
+import EditGoalsSkeleton from './EditGoalsSkeleton';
 
 
 function EditGoals() {
-    const {currentGoal, section, fetchGoal, resetCurrentGoal,handleCreateGoal, handleUpdateGoal, handleAddMilestone, handleRemoveMilestone, updateCurrentGoal} = useGoals();
+    const {currentGoal, loading, section, fetchGoal, resetCurrentGoal,handleCreateGoal, handleUpdateGoal, handleAddMilestone, handleRemoveMilestone, updateCurrentGoal} = useGoals();
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -56,6 +57,7 @@ function EditGoals() {
         // await handleDeleteGoal(currentGoal?.goalid, currentGoal?.noteid)
         navigate('/goals');
       }
+    if (loading) return <EditGoalsSkeleton/>
 
     return (
         <PageContainer>

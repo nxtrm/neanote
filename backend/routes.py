@@ -186,7 +186,7 @@ def register_routes(app, mysql, jwt):
             # Delete existing subtasks and tags before inserting new ones
             cur.execute("DELETE FROM Subtasks WHERE task_id = %s", (task_id,))
 
-            for subtask in task.get('subtasks', []):
+            for subtask in task.get('subtasks', []): #implement update
                 cur.execute("INSERT INTO Subtasks (task_id, description, completed) VALUES (%s, %s, %s)", (task_id, subtask['description'], subtask['completed']))
                 
             cur.execute("DELETE FROM NoteTags WHERE note_id = %s", (note_id,))
@@ -1104,12 +1104,11 @@ def register_routes(app, mysql, jwt):
                     (note_id, tagId)
                 )
             
-            cur.execute("DELETE FROM Milestones WHERE goal_id = %s", (goal_id,))
             if data.get('milestones') is not None:
                 for milestone in data['milestones']:
                     cur.execute(
-                        "INSERT INTO Milestones (goal_id, description, completed, ms_index) VALUES (%s, %s, %s, %s)",
-                        (goal_id, milestone['description'], milestone['completed'], milestone['index'])
+                        "UPDATE Milestones SET description=%s, completed=%s, ms_index=%s WHERE id = %s",
+                        (milestone['description'], milestone['completed'], milestone['index'], milestone['milestoneid'])
                     )
             
             mysql.connection.commit()

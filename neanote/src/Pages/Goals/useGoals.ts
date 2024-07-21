@@ -84,7 +84,7 @@ export const useGoals = create<GoalState>()(
           },
 
           handleUpdateGoal: async () => {
-            const { currentGoal, resetCurrentGoal } = get();
+            const { currentGoal, resetCurrentGoal, setLoading } = get();
             const { tags, selectedTagIds } = useTags.getState();
       
             if (currentGoal) {
@@ -123,22 +123,23 @@ export const useGoals = create<GoalState>()(
 
           },
 
-        handleAddMilestone: () => 
-            set((state) => {
-              if (state.currentGoal) {
-                const milestones = state.currentGoal.milestones;
-                milestones.splice(milestones.length - 1, 0, { 
-                    milestoneid: uuidv4(), 
-                    description: '', 
-                    completed: false, 
-                    index: milestones.length,
-                    goalid: -1
-                });
-                milestones.forEach((ms, idx) => ms.index = idx);
-              }
-            }),
+          handleAddMilestone: () => 
+              set((state) => {
+                if (state.currentGoal) {
+                  const milestones = state.currentGoal.milestones;
+                  milestones.splice(milestones.length - 1, 0, { 
+                      milestoneid: uuidv4(), 
+                      description: '', 
+                      completed: false, 
+                      index: milestones.length,
+                      goalid: -1
+                  });
+                  milestones.forEach((ms, idx) => ms.index = idx);
+                }
+              }),
 
-            fetchGoalPreviews: async (pageParam: number) => {
+          fetchGoalPreviews: async (pageParam: number) => {
+              useGoals.getState().setLoading(true);
               const fetchedGoals = await goalsApi.get_previews(pageParam);
               if (fetchedGoals && fetchedGoals.data) {
                 
@@ -148,9 +149,11 @@ export const useGoals = create<GoalState>()(
                 }));
                 set({ goalPreviews: previewsWithFormattedDates });
               }
+              useGoals.getState().setLoading(false);
             },
 
-            fetchGoal: async(noteId:number) => {
+          fetchGoal: async(noteId:number) => {
+              useGoals.getState().setLoading(true);
               const response = await goalsApi.getGoal(noteId);
               if (response && response.goal) {
                 const dueDate = response.goal.due_date ? new Date(response.goal.due_date) : undefined;
@@ -163,10 +166,11 @@ export const useGoals = create<GoalState>()(
 
                 });
               }
+              useGoals.getState().setLoading(false);
               return response
             },
         
-        handleRemoveMilestone: (milestoneid) => {
+          handleRemoveMilestone: (milestoneid) => {
                 set((state) => {
 
                     if (state.currentGoal) {
@@ -198,8 +202,5 @@ export const useGoals = create<GoalState>()(
                 state.currentGoal[key] = value;
               }
             }),
-        
-            
-
 
     })))

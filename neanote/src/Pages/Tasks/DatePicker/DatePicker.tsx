@@ -65,7 +65,7 @@ export function DatePicker({ onDateChange, data, includeTime = false }: DatePick
   };
 
   const formattedTime = (dateTime && includeTime) ? format(dateTime, "HH:mm") : "";
-  console.log("DateTime", dateTime)
+
 
   return (
     <div>
