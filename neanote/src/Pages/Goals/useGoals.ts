@@ -15,7 +15,7 @@ type GoalState = {
     handleUpdateGoal: () => Promise<void>;
     handleDeleteGoal: (goalid: number, noteid: number) => Promise<void>;
     fetchGoalPreviews: (pageParam: number) => Promise<void>;
-    fetchGoal: (noteId: number) => Promise<false | GoalResponse>;
+    fetchGoal: (noteId: number) => Promise<null | GoalResponse>;
 
     handleAddMilestone: () => void
     handleRemoveMilestone: (milestoneid) => void
@@ -76,12 +76,19 @@ export const useGoals = create<GoalState>()(
       
               if (response) {
                 set((state) => {
-                //   state.goalPreviews.push({goalid: response.data.goalid, noteid: response.data.noteid, title, content, milestones, due_date, tags: []});
+                  state.goalPreviews.push({
+                    goalid: response.data.goalid,
+                    noteid: response.data.noteid,
+                    title,
+                    content,
+                    due_date,
+                    milestones,
+                    tags: [],
+                  });
                   state.section = 'all goals';
                 });
-                resetCurrentGoal
-              }
-            }
+                resetCurrentGoal();
+            }}
           },
 
           handleUpdateGoal: async () => {
@@ -182,19 +189,32 @@ export const useGoals = create<GoalState>()(
                 })
             },
         
-        handleMilestoneCompletion: async (goalid, milestoneid) => {
-              set((state) => {
-                state.goalPreviews = state.goalPreviews.map((goal) => {
-                  if (goal.goalid === goalid) {
-                    const newMilestones = goal.milestones.map((milestone) => 
-                      milestone.milestoneid === milestoneid ? { ...milestone, completed: !milestone.completed } : milestone
-                    );
-                    return { ...goal, milestones: newMilestones };
-                  }
-                  return goal;
-                });
-              });
-              await goalsApi.completeMilestone(goalid, milestoneid);
+            handleMilestoneCompletion: async (goalid, milestoneid) => {
+              const toggleMilestoneCompletion = (goalid, milestoneid) => {
+                set((state) => {
+                  // state.goalPreviews = state.goalPreviews.map((goal) => {
+                  //   if (goal.goalid === goalid) {
+                  //     const newMilestones = goal.milestones.map((milestone) => 
+                  //       milestone.milestoneid === milestoneid ? { ...milestone, completed: !milestone.completed } : milestone
+                  //     );
+                  //     return { ...goal, milestones: newMilestones };
+                  //   }
+                  //   return goal;
+                  // });
+                  state.currentGoal = {...state.currentGoal, milestones:  state.currentGoal.milestones.map((milestone) => 
+                    milestone.milestoneid === milestoneid ? { ...milestone, completed: !milestone.completed } : milestone
+                )
+                }
+              })}
+            
+              // Toggle completion before API call
+              toggleMilestoneCompletion(goalid, milestoneid);
+            
+              const response = await goalsApi.completeMilestone(goalid, milestoneid);
+              if (!response) {
+                // Revert completion if API call fails
+                toggleMilestoneCompletion(goalid, milestoneid);
+              }
             },
 
         updateCurrentGoal: <K extends keyof Goal>(key: K, value: Goal[K]) => 

@@ -16,6 +16,7 @@ import { Textarea } from '../../../components/@/ui/textarea';
 import DeleteDialog from '../../../components/DeleteDialog/DeleteDialog';
 import EditGoalsSkeleton from './EditGoalsSkeleton';
 import CheckBox from '../../../components/CheckBox/CheckBox';
+import { Progress } from '../../../components/@/ui/progress';
 
 
 function EditGoals() {
@@ -32,6 +33,21 @@ function EditGoals() {
           })
         }
       }, []);
+
+    useEffect(() => {    
+        const progress = calculateProgress();
+
+        var next_milestone =  currentGoal.milestones
+                .filter(milestone => !milestone.completed)
+                .sort((a, b) => a.index - b.index)[0]},[currentGoal.milestones]) //recalculate progressbars on milestone change
+
+    const calculateProgress = () => {
+        const sortedMilestones = [...currentGoal.milestones].sort((a, b) => a.index - b.index);
+        const completedMilestones = sortedMilestones.filter(milestone => milestone.completed).length;
+        return (completedMilestones / sortedMilestones.length) * 100;
+        };
+
+    const progress = calculateProgress();
 
     const handleClose = () => {
         localStorage.removeItem('currentGoalId');
@@ -74,19 +90,18 @@ function EditGoals() {
                         </Button>
                     </div>
                 </div>
-                <Label className="block mb-2">Title</Label>
                 <div className="flex flex-row gap-2 ">
 
-  
                     <Input
                         type="text"
                         value={currentGoal?.title}
+                        placeholder='Title'
                         onChange={(e) => updateCurrentGoal('title', e.target.value)}
                         className="w-full p-2 border rounded"
                     />
                     <TagsDropdownMenu/>
                 </div>
-                <div className='py-2'>
+                <div className='pt-2 pb-3'>
 
                         <Textarea
                             value={currentGoal.content}
@@ -95,10 +110,11 @@ function EditGoals() {
                             />
                 </div>
 
-                <div className="mb-4">
-                  <Label className="block mb-2">Milestones</Label>
+                <div className="mb-3">
+
+                    <Progress className='rounded-sm mb-3' value={progress}/>
                     {currentGoal?.milestones.map((milestone) => (
-                        <div key={milestone.milestoneid} className="flex w-full items-center mb-2">
+                      <div key={milestone.milestoneid} className="flex w-full items-center mb-2">
                                 {section == "edit goal" &&
                                     <div className='mr-2'>
                                       <CheckBox 
@@ -117,16 +133,18 @@ function EditGoals() {
                                             disabled={
                                                 milestone.index === 0 || // First item
                                                 milestone.index === currentGoal?.milestones.length - 1 // Last item
-                                            } 
+                                              } 
                                             onClick={() => handleRemoveMilestone(milestone.milestoneid)}>
                                         <FaRegTrashAlt />
                                     </Button>
+                          
                         </div>
                     ))}
 
+
                 </div>
                 <div className='flex flex-row justify-between'>
-                    <Button size="sm"  className="gap-2 mt-2" onClick={handleAddMilestone}>
+                    <Button size="sm"  className="gap-2 " onClick={handleAddMilestone}>
                             <FaPlus /> Add Milestone
                         </Button>
                       <div className='gap-2 flex flex-row'>
