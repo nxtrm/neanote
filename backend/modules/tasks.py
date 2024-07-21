@@ -13,18 +13,17 @@ def task_routes(app, mysql):
     @jwt_required()
     @token_required
     def create_task():
-        userId = g.userId
-        task_schema = TaskCreateSchema()
-        data = task_schema.load(request.get_json())
-        title = data['title']
-        tags = data['tags']
-        content = data['content']
-        subtasks = data['subtasks']
-        due_date = data.get('due_date')
-        print(data)
-
-        cur = mysql.connection.cursor()
         try:
+            userId = g.userId
+            task_schema = TaskCreateSchema()
+            data = task_schema.load(request.get_json())
+            title = data['title']
+            tags = data['tags']
+            content = data['content']
+            subtasks = data['subtasks']
+            due_date = data.get('due_date')
+
+            cur = mysql.connection.cursor()
             # Insert into Notes table
             cur.execute(
                 "INSERT INTO Notes (user_id, title, content, type) VALUES (%s, %s, %s, %s)",
@@ -72,12 +71,12 @@ def task_routes(app, mysql):
     @jwt_required()
     @token_required
     def update_task():
-        userId = g.userId
-        cur = mysql.connection.cursor(cursorclass=DictCursor)
-        task_schema = TaskSchema()
-        task = task_schema.load(request.get_json())
-        
         try:
+            userId = g.userId
+            cur = mysql.connection.cursor(cursorclass=DictCursor)
+            task_schema = TaskSchema()
+            task = task_schema.load(request.get_json())
+        
             note_id = task['noteid']
             task_id = task['taskid']
             if verify_task_ownership(userId, task_id, cur) == False:

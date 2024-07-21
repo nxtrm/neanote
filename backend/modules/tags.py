@@ -12,14 +12,14 @@ def tag_routes(app,mysql):
     @jwt_required()
     @token_required
     def create_tag():
-        userId = g.userId
-        tag_schema = TagSchema()
-        data = tag_schema.load(request.get_json())
-        tag_name = data['name']
-        tag_color = data['color']
-
-        cur = mysql.connection.cursor()
         try:
+            userId = g.userId
+            tag_schema = TagSchema()
+            data = tag_schema.load(request.get_json())
+            tag_name = data['name']
+            tag_color = data['color']
+
+            cur = mysql.connection.cursor()
             cur.execute(
                 "INSERT INTO Tags (name, color, user_id) VALUES (%s, %s, %s)",
                 (tag_name, tag_color, userId)
@@ -37,10 +37,10 @@ def tag_routes(app,mysql):
     @jwt_required()
     @token_required
     def getAll_tags():
-        userId = g. userId
-        
-        cur = mysql.connection.cursor(cursorclass=DictCursor)   
         try:
+            userId = g. userId
+            
+            cur = mysql.connection.cursor(cursorclass=DictCursor)   
             cur.execute(
                 "SELECT id AS tagid, name, color FROM Tags WHERE user_id = %s",
                 (userId,)
@@ -58,11 +58,11 @@ def tag_routes(app,mysql):
     @jwt_required()
     @token_required
     def getTags():
-        userId = g. userId
-
-        cur = mysql.connection.cursor(cursorclass=DictCursor)
-        note_id = request.args.get('note_id')
         try:
+            userId = g. userId
+
+            cur = mysql.connection.cursor(cursorclass=DictCursor)
+            note_id = request.args.get('note_id')
             cur.execute(
                 "SELECT t.id AS t.tagid, t.name, t.color FROM Tags t JOIN NoteTags nt ON t.id = nt.tag_id WHERE nt.note_id = %s AND t.user_id = %s",
                 (note_id, userId)
@@ -80,14 +80,15 @@ def tag_routes(app,mysql):
     @jwt_required()
     @token_required
     def addTag():
-        userId = g. userId
-        cur = mysql.connection.cursor()
-        data = request.get_json()
-        note_id = data['note_id']
-        tag_id = data['tagid']
-        if verify_tag_ownership(userId, tag_id, cur) is False:
-            return jsonify({'message': 'You do not have permission to update this tag'}), 403
         try:
+            userId = g. userId
+            cur = mysql.connection.cursor()
+            data = request.get_json()
+            note_id = data['note_id']
+            tag_id = data['tagid']
+            if verify_tag_ownership(userId, tag_id, cur) is False:
+                return jsonify({'message': 'You do not have permission to update this tag'}), 403
+            
             cur.execute (
                 "INSERT INTO NoteTags (note_id, tag_id) VALUES (%s, %s)", (note_id, tag_id),
             )
@@ -103,16 +104,17 @@ def tag_routes(app,mysql):
     @jwt_required()
     @token_required
     def editTag():
-        tag_schema = TagSchema()
-        userId = g.userId
-        data = tag_schema.load(request.get_json())
-        tag_id = data['tagid']
-        name = data['name']
-        color = data['color']
-        cur = mysql.connection.cursor(cursorclass=DictCursor)
-        if verify_tag_ownership(userId, tag_id, cur) is False:
-            return jsonify({'message': 'You do not have permission to update this tag'}), 403
         try:
+            tag_schema = TagSchema()
+            userId = g.userId
+            data = tag_schema.load(request.get_json())
+            tag_id = data['tagid']
+            name = data['name']
+            color = data['color']
+            cur = mysql.connection.cursor(cursorclass=DictCursor)
+            if verify_tag_ownership(userId, tag_id, cur) is False:
+                return jsonify({'message': 'You do not have permission to update this tag'}), 403
+            
             cur.execute (
                 "UPDATE Tags SET name = %s, color = %s WHERE id = %s", (name, color, tag_id),
             )
@@ -129,12 +131,12 @@ def tag_routes(app,mysql):
     @jwt_required()
     @token_required
     def deleteTag():
-        userId = g.userId
-        
-        # Initialize cursor outside try block
-        cur = mysql.connection.cursor()
-        
         try:
+            userId = g.userId
+            
+            # Initialize cursor outside try block
+            cur = mysql.connection.cursor()
+        
             data = request.get_json()
             tag_id = data['tagid']
             if not verify_tag_ownership(userId, tag_id, cur):

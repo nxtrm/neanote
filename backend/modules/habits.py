@@ -12,19 +12,19 @@ def habit_routes(app,mysql):
     @jwt_required()
     @token_required
     def create_habit():
-        userId = g.userId
-
-        habit_schema = HabitCreateSchema()
-        data = habit_schema.load(request.get_json())
-
-        title = data['title']
-        content = data['content']
-        tags = data['tags']
-        reminder_time = data['reminder']['reminder_time']
-        repetition = data['reminder']['repetition']
-
-        cur = mysql.connection.cursor()
         try:
+            userId = g.userId
+
+            habit_schema = HabitCreateSchema()
+            data = habit_schema.load(request.get_json())
+
+            title = data['title']
+            content = data['content']
+            tags = data['tags']
+            reminder_time = data['reminder']['reminder_time']
+            repetition = data['reminder']['repetition']
+
+            cur = mysql.connection.cursor()
             cur.execute(
                 "INSERT INTO Notes (user_id, title, content, type) VALUES (%s, %s, %s, %s)",
                 (userId, title, content, 'habit')
@@ -57,13 +57,13 @@ def habit_routes(app,mysql):
     @jwt_required()
     @token_required
     def update_habit():
-        userId = g.userId
-
-        habit_schema = HabitUpdateSchema()
-        data = habit_schema.load(request.get_json())
-
-        cur = mysql.connection.cursor(cursorclass=DictCursor)
         try:
+            userId = g.userId
+
+            habit_schema = HabitUpdateSchema()
+            data = habit_schema.load(request.get_json())
+
+            cur = mysql.connection.cursor(cursorclass=DictCursor)
             note_id = data['noteid']
             habit_id = data['habitid']
 
@@ -104,8 +104,8 @@ def habit_routes(app,mysql):
     @jwt_required()
     @token_required
     def get_habit_previews():
-        userId = g.userId
         try:
+            userId = g.userId
             cur = mysql.connection.cursor(cursorclass=DictCursor)
             query = '''
                 SELECT 
@@ -169,11 +169,11 @@ def habit_routes(app,mysql):
     @jwt_required()
     @token_required
     def get_habit():
-        userId = g.userId
-        noteid = request.args.get('noteid')
-        cur = mysql.connection.cursor(cursorclass=DictCursor)
-
         try:
+            userId = g.userId
+            noteid = request.args.get('noteid')
+            cur = mysql.connection.cursor(cursorclass=DictCursor)
+
             habit = None
 
             # Main query to fetch the specific habit and its linked tasks
@@ -263,9 +263,9 @@ def habit_routes(app,mysql):
     @jwt_required()
     @token_required
     def delete_habit():
-        userId = g.userId
-        cur = mysql.connection.cursor(cursorclass=DictCursor)
         try:
+            userId = g.userId
+            cur = mysql.connection.cursor(cursorclass=DictCursor)
             data = request.get_json()
             habit_id = data['habitid']
             note_id = data['noteid']
@@ -294,13 +294,13 @@ def habit_routes(app,mysql):
     @jwt_required()
     @token_required
     def complete_habit():
-        userId = g.userId
-
-        cur = mysql.connection.cursor(cursorclass=DictCursor)
-        data = request.get_json()
-        habit_id = data['habitid']
-
         try:
+            userId = g.userId
+
+            cur = mysql.connection.cursor(cursorclass=DictCursor)
+            data = request.get_json()
+            habit_id = data['habitid']
+
             if not verify_habit_ownership(userId, habit_id, cur):
                 return jsonify({'message': 'You do not have permission to update this habit'}), 403
             
@@ -345,15 +345,15 @@ def habit_routes(app,mysql):
     @jwt_required()
     @token_required
     def link_habit():
-        userId = g.userId
-
-        cur = mysql.connection.cursor(cursorclass=DictCursor)
-        data = request.get_json()
-        habit_id = data['habitid']
-        task_id = data['taskid']
-        action_type = data['type']
-
         try:
+            userId = g.userId
+
+            cur = mysql.connection.cursor(cursorclass=DictCursor)
+            data = request.get_json()
+            habit_id = data['habitid']
+            task_id = data['taskid']
+            action_type = data['type']
+
 
 
             if action_type == "link":

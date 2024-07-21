@@ -9,18 +9,17 @@ from utils import token_required, verify_milestone_ownership, verify_goal_owners
 
 def goal_routes(app, mysql):
 
-    #GOALS MODULE
 #GOALS MODULE
     @app.route('/api/goals/create', methods=['POST'])
     @jwt_required()
     @token_required
     def create_goal():
-        userId = g.userId
-
-        goal_schema = GoalCreateSchema()
-        data = goal_schema.load(request.get_json())
-        
         try:
+            userId = g.userId
+
+            goal_schema = GoalCreateSchema()
+            data = goal_schema.load(request.get_json())
+            
 
             title = data['title']
             content = data['content']
@@ -74,8 +73,8 @@ def goal_routes(app, mysql):
     @jwt_required()
     @token_required
     def get_goal_previews():
-        userId = g.userId
         try:
+            userId = g.userId
             # Pagination
             page = int(request.args.get('page', 1))  # Default to page 1
             per_page = int(request.args.get('per_page', 10))  # Default to 10 items per page
@@ -166,8 +165,8 @@ def goal_routes(app, mysql):
     @jwt_required()
     @token_required
     def get_goal():
-        userId = g.userId
         try:
+            userId = g.userId
             noteid=request.args.get('noteId')
             cur = mysql.connection.cursor(cursorclass=DictCursor)
 
@@ -244,8 +243,8 @@ def goal_routes(app, mysql):
     @jwt_required()
     @token_required   
     def complete_milestone():
-        userId = g.userId
         try:
+            userId = g.userId
             cur = mysql.connection.cursor(cursorclass=DictCursor)
             data = request.get_json()
             milestone_id = data['milestoneid']
@@ -271,13 +270,13 @@ def goal_routes(app, mysql):
     @jwt_required()
     @token_required
     def update_goal():
-        userId = g.userId
-
-        goal_schema = GoalUpdateSchema()
-        data = goal_schema.load(request.get_json())
-
-        cur = mysql.connection.cursor(cursorclass=DictCursor)
         try:
+            userId = g.userId
+
+            goal_schema = GoalUpdateSchema()
+            data = goal_schema.load(request.get_json())
+
+            cur = mysql.connection.cursor(cursorclass=DictCursor)
             note_id = data['noteid']
             goal_id = data['goalid']
             due_date = data.get('due_date')
@@ -332,9 +331,9 @@ def goal_routes(app, mysql):
     @jwt_required()
     @token_required
     def delete_goal():
-        userId = g.userId
-        cur = mysql.connection.cursor(cursorclass=DictCursor)
         try:
+            userId = g.userId
+            cur = mysql.connection.cursor(cursorclass=DictCursor)
             note_id =request.args.get('noteid')
             goal_id =request.args.get('goalid')
 
