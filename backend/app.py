@@ -4,8 +4,13 @@ from flask_jwt_extended import JWTManager
 from flask_mysqldb import MySQL
 import jwt
 from config import Config
-from routes import register_routes
-  
+from modules.habits import habit_routes
+from modules.tasks import task_routes
+from modules.goals import goal_routes
+from modules.tags import tag_routes
+from modules.users import user_routes
+
+
 app = Flask(__name__)
 app.config.from_object(Config)
 
@@ -19,8 +24,12 @@ jwt = JWTManager(app)
 #     default_limits=["500 per day", "100 per hour"]  # Default rate limit for all routes
 # )
 
-#Registering routes
-register_routes(app, mysql, jwt)
+
+task_routes(app,mysql)
+habit_routes(app,mysql)
+goal_routes(app, mysql)
+tag_routes(app,mysql)
+user_routes(app,mysql)
 
 #Centralized error handler
 @app.errorhandler(Exception)
