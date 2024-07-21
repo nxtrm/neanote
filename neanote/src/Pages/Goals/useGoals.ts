@@ -13,6 +13,7 @@ type GoalState = {
     updateCurrentGoal: <K extends keyof Goal>(key: K, value: Goal[K]) => void;
     handleCreateGoal: () => Promise<void>;
     handleUpdateGoal: () => Promise<void>;
+    handleDeleteGoal: (goalid: number, noteid: number) => Promise<void>;
     fetchGoalPreviews: (pageParam: number) => Promise<void>;
     fetchGoal: (noteId: number) => Promise<false | GoalResponse>;
 
@@ -202,5 +203,17 @@ export const useGoals = create<GoalState>()(
                 state.currentGoal[key] = value;
               }
             }),
+
+        
+        handleDeleteGoal: async (goalid, noteid) => {
+              const previousGoals = get().goalPreviews;
+              set((state) => {
+                state.goalPreviews = state.goalPreviews.filter((goal) => goal.goalid !== goalid);
+              });
+              const response = await goalsApi.delete(goalid, noteid);
+              if (!response) {
+                // revert deletion
+                set({ goalPreviews: previousGoals });
+            }},
 
     })))

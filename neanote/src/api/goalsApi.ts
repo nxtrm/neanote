@@ -69,6 +69,16 @@ const goalsApi = {
             return false
         }
     },
+
+    delete: async (goalid: number, noteid: number) => {
+        try {
+            const response = await a.delete(`/api/goals/delete`, {params: {goalid, noteid}});
+            return true
+        } catch (error) {
+            showToast('e', error);
+            return false
+        }
+    }
 }
 
 export default goalsApi

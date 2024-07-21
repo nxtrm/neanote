@@ -15,10 +15,11 @@ import { useNavigate } from 'react-router-dom';
 import { Textarea } from '../../../components/@/ui/textarea';
 import DeleteDialog from '../../../components/DeleteDialog/DeleteDialog';
 import EditGoalsSkeleton from './EditGoalsSkeleton';
+import CheckBox from '../../../components/CheckBox/CheckBox';
 
 
 function EditGoals() {
-    const {currentGoal, loading, section, fetchGoal, resetCurrentGoal,handleCreateGoal, handleUpdateGoal, handleAddMilestone, handleRemoveMilestone, updateCurrentGoal} = useGoals();
+    const {currentGoal, loading, section, handleDeleteGoal, fetchGoal, handleMilestoneCompletion, resetCurrentGoal,handleCreateGoal, handleUpdateGoal, handleAddMilestone, handleRemoveMilestone, updateCurrentGoal} = useGoals();
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -54,9 +55,10 @@ function EditGoals() {
       }
     
       const handleDelete = async () => {
-        // await handleDeleteGoal(currentGoal?.goalid, currentGoal?.noteid)
+        await handleDeleteGoal(currentGoal?.goalid, currentGoal?.noteid)
         navigate('/goals');
       }
+
     if (loading) return <EditGoalsSkeleton/>
 
     return (
@@ -97,6 +99,13 @@ function EditGoals() {
                   <Label className="block mb-2">Milestones</Label>
                     {currentGoal?.milestones.map((milestone) => (
                         <div key={milestone.milestoneid} className="flex w-full items-center mb-2">
+                                {section == "edit goal" &&
+                                    <div className='mr-2'>
+                                      <CheckBox 
+                                          checked={milestone.completed} 
+                                          onChange={() => handleMilestoneCompletion(currentGoal.goalid, milestone.milestoneid)} />
+                                    </div>}
+
                                     <Input
                                         type="text"
                                         value={milestone.description}

@@ -1119,6 +1119,32 @@ def register_routes(app, mysql, jwt):
         finally:
             cur.close()
 
+    @app.route('/api/goals/delete', methods=['DELETE'])
+    @jwt_required()
+    @token_required
+    def delete_goal():
+        userId = g.userId
+        cur = mysql.connection.cursor(cursorclass=DictCursor)
+        try:
+            note_id =request.args.get('noteid')
+            goal_id =request.args.get('goalid')
+
+            if verify_goal_ownership(userId, goal_id, cur) == False:
+                return jsonify({'message': 'You do not have permission to update this goal'}), 403
+            
+            cur.execute("DELETE FROM Milestones WHERE goal_id = %s", (goal_id,))
+            cur.execute("DELETE FROM Goals WHERE id = %s", (goal_id,))
+            cur.execute("DELETE FROM Notes WHERE id = %s", (note_id,))
+            cur.execute("DELETE FROM NoteTags WHERE note_id = %s", (note_id,))
+                        
+            mysql.connection.commit()
+            return jsonify({'message': 'Goal deleted successfully'}), 200
+        except Exception as e:
+            if mysql.connection:
+                mysql.connection.rollback()
+            raise
+        finally:
+            cur.close()
 
 #TAG MODULE
     @app.route('/api/tags/create', methods=['POST'])
