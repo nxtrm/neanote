@@ -90,16 +90,15 @@ export const useGoals = create<GoalState>()(
             if (currentGoal) {
 
               const { goalid, noteid, title, content, due_date, milestones } = currentGoal;
-              const filteredTags = tags.filter((tag) => selectedTagIds.includes(tag.tagid));
       
-              const updatedGoal: Partial<Goal> = {
+              const updatedGoal = {
                 goalid,
                 noteid,
 
                 title,
-                tags: filteredTags, 
+                tags: selectedTagIds, 
                 content,
-                due_date,
+                due_date : due_date,
                 milestones
               };
       
@@ -139,19 +138,29 @@ export const useGoals = create<GoalState>()(
               }
             }),
 
-        fetchGoalPreviews: async (pageParam: number) => {
+            fetchGoalPreviews: async (pageParam: number) => {
               const fetchedGoals = await goalsApi.get_previews(pageParam);
-              if (fetchedGoals) { 
-                set({ goalPreviews: fetchedGoals.data })
+              if (fetchedGoals && fetchedGoals.data) {
+                
+                const previewsWithFormattedDates = fetchedGoals.data.map(preview => ({
+                  ...preview,
+                  due_date: preview.due_date ? new Date(preview.due_date) : undefined, 
+                }));
+                set({ goalPreviews: previewsWithFormattedDates });
               }
             },
 
-        fetchGoal: async(noteId:number) => {
+            fetchGoal: async(noteId:number) => {
               const response = await goalsApi.getGoal(noteId);
-              console.log(response)
-              if (response) {
+              if (response && response.goal) {
+                const dueDate = response.goal.due_date ? new Date(response.goal.due_date) : undefined;
+                const goalWithFormattedDate = {
+                  ...response.goal,
+                  due_date: dueDate,
+                };
                 set((state) => {
-                  state.currentGoal = response.goal;
+                  state.currentGoal = goalWithFormattedDate;
+
                 });
               }
               return response

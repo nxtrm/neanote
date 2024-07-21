@@ -13,68 +13,71 @@ import {
   PopoverTrigger,
 } from "../../../../components/@/ui/popover"
 import { Input } from "../../../../components/@/ui/input"
+import { useState, useEffect } from "react"
+
 
 interface DatePickerProps {
-  onDateChange: (newDate: Date | undefined) => void;
-  data ?: Date | undefined;
-  includeTime?: boolean; // Optional prop to include time picker
+  onDateChange: (newDate: string) => void;
+  data?: Date;
+  includeTime?: boolean;
 }
 
 export function DatePicker({ onDateChange, data, includeTime = false }: DatePickerProps) {
-  const [dateTime, setDateTime] = React.useState<Date | undefined>()
+  const [dateTime, setDateTime] = useState<Date | undefined>(data);
 
-  React.useEffect(() => {
-    if (data) {
-      const parsedDate = new Date(data);
-      setDateTime(parsedDate);
+  useEffect(() => {
+    if (data instanceof Date && !isNaN(data.getTime())) {
+      setDateTime(data);
+    } else {
+      setDateTime(undefined);
     }
   }, [data]);
+
+  const formatDate = (date: Date | undefined): string => {
+    if (!date) return '';
+    return includeTime ? date.toISOString() : format(date, 'yyyy-MM-dd');
+  };
 
   const handleDateSelect = (newDate: Date | undefined) => {
     if (newDate && dateTime) {
       newDate.setHours(dateTime.getHours(), dateTime.getMinutes());
     }
     setDateTime(newDate);
-    onDateChange(newDate);
+    onDateChange(formatDate(newDate));
   };
 
   const handleTimeSelect = (timeString: string) => {
-    const timeParts = timeString.split(':').map(part => parseInt(part, 10));
+    const timeParts = timeString.split(':').map(Number);
     const newDateTime = dateTime ? new Date(dateTime) : new Date();
-  
+
     if (timeParts.length === 2) {
       newDateTime.setHours(timeParts[0], timeParts[1]);
       setDateTime(newDateTime);
-      onDateChange(newDateTime)
+      onDateChange(formatDate(newDateTime));
     } else {
-      console.error('Invalid time format:', timeString); // Error handling for invalid format
+      console.error('Invalid time format:', timeString);
     }
   };
 
-
   const handleClear = () => {
     setDateTime(undefined);
-    onDateChange(undefined);
-
+    onDateChange('');
   };
 
-  const formattedTime = dateTime ? format(dateTime, "HH:mm") : "";
-
+  const formattedTime = (dateTime && includeTime) ? format(dateTime, "HH:mm") : "";
+  console.log("DateTime", dateTime)
 
   return (
     <div>
       <Popover>
         <PopoverTrigger asChild>
-          <Button
-            variant={"outline"}
-            className={cn(
-              "w-[150px] justify-start text-left font-normal",
-              !dateTime && "text-muted-foreground"
-            )}
-          >
-            <CalendarIcon className="mr-2 h-4 w-4" />
-            {dateTime ? format(dateTime, "PPP") : <span>Due date</span>}
-          </Button>
+        <Button
+          variant="outline"
+          className={cn("w-[150px] justify-start text-left font-normal", !dateTime && "text-muted-foreground")}
+        >
+          <CalendarIcon className="mr-2 h-4 w-4" />
+          {dateTime ? format(dateTime, "PPP") : <span>Due date</span>}
+        </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0">
           <Calendar
@@ -84,22 +87,18 @@ export function DatePicker({ onDateChange, data, includeTime = false }: DatePick
             initialFocus
           />
           <div className="flex flex-row gap-3 p-3">
-          <Button className="w-1/4 items-center" variant={"secondary"} onClick={handleClear}>Clear</Button>
-          {includeTime && (
-
-            <Input 
-              type="time" 
-
-              value={formattedTime}
-              onChange={(e) => handleTimeSelect(e.target.value)} 
-              className="w-3/4 justify-center" 
+            <Button className="w-1/4 items-center" variant="secondary" onClick={handleClear}>Clear</Button>
+            {includeTime && (
+              <Input
+                type="time"
+                value={formattedTime}
+                onChange={(e) => handleTimeSelect(e.target.value)}
+                className="w-3/4 justify-center"
               />
             )}
-
           </div>
         </PopoverContent>
       </Popover>
-
     </div>
   );
 }

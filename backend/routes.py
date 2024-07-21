@@ -1,3 +1,4 @@
+from email.utils import parsedate_to_datetime
 from marshmallow import ValidationError
 from flask import Flask, g, jsonify, request
 from flask_cors import CORS
@@ -6,7 +7,7 @@ from flask_jwt_extended import (JWTManager, create_access_token,
 from MySQLdb.cursors import DictCursor
 from dateutil.relativedelta import relativedelta
 from formsValidation import GoalCreateSchema, GoalUpdateSchema, HabitCreateSchema, HabitUpdateSchema, LoginSchema, TagSchema, TaskCreateSchema, TaskSchema, UserSchema
-from utils import token_required, verify_goal_ownership, verify_habit_ownership, verify_milestone_ownership, verify_subtask_ownership, verify_tag_ownership, verify_task_ownership
+from utils import  token_required, verify_goal_ownership, verify_habit_ownership, verify_milestone_ownership, verify_subtask_ownership, verify_tag_ownership, verify_task_ownership
 from datetime import datetime, timedelta
 
 
@@ -917,7 +918,7 @@ def register_routes(app, mysql, jwt):
                         'goalid': row['goal_id'],
                         'title': row['title'][:50] + '...' if len(row['title']) > 50 else row['title'],
                         'content': row['content'][:100] + '...' if len(row['content']) > 100 else row['content'],
-                        'due_date': row['due_date'],
+                        'due_date': row['due_date'].isoformat() if row['due_date'] else None,
                         'tags': [],
                         'milestones': []
                     }
@@ -994,7 +995,7 @@ def register_routes(app, mysql, jwt):
                         'goalid': row['goal_id'],
                         'title': row['title'],
                         'content': row['content'],
-                        'due_date': row['due_date'],
+                        'due_date': (row['due_date'].isoformat()) if row['due_date'] else None,
                         'tags': [],
                         'milestones': []
                     }
@@ -1082,19 +1083,25 @@ def register_routes(app, mysql, jwt):
                     """
             cur.execute(query, (data['title'], data['content'], note_id, userId))
 
-            # if due_date is not None:
-            #     parsed_date = datetime.strptime(due_date, "%Y-%m-%dT%H:%M:%S.%fZ")
-            #     formatted_date = parsed_date.strftime("%Y-%m-%d %H:%M:%S")
-            #     cur.execute(
-            #         "UPDATE Goals SET due_date = %s WHERE note_id = %s",
-            #         (formatted_date, note_id)
-            #     )
+            if due_date is not None:
+                parsed_date = datetime.strptime(due_date, "%Y-%m-%dT%H:%M:%S.%fZ")
+                formatted_date = parsed_date.strftime("%Y-%m-%d")
+                cur.execute(
+                    "UPDATE Goals SET due_date = %s WHERE note_id = %s",
+                    (formatted_date, note_id)
+                )
+            else:
+                cur.execute(
+                    "UPDATE Goals SET due_date = NULL WHERE note_id = %s",
+                    (note_id,)
+                )
+
 
             cur.execute("DELETE FROM NoteTags WHERE note_id = %s", (note_id,))
-            for tag in data['tags']:
+            for tagId in data['tags']:
                 cur.execute(
                     "INSERT INTO NoteTags (note_id, tag_id) VALUES (%s, %s)",
-                    (note_id, tag['tagid'])
+                    (note_id, tagId)
                 )
             
             cur.execute("DELETE FROM Milestones WHERE goal_id = %s", (goal_id,))

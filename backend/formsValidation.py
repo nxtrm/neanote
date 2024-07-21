@@ -81,7 +81,7 @@ class GoalUpdateSchema(Schema):
     title = fields.Str(required=True, validate=lambda s: len(s) > 0)
     content = fields.Str(required=False)
     tags = fields.List(fields.Nested(TagSchema), required=False) 
-    due_date = fields.Str(required=False)
+    due_date = fields.Str(required=False,allow_none=True)
     tags = fields.List(fields.Int(), required=False)
     milestones = fields.List(fields.Nested(MilestoneUpdateSchema), required=False)
 
@@ -91,7 +91,7 @@ class GoalUpdateSchema(Schema):
 class GoalCreateSchema(Schema) :
     title = fields.Str(required=True, validate=lambda s: len(s) > 0)
     content = fields.Str(required=False)
-    due_date = fields.Str(required=False)
+    due_date = fields.Str(required=False,allow_none=True)
     tags = fields.List(fields.Int(), required=False)
     milestones = fields.List(fields.Nested(MilestoneCreateSchema), required=False)
 

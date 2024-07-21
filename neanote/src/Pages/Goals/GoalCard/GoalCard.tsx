@@ -80,7 +80,7 @@ function GoalCard({ goal }: { goal: Goal }) {
                         <h3 className="goal-title">{goal.title}</h3>
                     </div>
                     <div className='flex flex-row items-center gap-1'>
-                        {goal.due_date && <DateLabel collapsed={isDateCollapsed} date={goal.due_date} />}
+                        {goal.due_date && <DateLabel includeTime={false} collapsed={isDateCollapsed} date={goal.due_date} />}
                         {goal.tags.map((tag, index) => (
                             <TagLabel key={index} name={tag.name} color={tag.color} compressed={isTagCompressed} />
                         ))}

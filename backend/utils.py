@@ -1,5 +1,6 @@
 
 from datetime import datetime
+from email.utils import parsedate_to_datetime
 from functools import wraps
 import jwt
 from config import Config
@@ -14,6 +15,7 @@ def decodeToken(token): #deprecated
     except Exception as e:
         print('Error decoding token', e)
         return None
+
 
 def generateToken(userId):
     try:
