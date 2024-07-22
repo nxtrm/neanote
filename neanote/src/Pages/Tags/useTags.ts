@@ -1,20 +1,21 @@
 import { create } from 'zustand';
 import { Tag } from '../../api/types/tagTypes';
 import tagsApi from '../../api/tagsApi';
+import { UUID } from 'crypto';
 
 type TagState = {
     section: string;
     setSection: (section: string) => void;
-    tags: Tag[]; //FIXME FINISH UP HERE
+    tags: Tag[]; 
     fetchTags: () => Promise<void>;
     tagTitle: string;
     setTagTitle: (title: string) => void;
     color: string;
     setColor: (color: string) => void;
-    currentTagId: number | undefined;
-    setCurrentTagId: (tagId: number) => void;
-    selectedTagIds: number[];
-    setSelectedTagIds: (tagIds: number[]) => void;
+    currentTagId: UUID | undefined;
+    setCurrentTagId: (tagId: UUID) => void;
+    selectedTagIds: UUID[];
+    setSelectedTagIds: (tagIds: UUID[]) => void;
     // updateState: (key: keyof TagState, value: any) => void;
     handleSaveTag: () => void;
     handleDeleteTag: () => void;
@@ -44,8 +45,11 @@ export const useTags = create<TagState>((set, get) => ({
         set({ tagTitle: '', color: '#000000' });
         set({ section: 'all tags' });
     },
+
     setSelectedTagIds: (tagIds) => set({ selectedTagIds: [...tagIds] }),
+
     setCurrentTagId: (tagId) => set({ currentTagId: tagId }),
+
     handleDeleteTag: async () => {
         const { currentTagId } = get();
         if (currentTagId === undefined) return;
@@ -54,6 +58,7 @@ export const useTags = create<TagState>((set, get) => ({
             set({ section: 'all tags' });
         }
     },
+
     handleEditTag: async () => {
         const { currentTagId, tagTitle, color } = get();
         if (currentTagId === undefined) return;

@@ -1,3 +1,4 @@
+import { UUID } from "crypto";
 import { showToast } from "../../components/Toast";
 import a from "./api";
 import { TagResponse } from "./types/tagTypes";
@@ -22,7 +23,7 @@ const tagsApi = {
             return false;
         }
     },
-    add : async (noteid: number, tagid: number) => {
+    add : async (noteid: UUID, tagid: UUID) => {
         try {
             let response = await a.post(`/api/tags/add`, {
                 noteid,
@@ -37,7 +38,7 @@ const tagsApi = {
         }
     },
 
-    getTags : async (noteId: number) => {
+    getTags : async (noteId: UUID) => {
         try {
             let response = await a.get<TagResponse>(`/api/tags/${noteId}`);
             return response.data;
@@ -57,7 +58,7 @@ const tagsApi = {
         }
     },
 
-    delete : async (tagid: number) => {
+    delete : async (tagid: UUID) => {
         try {
             let response = await a.put(`/api/tags/delete`, {tagid})
 
@@ -74,7 +75,7 @@ const tagsApi = {
         }
     },
 
-    edit : async (tagid: number, name: string, color: string) => {
+    edit : async (tagid: UUID, name: string, color: string) => {
         try {
             let response = await a.post(`/api/tags/edit`, {
                 tagid,
@@ -94,9 +95,6 @@ const tagsApi = {
             return false;
         }
     }
-
-
-
 
 
 }

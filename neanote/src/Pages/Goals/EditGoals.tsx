@@ -1,22 +1,17 @@
 import React, { useEffect } from 'react';
-import { FaRegTrashAlt, FaSpinner } from 'react-icons/fa';
 import { FaPlus } from 'react-icons/fa6';
 import { MdCancel } from 'react-icons/md';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../../../components/@/ui/button';
-import { Input } from '../../../components/@/ui/input';
 import { Progress } from '../../../components/@/ui/progress';
-import { Textarea } from '../../../components/@/ui/textarea';
-import CheckBox from '../../../components/CheckBox/CheckBox';
 import DeleteDialog from '../../../components/DeleteDialog/DeleteDialog';
 import PageContainer from '../../../components/PageContainer/PageContainer';
-import TagsDropdownMenu from '../Tags/components/TagsDropdownMenu';
 import { useTags } from '../Tags/useTags';
 import { DatePicker } from '../Tasks/DatePicker/DatePicker';
 import EditGoalsSkeleton from './EditGoalsSkeleton';
-import { useGoals } from './useGoals';
-import Milestones from './FormComponents/Milestones';
 import Inputs from './FormComponents/Inputs';
+import Milestones from './FormComponents/Milestones';
+import { useGoals } from './useGoals';
 
 
 function EditGoals() {
@@ -28,10 +23,13 @@ function EditGoals() {
       if (noteId) {
         fetchGoal(noteId);
         useTags.setState({
-          selectedTagIds: [],
+          selectedTagIds: 
+          currentGoal.tags.map(tag => {
+            return tag.tagid
+          }),
         })
       }
-    }, []);
+      }, []);
     
   useEffect(() => {    
       const progress = calculateProgress();
