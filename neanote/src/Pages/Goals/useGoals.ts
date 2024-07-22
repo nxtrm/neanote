@@ -6,10 +6,28 @@ import { useTags } from "../Tags/useTags";
 import goalsApi from "../../api/goalsApi";
 import { UUID } from "crypto";
 
+// Function to generate a new current goal object
+const generateNewCurrentGoal = () => {
+
+  return {
+    goalid: uuidv4(),
+    noteid: uuidv4(),
+    title: '',
+    content: '',
+    due_date: undefined,
+    tags: [],
+    milestones: [
+      { milestoneid: uuidv4(), description: '', completed: false, index: 0, },
+      { milestoneid: uuidv4(), description: '', completed: false, index: 1, }
+    ]
+  };
+};
+
 type GoalState = {
     goalPreviews: Goal[];
 
     currentGoal: Goal;
+
     resetCurrentGoal: () => void;
     updateCurrentGoal: <K extends keyof Goal>(key: K, value: Goal[K]) => void;
     handleCreateGoal: () => Promise<void>;
@@ -32,42 +50,27 @@ type GoalState = {
 export const useGoals = create<GoalState>()(
     immer((set, get) => ({
         goalPreviews: [],
-        currentGoal: {
-            goalid: uuidv4(),
-            noteid: uuidv4(),
-            title: '',
-            content: '',
-            due_date: undefined,
-            milestones: [
-            ],
-            tags: [],
-          },
+        
+        
         section: "all goals",
-
+        
         loading: false,
         setLoading: (loading) => set({loading}),
-
+        
         setSection: (section) => set({section}),
-
+        
         resetCurrentGoal: () => {
-            set((state) => {
-                state.currentGoal = {             
-                    goalid: uuidv4(),
-                    noteid: uuidv4(),
-                    title: '',
-                    content: '',
-                    due_date: undefined,
-                    tags: [], 
-                    milestones: [
-                    { milestoneid: uuidv4(), description: '', completed: false, index: 0, goalid: -1 },
-                    { milestoneid: uuidv4(), description: '', completed: false, index:1, goalid: -1 }
-                ]};
-            })
+          set(() => ({
+            currentGoal: generateNewCurrentGoal()
+          }));
         },
-
+              
+        currentGoal: generateNewCurrentGoal(),
+              
         handleCreateGoal: async () => {
-            const { currentGoal, resetCurrentGoal } = get();
+            const { currentGoal, resetCurrentGoal,setLoading } = get();
             const { selectedTagIds } = useTags.getState();
+            setLoading(true)
       
             if (currentGoal) {
               
@@ -78,17 +81,19 @@ export const useGoals = create<GoalState>()(
               if (response) {
                 set((state) => {
                   state.goalPreviews.push({
-                    goalid: response.data.goalid,
-                    noteid: response.data.noteid,
+                    goalid : response.data.goalid,
+                    noteid : response.data.noteid,
                     title,
                     content,
                     due_date,
-                    milestones,
+                    milestones : response.data.milestones,
                     tags: [],
                   });
-                  state.section = 'all goals';
+                  state.section = 'edit goal';
                 });
-                resetCurrentGoal();
+                // resetCurrentGoal();
+
+                setLoading(false)
             }}
           },
 
@@ -141,7 +146,6 @@ export const useGoals = create<GoalState>()(
                       description: '', 
                       completed: false, 
                       index: milestones.length,
-                      goalid: -1
                   });
                   milestones.forEach((ms, idx) => ms.index = idx);
                 }

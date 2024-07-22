@@ -1,15 +1,16 @@
 import axios from "axios";
 import { showToast } from "../../components/Toast";
 import a from "./api";
-import { GoalCreateResponse, GoalResponse, GoalsPreview } from "./types/goalTypes";
+import {  GoalResponse, GoalsPreview } from "./types/goalTypes";
 import { UUID } from "crypto";
 
 const goalsApi = {
-    create: async (title, tags, content, due_date, milestones) => {
+    create: async (title, selectedTagIds, content, due_date, milestones) => {
         try {
-            let response = await a.post<GoalCreateResponse>(`/api/goals/create`, {
+            let response = await a.post(`/api/goals/create`, {
+
                 title,
-                tags,
+                tags:selectedTagIds,
                 content,
                 due_date,
                 milestones,
@@ -75,7 +76,7 @@ const goalsApi = {
             return null; 
         }},
 
-    completeMilestone: async (goalid:UUID,milestoneid: UUID) => {
+    completeMilestone: async (goalid:UUID, milestoneid: UUID) => {
         try {
             const response = await a.put(`/api/goals/milestone/complete`, {goalid, milestoneid});
             if (response.status === 200) {

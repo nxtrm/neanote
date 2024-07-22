@@ -93,8 +93,7 @@ def verify_goal_ownership(user_id, goal_id, cur):
     cur.execute(query, (goal_id,))
     result = cur.fetchone()
 
-    if (len(result)<1) or (int(result['user_id']) != int(user_id)):
-        print("False")
+    if (len(result)<1) or (str(result['user_id']) != str(user_id)):
         return False
     return True
 
@@ -110,7 +109,7 @@ def verify_milestone_ownership(user_id, milestone_id, cur):
     result = cur.fetchone()
     print(result)
 
-    if (len(result)<1) or (int(result['user_id']) != int(user_id)):
+    if (len(result)<1) or (str(result['user_id']) != str(user_id)):
         return False
     return True
 

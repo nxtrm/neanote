@@ -17,35 +17,11 @@ import EditGoalsSkeleton from './EditGoalsSkeleton';
 import { useGoals } from './useGoals';
 
 
-function EditGoals() {
-  const {currentGoal, loading, section, handleDeleteGoal, fetchGoal, handleMilestoneCompletion, resetCurrentGoal,handleCreateGoal, handleUpdateGoal, handleAddMilestone, handleRemoveMilestone, updateCurrentGoal} = useGoals();
+function CreateGoal() {
+  const {currentGoal, loading, section, handleMilestoneCompletion, resetCurrentGoal,handleCreateGoal, handleUpdateGoal, handleAddMilestone, handleRemoveMilestone, updateCurrentGoal} = useGoals();
   const navigate = useNavigate();
 
-  useEffect(() => {
-      const noteId = localStorage.getItem('currentGoalId');
-      if (noteId) {
-        fetchGoal(noteId);
-        useTags.setState({
-          selectedTagIds: [],
-        })
-      }
-    }, []);
-    
-  useEffect(() => {    
-      const progress = calculateProgress();
-      var next_milestone =  currentGoal.milestones
-              .filter(milestone => !milestone.completed)
-              .sort((a, b) => a.index - b.index)[0]},[currentGoal.milestones]) //recalculate progressbars on milestone change
-  
- const calculateProgress = () => {
-      const sortedMilestones = [...currentGoal.milestones].sort((a, b) => a.index - b.index);
-      const completedMilestones = sortedMilestones.filter(milestone => milestone.completed).length;
-      return (completedMilestones / sortedMilestones.length) * 100;
-      };
-
-  const progress = calculateProgress();
   const handleClose = () => {
-      localStorage.removeItem('currentGoalId');
       useGoals.setState({
         section: 'all goals',
       })
@@ -57,17 +33,8 @@ function EditGoals() {
     };
 
     const handleSave = async () => {
-      if (section === 'create') {
         await handleCreateGoal();
-      } else {
-        await handleUpdateGoal();
-      }
-      navigate('/goals');
-    }
-
-    const handleDelete = async () => {
-      await handleDeleteGoal(currentGoal?.goalid, currentGoal?.noteid)
-      navigate('/goals');
+        navigate('/goals/edit');
     }
     
   if (loading) return <EditGoalsSkeleton/>
@@ -76,7 +43,7 @@ function EditGoals() {
     <PageContainer>
         <div className="p-2">
             <div className='flex row justify-between'>
-                <h1 className="text-2xl font-bold mb-4">{section == "edit goal" ? 'Edit Goal' : 'Create Goal'}</h1>
+                <h1 className="text-2xl font-bold mb-4">Create Goal</h1>
                 <div className='flex gap-2'>
                     <DatePicker onDateChange={(date) => updateCurrentGoal('due_date', new Date(date))} data={currentGoal.due_date} includeTime={false} />
                     <Button size='icon' onClick={handleClose}>
@@ -92,17 +59,16 @@ function EditGoals() {
                     onChange={(e) => updateCurrentGoal('title', e.target.value)}
                     className="w-full p-2 border rounded"
                 />
-                <TagsDropdownMenu/>
+                {/* <TagsDropdownMenu/> */}
             </div>
             <div className='pt-2 pb-3'>
                     <Textarea
                         value={currentGoal.content}
-                        placeholder='Describe your task here'
+                        placeholder='Describe your goal here'
                         onChange={(e) => updateCurrentGoal('content', e.target.value)}
                         />
             </div>
             <div className="mb-3">
-                <Progress className='rounded-sm mb-3' value={progress}/>
                 {currentGoal?.milestones.map((milestone) => (
                   <div key={milestone.milestoneid} className="flex w-full items-center mb-2">
                             {section == "edit goal" &&
@@ -135,14 +101,8 @@ function EditGoals() {
                         <FaPlus /> Add Milestone
                     </Button>
                   <div className='gap-2 flex flex-row'>
-                {section == "edit goal" && 
-                  <DeleteDialog handleDelete={handleDelete}>
-                    <Button variant="outline" >
-                            Delete
-                    </Button>
-                  </DeleteDialog>}
                 <Button onClick={handleSave}>
-                    Save
+                    Create
                 </Button>
                   </div>
             </div>
@@ -151,4 +111,4 @@ function EditGoals() {
   );
 }
 
-export default EditGoals;
+export default CreateGoal;

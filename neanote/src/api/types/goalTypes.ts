@@ -14,7 +14,6 @@ export interface Goal {
 
 export interface Milestone {
     milestoneid: UUID;
-    goalid: number;
 
     description: string;
     completed: boolean;
@@ -34,5 +33,5 @@ export interface GoalResponse {
 
 export interface GoalCreateResponse {
     message: string
-    data: {goalid: UUID, noteid: UUID};
+    data: {goalid: UUID, noteid: UUID, milestones: Milestone[]};
 }

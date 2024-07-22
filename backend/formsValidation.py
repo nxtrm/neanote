@@ -60,37 +60,38 @@ class HabitUpdateSchema(Schema):
     noteid = fields.Int(required=True)
     habitid = fields.Int(required=True)   
 
-class MilestoneCreateSchema(Schema) :
+class MilestoneSchema(Schema) :
     description = fields.Str(required=True, validate=lambda s: len(s) > 0)
     completed = fields.Bool(required=True)
     index = fields.Int(required=True)
 
-    goalid = fields.Int(required=False)
-    milestoneid = fields.Str(required=True)
+    # goalid = fields.UUID(required=True)
+    milestoneid = fields.UUID(required=False)
 
-class MilestoneUpdateSchema(Schema) :
-    description = fields.Str(required=True, validate=lambda s: len(s) > 0)
-    completed = fields.Bool(required=True)
-    index = fields.Int(required=True)
 
-    goalid = fields.Int(required=False)
-    milestoneid = fields.Int(required=True)
-
-class GoalUpdateSchema(Schema):
+class GoalSchema(Schema):
     title = fields.Str(required=True, validate=lambda s: len(s) > 0)
     content = fields.Str(required=False)
     tags = fields.List(fields.Nested(TagSchema), required=False) 
     due_date = fields.Str(required=False,allow_none=True)
     tags = fields.List(fields.Int(), required=False)
-    milestones = fields.List(fields.Nested(MilestoneUpdateSchema), required=False)
+    milestones = fields.List(fields.Nested(MilestoneSchema), required=False, allow_none=True)
 
-    noteid = fields.Int(required=True)
-    goalid = fields.Int(required=True)   
+    noteid = fields.UUID(required=True)
+    goalid = fields.UUID(required=True)   
 
 class GoalCreateSchema(Schema) :
     title = fields.Str(required=True, validate=lambda s: len(s) > 0)
     content = fields.Str(required=False)
     due_date = fields.Str(required=False,allow_none=True)
     tags = fields.List(fields.Int(), required=False)
-    milestones = fields.List(fields.Nested(MilestoneCreateSchema), required=False)
+    milestones = fields.List(fields.Nested(MilestoneSchema), required=False)
 
+
+# class MilestoneUpdateSchema(Schema) :
+#     description = fields.Str(required=True, validate=lambda s: len(s) > 0)
+#     completed = fields.Bool(required=True)
+#     index = fields.Int(required=True)
+
+#     goalid = fields.Int(required=False)
+#     milestoneid = fields.Int(required=True)
