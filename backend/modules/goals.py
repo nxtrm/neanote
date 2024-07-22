@@ -319,7 +319,7 @@ def goal_routes(app, conn):
                     UPDATE Notes
                     SET title = %s, content = %s
                     WHERE id = %s AND user_id = %s
-                """, (data['title'], data['content'], note_id, userId))
+                """, (data['title'], data['content'], str(note_id), str(userId)))
 
                 cur.execute("""
                         UPDATE Goals 
@@ -327,7 +327,7 @@ def goal_routes(app, conn):
                         WHERE note_id = %s
                     """, (due_date, note_id))
 
-                cur.execute("DELETE FROM NoteTags WHERE note_id = %s", (note_id,))
+                cur.execute("DELETE FROM NoteTags WHERE note_id = %s", (str(note_id),))
 
                 for tag_id in data['tags']:
                     cur.execute("""
@@ -349,7 +349,7 @@ def goal_routes(app, conn):
                             INSERT INTO Milestones (goal_id, description, completed, ms_index)
                             VALUES (%s, %s, %s, %s)
                             RETURNING id
-                        """, (data['goalid'], milestone['description'], milestone['completed'], milestone['index']))
+                        """, (goal_id, milestone['description'], milestone['completed'], milestone['index']))
                         new_milestone_id = cur.fetchone()[0]
                         conn.commit()
                 
@@ -375,7 +375,7 @@ def goal_routes(app, conn):
         # Initialize cursor outside of try block to ensure it's defined for the finally block
         cur = None
         try:
-            cur = conn.cursor()
+            cur = conn.cursor(cursor_factory = psycopg2.extras.DictCursor)
 
             # FIXME: This is not working
             if not verify_goal_ownership(userId, goal_id, cur):

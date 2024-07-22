@@ -18,6 +18,7 @@ export interface Milestone {
     description: string;
     completed: boolean;
     index: number;
+    isNew?: boolean;
 }
 
 export interface GoalsPreview {

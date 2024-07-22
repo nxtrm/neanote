@@ -13,7 +13,10 @@ const goalsApi = {
                 tags:selectedTagIds,
                 content,
                 due_date,
-                milestones,
+                milestones: milestones.map((milestone) => {
+                    const {description, completed, index} = milestone
+                    return {description, completed, index};
+                }),
             });
 
             if (response.status === 200) {
@@ -58,7 +61,7 @@ const goalsApi = {
           }
     },
 
-    getGoal: async (noteId: UUID) => {
+    getGoal: async (noteId: string) => {
         try {
             const response = await a.get<GoalResponse>("/api/goal", {params: {noteId}});
             return response.data;

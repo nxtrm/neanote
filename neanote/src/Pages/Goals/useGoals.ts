@@ -34,7 +34,7 @@ type GoalState = {
     handleUpdateGoal: () => Promise<void>;
     handleDeleteGoal: (goalid: UUID, noteid: UUID) => Promise<void>;
     fetchGoalPreviews: (pageParam: number) => Promise<void>;
-    fetchGoal: (noteId: UUID) => Promise<null | GoalResponse>;
+    fetchGoal: (noteId: string) => Promise<null | GoalResponse>;
 
     handleAddMilestone: () => void
     handleRemoveMilestone: (milestoneid:UUID) => void
@@ -45,13 +45,15 @@ type GoalState = {
 
     loading:boolean;
     setLoading: (loading: boolean) => void;
+
+    pendingChanges:boolean
 }
 
 export const useGoals = create<GoalState>()(
     immer((set, get) => ({
         goalPreviews: [],
         
-        
+        pendingChanges: false,
         section: "all goals",
         
         loading: false,
@@ -102,18 +104,26 @@ export const useGoals = create<GoalState>()(
             const { tags, selectedTagIds } = useTags.getState();
       
             if (currentGoal) {
-
               const { goalid, noteid, title, content, due_date, milestones } = currentGoal;
-      
+
+              const preparedMilestones = currentGoal.milestones.map(milestone => {
+                const { isNew, ...rest } = milestone;
+                if (isNew) {
+                  // For new milestones, exclude the milestoneid when sending to the backend
+                  const { milestoneid, ...newMilestoneRest } = rest;
+                  return newMilestoneRest;
+                }
+                return rest;
+              });
+          
               const updatedGoal = {
                 goalid,
                 noteid,
-
                 title,
-                tags: selectedTagIds, 
+                tags: selectedTagIds,
                 content,
-                due_date : due_date,
-                milestones
+                due_date,
+                milestones: preparedMilestones,
               };
       
               const previousGoals = get().goalPreviews;
@@ -127,12 +137,10 @@ export const useGoals = create<GoalState>()(
               if (!response) {
                 // revert update
                 set({ goalPreviews: previousGoals});
+              } else {
+                set({pendingChanges: false })
               }
       
-              set((state) => {
-                state.section = 'all goals';
-              });
-              resetCurrentGoal
             }
 
           },
@@ -146,6 +154,7 @@ export const useGoals = create<GoalState>()(
                       description: '', 
                       completed: false, 
                       index: milestones.length,
+                      isNew: true,
                   });
                   milestones.forEach((ms, idx) => ms.index = idx);
                 }
@@ -165,7 +174,7 @@ export const useGoals = create<GoalState>()(
               useGoals.getState().setLoading(false);
             },
 
-          fetchGoal: async(noteId:UUID) => {
+          fetchGoal: async(noteId:string) => {
               useGoals.getState().setLoading(true);
               const response = await goalsApi.getGoal(noteId);
               if (response && response.goal) {
@@ -197,15 +206,16 @@ export const useGoals = create<GoalState>()(
             handleMilestoneCompletion: async (goalid, milestoneid) => {
               const toggleMilestoneCompletion = (goalid, milestoneid) => {
                 set((state) => {
-                  // state.goalPreviews = state.goalPreviews.map((goal) => {
-                  //   if (goal.goalid === goalid) {
-                  //     const newMilestones = goal.milestones.map((milestone) => 
-                  //       milestone.milestoneid === milestoneid ? { ...milestone, completed: !milestone.completed } : milestone
-                  //     );
-                  //     return { ...goal, milestones: newMilestones };
-                  //   }
-                  //   return goal;
-                  // });
+                  state.goalPreviews = state.goalPreviews.map((goal) => {
+                    if (goal.goalid === goalid) {
+                      const newMilestones = goal.milestones.map((milestone) => 
+                        milestone.milestoneid === milestoneid ? { ...milestone, completed: !milestone.completed } : milestone
+                      );
+                      return { ...goal, milestones: newMilestones };
+                    }
+                    return goal;
+                  });
+
                   state.currentGoal = {...state.currentGoal, milestones:  state.currentGoal.milestones.map((milestone) => 
                     milestone.milestoneid === milestoneid ? { ...milestone, completed: !milestone.completed } : milestone
                 )
@@ -224,6 +234,9 @@ export const useGoals = create<GoalState>()(
 
         updateCurrentGoal: <K extends keyof Goal>(key: K, value: Goal[K]) => 
             set((state) => {
+              if (!state.pendingChanges) {
+                state.pendingChanges = true;
+              }
               if (state.currentGoal) {
                 state.currentGoal[key] = value;
               }

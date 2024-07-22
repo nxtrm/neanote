@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { FaRegTrashAlt } from 'react-icons/fa';
+import { FaRegTrashAlt, FaSpinner } from 'react-icons/fa';
 import { FaPlus } from 'react-icons/fa6';
 import { MdCancel } from 'react-icons/md';
 import { useNavigate } from 'react-router-dom';
@@ -15,10 +15,12 @@ import { useTags } from '../Tags/useTags';
 import { DatePicker } from '../Tasks/DatePicker/DatePicker';
 import EditGoalsSkeleton from './EditGoalsSkeleton';
 import { useGoals } from './useGoals';
+import Milestones from './FormComponents/Milestones';
+import Inputs from './FormComponents/Inputs';
 
 
 function EditGoals() {
-  const {currentGoal, loading, section, handleDeleteGoal, fetchGoal, handleMilestoneCompletion, resetCurrentGoal,handleCreateGoal, handleUpdateGoal, handleAddMilestone, handleRemoveMilestone, updateCurrentGoal} = useGoals();
+  const {currentGoal, loading, pendingChanges, section, handleDeleteGoal, fetchGoal, handleMilestoneCompletion, resetCurrentGoal,handleCreateGoal, handleUpdateGoal, handleAddMilestone, handleRemoveMilestone, updateCurrentGoal} = useGoals();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -44,10 +46,12 @@ function EditGoals() {
       };
 
   const progress = calculateProgress();
+
   const handleClose = () => {
       localStorage.removeItem('currentGoalId');
       useGoals.setState({
         section: 'all goals',
+        pendingChanges: false
       })
       useTags.setState({
         selectedTagIds: [],
@@ -57,12 +61,7 @@ function EditGoals() {
     };
 
     const handleSave = async () => {
-      if (section === 'create') {
-        await handleCreateGoal();
-      } else {
         await handleUpdateGoal();
-      }
-      navigate('/goals');
     }
 
     const handleDelete = async () => {
@@ -76,7 +75,7 @@ function EditGoals() {
     <PageContainer>
         <div className="p-2">
             <div className='flex row justify-between'>
-                <h1 className="text-2xl font-bold mb-4">{section == "edit goal" ? 'Edit Goal' : 'Create Goal'}</h1>
+                <h1 className="text-2xl font-bold mb-4">Edit Goal</h1>
                 <div className='flex gap-2'>
                     <DatePicker onDateChange={(date) => updateCurrentGoal('due_date', new Date(date))} data={currentGoal.due_date} includeTime={false} />
                     <Button size='icon' onClick={handleClose}>
@@ -84,65 +83,25 @@ function EditGoals() {
                     </Button>
                 </div>
             </div>
-            <div className="flex flex-row gap-2 ">
-                <Input
-                    type="text"
-                    value={currentGoal?.title}
-                    placeholder='Title'
-                    onChange={(e) => updateCurrentGoal('title', e.target.value)}
-                    className="w-full p-2 border rounded"
-                />
-                <TagsDropdownMenu/>
-            </div>
-            <div className='pt-2 pb-3'>
-                    <Textarea
-                        value={currentGoal.content}
-                        placeholder='Describe your task here'
-                        onChange={(e) => updateCurrentGoal('content', e.target.value)}
-                        />
-            </div>
+                <Inputs content={currentGoal.content} title={currentGoal.title}/>
             <div className="mb-3">
                 <Progress className='rounded-sm mb-3' value={progress}/>
-                {currentGoal?.milestones.map((milestone) => (
-                  <div key={milestone.milestoneid} className="flex w-full items-center mb-2">
-                            {section == "edit goal" &&
-                                <div className='mr-2'>
-                                  <CheckBox 
-                                      checked={milestone.completed} 
-                                      onChange={() => handleMilestoneCompletion(currentGoal.goalid, milestone.milestoneid)} />
-                                </div>}
-                                <Input
-                                    type="text"
-                                    value={milestone.description}
-                                    onChange={(e) => updateCurrentGoal('milestones', currentGoal.milestones.map(ms => ms.milestoneid === milestone.milestoneid ? { ...ms, description: e.target.value } : ms))}
-                                    placeholder={milestone.index === 0 || milestone.index === currentGoal?.milestones.length - 1   ? "Starting Point" : `Milestone ${milestone.index + 1}`}
-                                    className="flex-grow p-2 border rounded mr-2"
-                                />
-                                <Button size="icon" variant={"secondary"} 
-                                        disabled={
-                                            milestone.index === 0 || // First item
-                                            milestone.index === currentGoal?.milestones.length - 1 // Last item
-                                          } 
-                                        onClick={() => handleRemoveMilestone(milestone.milestoneid)}>
-                                    <FaRegTrashAlt />
-                                </Button>
-                                        
-                    </div>
-                ))}
+                <Milestones goal={currentGoal}/>
             </div>
+
             <div className='flex flex-row justify-between'>
                 <Button size="sm"  className="gap-2 " onClick={handleAddMilestone}>
                         <FaPlus /> Add Milestone
                     </Button>
                   <div className='gap-2 flex flex-row'>
-                {section == "edit goal" && 
+
                   <DeleteDialog handleDelete={handleDelete}>
                     <Button variant="outline" >
                             Delete
                     </Button>
-                  </DeleteDialog>}
-                <Button onClick={handleSave}>
-                    Save
+                  </DeleteDialog>
+                <Button disabled={!pendingChanges} onClick={handleSave}>
+                  {loading ? 'Saving...' : 'Save'}
                 </Button>
                   </div>
             </div>
