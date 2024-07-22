@@ -2,6 +2,7 @@ import axios from "axios";
 import { showToast } from "../../components/Toast";
 import a from "./api";
 import { GoalCreateResponse, GoalResponse, GoalsPreview } from "./types/goalTypes";
+import { UUID } from "crypto";
 
 const goalsApi = {
     create: async (title, tags, content, due_date, milestones) => {
@@ -56,7 +57,7 @@ const goalsApi = {
           }
     },
 
-    getGoal: async (noteId: number) => {
+    getGoal: async (noteId: UUID) => {
         try {
             const response = await a.get<GoalResponse>("/api/goal", {params: {noteId}});
             return response.data;
@@ -74,7 +75,7 @@ const goalsApi = {
             return null; 
         }},
 
-    completeMilestone: async (goalid:number,milestoneid: number) => {
+    completeMilestone: async (goalid:UUID,milestoneid: UUID) => {
         try {
             const response = await a.put(`/api/goals/milestone/complete`, {goalid, milestoneid});
             if (response.status === 200) {
@@ -113,7 +114,7 @@ const goalsApi = {
         
     }},
 
-    delete: async (goalid: number, noteid: number) => {
+    delete: async (goalid: UUID, noteid: UUID) => {
         try {
             const response = await a.delete(`/api/goals/delete`, {params: {goalid, noteid}});
 

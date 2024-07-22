@@ -11,11 +11,11 @@ import {Progress} from '../../../../components/@/ui/progress';
 import './GoalCard.css';
 import { Label } from '../../../../components/@/ui/label';
 import CheckBox from "../../../../components/CheckBox/CheckBox";
+import { UUID } from 'crypto';
 
 
 function GoalCard({ goal }: { goal: Goal }) { 
     const {
-
         setSection,
         loading,
         handleMilestoneCompletion
@@ -23,9 +23,9 @@ function GoalCard({ goal }: { goal: Goal }) {
   
       const navigate = useNavigate()
   
-      function handleEditClick(noteId) {
+      function handleEditClick(noteId : UUID) {
         setSection('edit goal');
-        localStorage.setItem('currentGoalId', noteId.toString());
+        localStorage.setItem('currentGoalId', noteId);
         navigate('/goals/edit');
     }
   

@@ -1,8 +1,8 @@
 from flask import Flask, jsonify
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
-from flask_mysqldb import MySQL
 import jwt
+import psycopg2 
 from config import Config
 from modules.habits import habit_routes
 from modules.tasks import task_routes
@@ -15,8 +15,16 @@ app = Flask(__name__)
 app.config.from_object(Config)
 
 CORS(app, resources={r"/api/*": {"origins": ["http://localhost:5173"]}} , supports_credentials=True)
-mysql = MySQL(app)
 jwt = JWTManager(app)
+
+conn = psycopg2.connect(
+    host="localhost",
+    database=Config.database,
+    user=Config.user,
+    password=Config.password,
+    port=Config.port
+
+)
 
 # limiter = Limiter( 
 #     get_remote_address,
@@ -25,11 +33,11 @@ jwt = JWTManager(app)
 # )
 
 
-task_routes(app,mysql)
-habit_routes(app,mysql)
-goal_routes(app, mysql)
-tag_routes(app,mysql)
-user_routes(app,mysql)
+# task_routes(app, conn)
+# habit_routes(app, conn)
+goal_routes(app,  conn)
+# tag_routes(app, conn)
+user_routes(app, conn)
 
 #Centralized error handler
 @app.errorhandler(Exception)

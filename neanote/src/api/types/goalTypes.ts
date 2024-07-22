@@ -1,8 +1,9 @@
+import { UUID } from "crypto";
 import { Tag } from "./tagTypes";
 
 export interface Goal {
-    goalid: number;
-    noteid: number;
+    goalid: UUID;
+    noteid: UUID;
 
     title: string;
     content :string
@@ -12,7 +13,7 @@ export interface Goal {
 }
 
 export interface Milestone {
-    milestoneid: number;
+    milestoneid: UUID;
     goalid: number;
 
     description: string;
@@ -33,5 +34,5 @@ export interface GoalResponse {
 
 export interface GoalCreateResponse {
     message: string
-    data: {goalid: number, noteid: number};
+    data: {goalid: UUID, noteid: UUID};
 }

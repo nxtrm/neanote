@@ -20,10 +20,10 @@ import { useGoals } from './useGoals';
 function EditGoals() {
   const {currentGoal, loading, section, handleDeleteGoal, fetchGoal, handleMilestoneCompletion, resetCurrentGoal,handleCreateGoal, handleUpdateGoal, handleAddMilestone, handleRemoveMilestone, updateCurrentGoal} = useGoals();
   const navigate = useNavigate();
+  
   useEffect(() => {
-      const noteIdStr = localStorage.getItem('currentGoalId');
-      if (noteIdStr) {
-        const noteId = parseInt(noteIdStr, 10); 
+      const noteId = localStorage.getItem('currentGoalId');
+      if (noteId) {
         fetchGoal(noteId);
         useTags.setState({
           selectedTagIds: [],
@@ -57,7 +57,7 @@ function EditGoals() {
     };
 
     const handleSave = async () => {
-      if (currentGoal?.goalid === -1) {
+      if (section === 'create') {
         await handleCreateGoal();
       } else {
         await handleUpdateGoal();

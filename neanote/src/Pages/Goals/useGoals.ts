@@ -4,6 +4,7 @@ import { Goal, GoalResponse, GoalsPreview } from "../../api/types/goalTypes";
 import { v4 as uuidv4 } from 'uuid';
 import { useTags } from "../Tags/useTags";
 import goalsApi from "../../api/goalsApi";
+import { UUID } from "crypto";
 
 type GoalState = {
     goalPreviews: Goal[];
@@ -13,13 +14,13 @@ type GoalState = {
     updateCurrentGoal: <K extends keyof Goal>(key: K, value: Goal[K]) => void;
     handleCreateGoal: () => Promise<void>;
     handleUpdateGoal: () => Promise<void>;
-    handleDeleteGoal: (goalid: number, noteid: number) => Promise<void>;
+    handleDeleteGoal: (goalid: UUID, noteid: UUID) => Promise<void>;
     fetchGoalPreviews: (pageParam: number) => Promise<void>;
-    fetchGoal: (noteId: number) => Promise<null | GoalResponse>;
+    fetchGoal: (noteId: UUID) => Promise<null | GoalResponse>;
 
     handleAddMilestone: () => void
-    handleRemoveMilestone: (milestoneid) => void
-    handleMilestoneCompletion: (goalid:number, milestoneid:number) => Promise<void>
+    handleRemoveMilestone: (milestoneid:UUID) => void
+    handleMilestoneCompletion: (goalid:UUID, milestoneid:UUID) => Promise<void>
 
     section:string
     setSection: (section: string) => void;
@@ -32,8 +33,8 @@ export const useGoals = create<GoalState>()(
     immer((set, get) => ({
         goalPreviews: [],
         currentGoal: {
-            goalid: -1,
-            noteid: -1,
+            goalid: uuidv4(),
+            noteid: uuidv4(),
             title: '',
             content: '',
             due_date: undefined,
@@ -51,8 +52,8 @@ export const useGoals = create<GoalState>()(
         resetCurrentGoal: () => {
             set((state) => {
                 state.currentGoal = {             
-                    goalid: -1,
-                    noteid: -1,
+                    goalid: uuidv4(),
+                    noteid: uuidv4(),
                     title: '',
                     content: '',
                     due_date: undefined,
@@ -160,7 +161,7 @@ export const useGoals = create<GoalState>()(
               useGoals.getState().setLoading(false);
             },
 
-          fetchGoal: async(noteId:number) => {
+          fetchGoal: async(noteId:UUID) => {
               useGoals.getState().setLoading(true);
               const response = await goalsApi.getGoal(noteId);
               if (response && response.goal) {

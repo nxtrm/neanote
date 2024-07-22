@@ -2,12 +2,12 @@
 from datetime import datetime
 from flask import Blueprint, g, jsonify, request
 from flask_jwt_extended import jwt_required
-from MySQLdb.cursors import DictCursor
 from formsValidation import GoalCreateSchema, GoalUpdateSchema
 from utils import token_required, verify_milestone_ownership, verify_goal_ownership
+import psycopg2.extras
 
 
-def goal_routes(app, mysql):
+def goal_routes(app, conn):
 
 #GOALS MODULE
     @app.route('/api/goals/create', methods=['POST'])
@@ -19,54 +19,64 @@ def goal_routes(app, mysql):
 
             goal_schema = GoalCreateSchema()
             data = goal_schema.load(request.get_json())
-            
 
             title = data['title']
             content = data['content']
             tags = data['tags']
-            milestones= data['milestones']
+            milestones = data['milestones']
             due_date = data.get('due_date')
-            
 
-            cur = mysql.connection.cursor()
-
-            if due_date is not None:
+            if due_date:
                 due_date = datetime.fromisoformat(due_date.rstrip("Z"))
 
+            cur = conn.cursor()
 
             cur.execute(
-                "INSERT INTO Notes (user_id, title, content, type) VALUES (%s, %s, %s, %s)",
+                """
+                INSERT INTO Notes (user_id, title, content, type)
+                VALUES (%s, %s, %s, %s) RETURNING id
+                """,
                 (userId, title, content, 'goal')
             )
-
-            cur.execute("SELECT LAST_INSERT_ID()")
             noteId = cur.fetchone()[0]
 
             cur.execute(
-                "INSERT INTO Goals (note_id, due_date) VALUES (%s, %s)",
-                (noteId, due_date,)
+                """
+                INSERT INTO Goals (note_id, due_date)
+                VALUES (%s, %s) RETURNING id
+                """,
+                (noteId, due_date)
             )
-            cur.execute("SELECT LAST_INSERT_ID()")
             goalId = cur.fetchone()[0]
 
-            if len(milestones)>0:
-                for milestone in milestones:
-                    cur.execute(
-                        "INSERT INTO Milestones (goal_id, description, completed, ms_index) VALUES (%s, %s, %s, %s)",
-                        (goalId, milestone['description'], False, milestone['index'])
-                    )
+            if milestones:
+                milestone_tuples = [
+                    (goalId, milestone['description'], False, milestone['index'])
+                    for milestone in milestones
+                ]
+                cur.executemany(
+                    """
+                    INSERT INTO Milestones (goal_id, description, completed, ms_index)
+                    VALUES (%s, %s, %s, %s)
+                    """,
+                    milestone_tuples
+                )
 
-            if len(tags)>0:
-                for tagId in tags:
-                    cur.execute(
-                        "INSERT INTO NoteTags (note_id, tag_id) VALUES (%s, %s)",
-                        (noteId, tagId)
-                    )
-           
-            mysql.connection.commit()
-            return jsonify({'message': 'Task created successfully', 'data' : {'noteId': noteId, 'goalId': goalId}}), 200
+            if tags:
+                tag_tuples = [(noteId, tagId) for tagId in tags]
+                cur.executemany(
+                    """
+                    INSERT INTO NoteTags (note_id, tag_id)
+                    VALUES (%s, %s)
+                    """,
+                    tag_tuples
+                )
+
+            conn.commit()
+            return jsonify({'message': 'Task created successfully', 'data': {'noteId': noteId, 'goalId': goalId}}), 200
+
         except Exception as e:
-            mysql.connection.rollback()
+            conn.rollback()
             raise
 
     @app.route('/api/goals/previews', methods=['GET'])
@@ -80,7 +90,7 @@ def goal_routes(app, mysql):
             per_page = int(request.args.get('per_page', 10))  # Default to 10 items per page
             offset = (page - 1) * per_page
 
-            cur = mysql.connection.cursor(cursorclass=DictCursor)
+            cur = conn.cursor(cursor_factory = psycopg2.extras.DictCursor)
 
             # Fetch the total count of goals for pagination metadata
             cur.execute(""" 
@@ -150,12 +160,12 @@ def goal_routes(app, mysql):
                         goals[note_id]['tags'].append(tag)
 
             goals_list = [value for key, value in goals.items()]
-            mysql.connection.commit()
+            conn.commit()
             nextPage = page + 1 if (offset + per_page) < total else None
 
             return jsonify({"goals": goals_list, 'nextPage': nextPage, 'message': "Goals fetched successfully"}), 200
         except Exception as e:
-            mysql.connection.rollback()
+            conn.rollback()
             print(f"An error occurred: {e}")  
             raise
         finally:
@@ -168,7 +178,7 @@ def goal_routes(app, mysql):
         try:
             userId = g.userId
             noteid=request.args.get('noteId')
-            cur = mysql.connection.cursor(cursorclass=DictCursor)
+            cur = conn.cursor()
 
             query = """ 
                 SELECT 
@@ -226,14 +236,14 @@ def goal_routes(app, mysql):
                     if tag not in goal['tags']:
                         goal['tags'].append(tag)
 
-            mysql.connection.commit()
+            conn.commit()
 
             if goal:
                 return jsonify({"goal": goal, 'message': "Goal fetched successfully"}), 200
             else:
                 return jsonify({'message': "Goal not found"}), 404
         except Exception as e:
-            mysql.connection.rollback()
+            conn.rollback()
             print(f"An error occurred: {e}")  
             raise
         finally:
@@ -245,7 +255,7 @@ def goal_routes(app, mysql):
     def complete_milestone():
         try:
             userId = g.userId
-            cur = mysql.connection.cursor(cursorclass=DictCursor)
+            cur = conn.cursor()
             data = request.get_json()
             milestone_id = data['milestoneid']
             goal_id = data['goalid']
@@ -257,10 +267,10 @@ def goal_routes(app, mysql):
                                             WHEN completed = 1 THEN 0 
                                             ELSE 1 
                                         END  = TRUE WHERE id = %s""", (milestone_id,))
-            mysql.connection.commit()
+            conn.commit()
             return jsonify({'message': 'Milestone toggled successfully'}), 200
         except Exception as e:
-            mysql.connection.rollback()
+            conn.rollback()
             print(f"An error occurred: {e}")  
             raise
         finally:
@@ -276,7 +286,7 @@ def goal_routes(app, mysql):
             goal_schema = GoalUpdateSchema()
             data = goal_schema.load(request.get_json())
 
-            cur = mysql.connection.cursor(cursorclass=DictCursor)
+            cur = conn.cursor()
             note_id = data['noteid']
             goal_id = data['goalid']
             due_date = data.get('due_date')
@@ -319,10 +329,10 @@ def goal_routes(app, mysql):
                         (milestone['description'], milestone['completed'], milestone['index'], milestone['milestoneid'])
                     )
             
-            mysql.connection.commit()
+            conn.commit()
             return jsonify({'message': 'Goal updated successfully'}), 200
         except Exception as e:
-            mysql.connection.rollback()
+            conn.rollback()
             raise
         finally:
             cur.close()
@@ -333,7 +343,7 @@ def goal_routes(app, mysql):
     def delete_goal():
         try:
             userId = g.userId
-            cur = mysql.connection.cursor(cursorclass=DictCursor)
+            cur = conn.cursor()
             note_id =request.args.get('noteid')
             goal_id =request.args.get('goalid')
 
@@ -345,11 +355,11 @@ def goal_routes(app, mysql):
             cur.execute("DELETE FROM Notes WHERE id = %s", (note_id,))
             cur.execute("DELETE FROM NoteTags WHERE note_id = %s", (note_id,))
                         
-            mysql.connection.commit()
+            conn.commit()
             return jsonify({'message': 'Goal deleted successfully'}), 200
         except Exception as e:
-            if mysql.connection:
-                mysql.connection.rollback()
+            if conn:
+                conn.rollback()
             raise
         finally:
             cur.close()

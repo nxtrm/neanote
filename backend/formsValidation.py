@@ -9,7 +9,6 @@ class LoginSchema(Schema):
     username = fields.Str(required=True, validate=lambda s: len(s) > 4)
     password = fields.Str(required=True, validate=lambda s: len(s) >= 6)
 
-
 class SubtaskSchema(Schema):
     description = fields.Str(required=True, validate=lambda s: len(s) > 0)
 
