@@ -19,7 +19,7 @@ class SubtaskSchema(Schema):
 class TagSchema(Schema):
     name = fields.Str(required=True, validate=lambda s: len(s) > 0)
     color = fields.Str(required=True, validate=lambda s: len(s) == 7)
-    tagid = fields.Int(required=False)  
+    tagid = fields.UUID(required=False)  
 
 class TaskSchema(Schema):
     title = fields.Str(required=True, validate=lambda s: len(s) > 0)
@@ -58,16 +58,15 @@ class HabitUpdateSchema(Schema):
     streak = fields.Int(required=True)
 
     noteid = fields.Int(required=True)
-    habitid = fields.Int(required=True)   
+    habitid = fields.Int(required=True)  
+
 
 class MilestoneSchema(Schema) :
     description = fields.Str(required=True, validate=lambda s: len(s) > 0)
     completed = fields.Bool(required=True)
     index = fields.Int(required=True)
 
-    # goalid = fields.UUID(required=True)
     milestoneid = fields.UUID(required=False)
-
 
 class GoalSchema(Schema):
     title = fields.Str(required=True, validate=lambda s: len(s) > 0)
@@ -77,15 +76,15 @@ class GoalSchema(Schema):
     tags = fields.List(fields.Int(), required=False)
     milestones = fields.List(fields.Nested(MilestoneSchema), required=False, allow_none=True)
 
-    noteid = fields.UUID(required=True)
-    goalid = fields.UUID(required=True)   
+    noteid = fields.UUID(required=False)
+    goalid = fields.UUID(required=False)   
 
-class GoalCreateSchema(Schema) :
-    title = fields.Str(required=True, validate=lambda s: len(s) > 0)
-    content = fields.Str(required=False)
-    due_date = fields.Str(required=False,allow_none=True)
-    tags = fields.List(fields.Int(), required=False)
-    milestones = fields.List(fields.Nested(MilestoneSchema), required=False)
+# class GoalCreateSchema(Schema) :
+#     title = fields.Str(required=True, validate=lambda s: len(s) > 0)
+#     content = fields.Str(required=False)
+#     due_date = fields.Str(required=False,allow_none=True)
+#     tags = fields.List(fields.Int(), required=False)
+#     milestones = fields.List(fields.Nested(MilestoneSchema), required=False)
 
 
 # class MilestoneUpdateSchema(Schema) :

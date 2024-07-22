@@ -2,7 +2,7 @@
 from datetime import datetime
 from flask import Blueprint, g, jsonify, request
 from flask_jwt_extended import jwt_required
-from formsValidation import GoalCreateSchema, GoalSchema
+from formsValidation import  GoalSchema
 from utils import token_required, verify_milestone_ownership, verify_goal_ownership
 import psycopg2.extras
 
@@ -17,7 +17,7 @@ def goal_routes(app, conn):
         try:
             userId = g.userId
 
-            goal_schema = GoalCreateSchema()
+            goal_schema = GoalSchema()
             data = goal_schema.load(request.get_json())
 
             title = data['title']

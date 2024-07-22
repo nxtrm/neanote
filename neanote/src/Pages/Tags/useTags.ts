@@ -5,7 +5,7 @@ import tagsApi from '../../api/tagsApi';
 type TagState = {
     section: string;
     setSection: (section: string) => void;
-    tags: Tag[];
+    tags: Tag[]; //FIXME FINISH UP HERE
     fetchTags: () => Promise<void>;
     tagTitle: string;
     setTagTitle: (title: string) => void;
