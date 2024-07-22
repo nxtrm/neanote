@@ -22,14 +22,27 @@ function EditGoals() {
       const noteId = localStorage.getItem('currentGoalId');
       if (noteId) {
         fetchGoal(noteId);
-        useTags.setState({
-          selectedTagIds: 
-          currentGoal.tags.map(tag => {
-            return tag.tagid
-          }),
-        })
+        if (currentGoal.tags) {
+          const mappedTagIds = currentGoal.tags.map(tag => tag.tagid);
+          useTags.setState({
+            selectedTagIds: mappedTagIds,
+          });
+        }
       }
       }, []);
+    
+  useEffect(() => {
+        if (currentGoal.tags) {
+          console.log('Current tags:', currentGoal.tags);
+      
+          const mappedTagIds = currentGoal.tags.map(tag => tag.tagid);
+          console.log('Mapped Tag IDs:', mappedTagIds); 
+      
+          useTags.setState({
+            selectedTagIds: mappedTagIds,
+          });
+        }
+      }, [currentGoal.tags]);
     
   useEffect(() => {    
       const progress = calculateProgress();

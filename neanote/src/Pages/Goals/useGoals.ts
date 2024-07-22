@@ -47,6 +47,7 @@ type GoalState = {
     setLoading: (loading: boolean) => void;
 
     pendingChanges:boolean
+    setPendingChanges(value: boolean): void;
 }
 
 export const useGoals = create<GoalState>()(
@@ -60,6 +61,7 @@ export const useGoals = create<GoalState>()(
         setLoading: (loading) => set({loading}),
         
         setSection: (section) => set({section}),
+        setPendingChanges: (value) => set({pendingChanges: value}),
         
         resetCurrentGoal: () => {
           set(() => ({

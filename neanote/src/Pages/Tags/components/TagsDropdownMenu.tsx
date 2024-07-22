@@ -7,9 +7,12 @@ import {
 import { Button } from "../../../../components/@/ui/button";
 import { useTags } from "../useTags";
 import TagLabel from "./TagLabel";
-import { Tag, Tags } from "lucide-react";
 
-function TagsDropdownMenu() {
+interface Props {
+  onChange: () => void
+}
+
+function TagsDropdownMenu({onChange}:Props) {
   const { tags, fetchTags} = useTags();
 
   React.useEffect(() => {
@@ -30,6 +33,7 @@ function TagsDropdownMenu() {
             tagId={tag.tagid}
             title={tag.name}
             color={tag.color}
+            onChange={onChange}
           />
         ))}
       </DialogContent>

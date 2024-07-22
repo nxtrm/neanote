@@ -7,7 +7,7 @@ import { useGoals } from '../useGoals'
 
 
 function FormInputs({content, title}: Partial<Goal>) {
-  const {updateCurrentGoal} = useGoals()
+  const {updateCurrentGoal, setPendingChanges} = useGoals()
   return (
     <div>            
         <div className="flex flex-row gap-2 ">
@@ -18,7 +18,7 @@ function FormInputs({content, title}: Partial<Goal>) {
                 onChange={(e) => updateCurrentGoal('title', e.target.value)}
                 className="w-full p-2 border rounded"
             />
-            <TagsDropdownMenu/>
+            <TagsDropdownMenu onChange={()=>setPendingChanges(true)}/>
         </div>
         <div className='pt-2 pb-3'>
                 <Textarea

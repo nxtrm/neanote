@@ -9,9 +9,10 @@ interface Props {
   tagId: UUID;
   color: string;
   title: string;
+  onChange: () => void;
 }
 
-function TagLabel({ color, title, tagId }: Props) {
+function TagLabel({ color, title, tagId, onChange }: Props) {
   const { selectedTagIds, setSelectedTagIds } = useTags();
   const checked = selectedTagIds.includes(tagId);
 
@@ -23,6 +24,7 @@ function TagLabel({ color, title, tagId }: Props) {
       ? selectedTagIds.filter((id) => id !== tagId)
       : [...selectedTagIds, tagId];
     setSelectedTagIds(newSelectedTagIds);
+    onChange()
   }
 
   return (
