@@ -13,38 +13,25 @@ import { useNavigate } from 'react-router-dom';
 import { useTags } from '../Tags/useTags';
 import CheckBox from '../../../components/CheckBox/CheckBox';
 import FormInputs from './FormComponents/FormInputs';
-import DeleteDialog from '../../../components/DeleteDialog/DeleteDialog';
-import EditTasksSkeleton from './EditTasksSkeleton';
 
 function EditTasks() {
   const {
     currentTask,
-    pendingChanges, loading,
     section,
     toggleTaskCompleted,
+    pendingChanges, loading,
     toggleSubtaskCompleted,
     fetchTask,
     updateCurrentTask,
     handleAddSubtask,
     handleRemoveSubtask,
-    handleEditTask,
     resetCurrentTask,
+    handleEditTask,
     handleSaveTask,
     handleDeleteTask,
   } = useTasks();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const noteId = localStorage.getItem('currentTaskId');
-    if (noteId) {
-      fetchTask(noteId);
-      if (currentTask.tags) {
-        const mappedTagIds = currentTask.tags.map(tag => tag.tagid);
-        useTags.setState({
-          selectedTagIds: mappedTagIds,
-        });
-    }}
-  }, []);
 
   const handleClose = () => {
     localStorage.removeItem('currentTaskId');
@@ -59,12 +46,12 @@ function EditTasks() {
   };
 
   const handleSave = async () => {
-    await handleEditTask();
-    navigate('/tasks');
+    await handleSaveTask();
+    navigate('/tasks/edit');
   }
 
   const handleDelete = async () => {
-    await handleDeleteTask(currentTask?.taskid, currentTask?.noteid)
+    await handleDeleteTask(currentTask.taskid, currentTask.noteid)
     navigate('/tasks');
   }
 
@@ -73,8 +60,10 @@ function EditTasks() {
       toggleTaskCompleted(currentTask.taskid);
     }
 
-};
-  if (loading) return <EditTasksSkeleton/>
+    };
+  if (!currentTask) {
+    return null
+  }
 
   if (currentTask) {
   return (
@@ -82,59 +71,46 @@ function EditTasks() {
       <div className='p-1'>
         {/* Navbar */}
         <div className='flex flex-row justify-between'>
-          <p className='pl-1 text-2xl font-bold'>Edit Task</p>
+          <p className='pl-1 text-2xl font-bold'>Create Task</p>
           {/* Date Picker */}
           <div className='flex flex-row gap-2'>
             <DatePicker onDateChange={(date) => updateCurrentTask('due_date', new Date(date))} data={currentTask.due_date} includeTime={true} />
             <Button size='icon' onClick={handleClose}>
               <MdCancel size={15} />
-            </Button>
+        </Button>
           </div>
         </div>
 
-        <div className='py-3'>
-          <Separator />
-        </div>
 
         {/* Title and tags */}
         <FormInputs title={currentTask.title} content={currentTask.content} />
 
-        {/* Input Field */}
-        <div className='pt-3 rounded-md'>
           {currentTask?.subtasks
-           .slice()
-           .sort((a, b) => a.index - b.index)
-          .map((subtask, index) => (
-            <div key={subtask.subtaskid} className='flex pt-3 gap-2 items-center'>
-              <CheckBox checked={subtask.completed} onChange={()=>toggleSubtaskCompleted(currentTask.taskid, subtask.subtaskid)} />
-              <Input type='text' value={subtask.description} onChange={(e) => updateCurrentTask('subtasks', currentTask.subtasks.map(st => st.subtaskid === subtask.subtaskid ? { ...st, description: e.target.value } : st))} />
-              <Button onClick={() => handleRemoveSubtask(subtask.subtaskid)} variant='secondary' size='icon'>
-                <FaRegTrashAlt />
-              </Button>
-            </div>
+            .slice()
+            .sort((a, b) => a.index - b.index)
+            .map((subtask, index) => (
+                <div key={subtask.subtaskid} className='flex pt-2 gap-2 items-center'>
+                <Input type='text' value={subtask.description} onChange={(e) => updateCurrentTask('subtasks', currentTask.subtasks.map(st => st.subtaskid === subtask.subtaskid ? { ...st, description: e.target.value } : st))} />
+                <Button onClick={() => handleRemoveSubtask(subtask.subtaskid)} variant='secondary' size='icon'>
+                    <FaRegTrashAlt />
+                </Button>
+                </div>
           ))}
 
-              {/* Footer */}
-            <div className='flex py-3 justify-between'>
+{/* Footer */}
+            <div className='flex pt-2 justify-between'>
               <Button onClick={handleAddSubtask}>
                   <div className='flex flex-row items-center gap-2'>
                         <FaPlus /> 
                         Add Subtask
                       </div>
                     </Button>
-                    <div className='flex flex-row gap-2'>
-                        <DeleteDialog handleDelete={handleDelete}>
-                          <Button variant="outline" >
-                                  Delete
-                          </Button>
-                        </DeleteDialog>
-                      <Button disabled={!pendingChanges} onClick={handleSave}>
+                    <Button disabled={!pendingChanges} onClick={handleSave}>
                         {loading ? 'Saving...' : 'Save'}
                       </Button>
-                    </div>
+                    
                 </div>
         </div>
-      </div>
     </PageContainer>
   );
 }

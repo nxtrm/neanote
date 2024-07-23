@@ -17,8 +17,8 @@ const generateNewCurrentGoal = () => {
     due_date: undefined,
     tags: [],
     milestones: [
-      { milestoneid: uuidv4(), description: '', completed: false, index: 0, },
-      { milestoneid: uuidv4(), description: '', completed: false, index: 1, }
+      { milestoneid: uuidv4(), description: '', completed: false, index: 0, isNew: true },
+      { milestoneid: uuidv4(), description: '', completed: false, index: 1, isNew: true }
     ]
   };
 };
@@ -101,7 +101,7 @@ export const useGoals = create<GoalState>()(
             }}
           },
 
-          handleUpdateGoal: async () => {
+        handleUpdateGoal: async () => {
             const { currentGoal, resetCurrentGoal, setLoading } = get();
             const { tags, selectedTagIds } = useTags.getState();
       
@@ -147,7 +147,7 @@ export const useGoals = create<GoalState>()(
 
           },
 
-          handleAddMilestone: () => 
+        handleAddMilestone: () => 
               set((state) => {
                 if (state.currentGoal) {
                   const milestones = state.currentGoal.milestones;
@@ -162,7 +162,7 @@ export const useGoals = create<GoalState>()(
                 }
               }),
 
-          fetchGoalPreviews: async (pageParam: number) => {
+        fetchGoalPreviews: async (pageParam: number) => {
               useGoals.getState().setLoading(true);
               const fetchedGoals = await goalsApi.get_previews(pageParam);
               if (fetchedGoals && fetchedGoals.data) {
@@ -176,7 +176,7 @@ export const useGoals = create<GoalState>()(
               useGoals.getState().setLoading(false);
             },
 
-          fetchGoal: async(noteId:string) => {
+        fetchGoal: async(noteId:string) => {
               useGoals.getState().setLoading(true);
               const response = await goalsApi.getGoal(noteId);
               if (response && response.goal) {
@@ -194,7 +194,7 @@ export const useGoals = create<GoalState>()(
               return response
             },
         
-          handleRemoveMilestone: (milestoneid) => {
+        handleRemoveMilestone: (milestoneid) => {
                 set((state) => {
 
                     if (state.currentGoal) {
@@ -205,7 +205,7 @@ export const useGoals = create<GoalState>()(
                 })
             },
         
-            handleMilestoneCompletion: async (goalid, milestoneid) => {
+        handleMilestoneCompletion: async (goalid, milestoneid) => {
               const toggleMilestoneCompletion = (goalid, milestoneid) => {
                 set((state) => {
                   state.goalPreviews = state.goalPreviews.map((goal) => {

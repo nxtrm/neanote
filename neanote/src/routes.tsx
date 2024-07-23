@@ -19,6 +19,7 @@ import EditHabits from './Pages/Habits/EditHabits.tsx';
 import Goals from './Pages/Goals/Goals.tsx';
 import EditGoals from './Pages/Goals/EditGoals.tsx';
 import CreateGoal from './Pages/Goals/CreateGoal.tsx';
+import CreateTask from './Pages/Tasks/CreateTask.tsx';
 
 
 const CheckedLayout = withTokenCheck(Layout);
@@ -34,7 +35,7 @@ const AppRouter = () => (
 
         <Route path="tasks" element={<Tasks/>} />
         <Route path="tasks/edit" element={<EditTasks/>} />
-        <Route path="tasks/create" element={<EditTasks/>} />
+        <Route path="tasks/create" element={<CreateTask/>} />
 
         <Route path="habits" element={<Habits/>} />
         <Route path="habits/edit" element={<EditHabits/>} />

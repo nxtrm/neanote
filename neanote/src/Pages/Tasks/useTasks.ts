@@ -4,50 +4,83 @@ import tasksApi from '../../api/tasksApi';
 import { Task, TaskResponse } from '../../api/types/taskTypes';
 import { useTags } from '../Tags/useTags';
 import { v4 as uuidv4 } from 'uuid';
+import { UUID } from 'crypto';
+
+const generateNewCurrentTask = () => {
+
+  return {
+    taskid: uuidv4(),
+    noteid: uuidv4(),
+    title: '',
+    tags: [],
+    content: '',
+    subtasks: [],
+    due_date: undefined,
+    completed: false,
+  };
+};
 
 type TaskState = {
   loading:boolean;
   setLoading: (loading: boolean) => void;
+  
   section: string;
-  currentTask: Task | null;
-  tasks: Task[];
-  pendingUpdates: Partial<Task> | null;
   setSection: (section: string) => void;
+
+  currentTask: Task;
+  setCurrentTask: (task: Task) => void;
+  resetCurrentTask: () => void;
   updateCurrentTask: (key: keyof Task, value: any) => void;
+
+  tasks: Task[];
   handleAddSubtask: () => void;
-  handleRemoveSubtask: (subtaskId: number) => void;
+  handleRemoveSubtask: (subtaskId:UUID) => void;
   handleSaveTask: () => Promise<void>;
   handleEditTask: () => Promise<void>;
-  handleDeleteTask: (taskId: number | undefined, noteId: number | undefined) => Promise<void>;
-  toggleTaskCompleted: (taskId: number) => Promise<void>;
-  toggleSubtaskCompleted: (subtaskId: number, taskId: number) => Promise<void>;
-  setCurrentTask: (task: Task) => void;
+  handleDeleteTask: (taskId:UUID, noteId:UUID) => Promise<void>;
+  toggleTaskCompleted: (taskId:UUID) => Promise<void>;
+  toggleSubtaskCompleted: (subtaskId:UUID, taskId:UUID) => Promise<void>;
   
   fetchTaskPreviews: (pageParam:number) => Promise<void>;
-  fetchTask: (noteId: number) => Promise<TaskResponse | false>;
+  fetchTask: (noteId:string) => Promise<TaskResponse | false>;
+
+  pendingChanges:boolean
+  setPendingChanges(value: boolean): void;
 };
 
 export const useTasks = create<TaskState>()(
   immer((set, get) => ({
     section: 'all tasks',
-    currentTask: null,
     selectedTagIds: [],
     tasks: [],
-    pendingUpdates: null,
     loading: false,
+    currentTask: generateNewCurrentTask(),
 
+    pendingChanges: false,
+
+    setPendingChanges: (value) => set({pendingChanges: value}),
+    
     setLoading : (loading) => set({ loading }),
-
+    
     setSection: (section) => set({ section }),
-
+    
     updateCurrentTask: <K extends keyof Task>(key: K, value: Task[K]) => 
       set((state) => {
         if (state.currentTask) {
           state.currentTask[key] = value;
+          state.pendingChanges = true;
         }
       }),
+      
+      resetCurrentTask: () => {
+        set((state) => {
+          state.currentTask = generateNewCurrentTask()
+          state.pendingChanges = false;
+        })
+      },
+      
 
-      fetchTaskPreviews: async (pageParam: number) => {
+    fetchTaskPreviews: async (pageParam: number) => {
         const setLoading = useTasks.getState().setLoading;
         const fetchedTasks = await tasksApi.getTaskPreviews(pageParam);
         if (fetchedTasks) { 
@@ -55,7 +88,7 @@ export const useTasks = create<TaskState>()(
         }
       },
 
-    fetchTask : async (noteId:number) => {
+    fetchTask : async (noteId:string) => {
       const response = await tasksApi.getTask(noteId);
       if (response) {
         set((state) => {
@@ -70,20 +103,26 @@ export const useTasks = create<TaskState>()(
     handleAddSubtask: () => 
       set((state) => {
         if (state.currentTask) {
-          state.currentTask.subtasks.push({ subtask_id: uuidv4(), description: '', completed: false });
+          const subtasks = state.currentTask.subtasks
+          subtasks.push({ subtaskid: uuidv4(), description: '', completed: false, index: subtasks.length });
+
+          subtasks.forEach((st, idx) => st.index = idx);
         }
       }),
 
-    handleRemoveSubtask: (subtaskId) => 
+    handleRemoveSubtask: (subtaskid) => 
       set((state) => {
         if (state.currentTask) {
-          state.currentTask.subtasks = state.currentTask.subtasks.filter((subtask) => subtask.subtask_id !== subtaskId);
+          const subtasks = state.currentTask.subtasks.filter((subtask) => subtask.subtaskid !== subtaskid);
+          subtasks.forEach((ms, idx) => ms.index = idx);
+          state.currentTask.subtasks = subtasks;
         }
       }),
 
     handleSaveTask: async () => {
-      const { currentTask } = get();
+      const { currentTask, setLoading } = get();
       const {selectedTagIds} = useTags.getState();
+      setLoading(true);
 
       if (currentTask) {
         // const result = TaskSchema.safeParse(currentTask);
@@ -98,17 +137,19 @@ export const useTasks = create<TaskState>()(
 
         if (response) {
           set((state) => {
-            state.tasks.push(currentTask)
-            state.currentTask = null;
+            state.tasks.push(currentTask) //assign ids here
             state.section = 'all tasks';
+            state.pendingChanges = false;
+            state.loading = false;
           });
         }
       }
     },
 
     handleEditTask: async () => {
-      const { currentTask } = get();
+      const { currentTask, setLoading } = get();
       const { tags, selectedTagIds } = useTags.getState();
+      setLoading(true);
 
       if (currentTask) {
 
@@ -136,19 +177,21 @@ export const useTasks = create<TaskState>()(
         // optimistic update
         set((state) => {
             state.tasks = state.tasks.map((task) => (task.taskid === taskid ? updatedTask : task));
-            state.pendingUpdates = updatedTask;
           });
 
         const response = await tasksApi.update(updatedTask);
         if (!response) {
           // revert update
-          set({ tasks: previousTasks, pendingUpdates: null });
+          set({ 
+            tasks: previousTasks ,
+          });
+        } else {
+          set((state) => {
+            state.pendingChanges = false
+            setLoading(false);
+          })
         }
 
-        set((state) => {
-          state.currentTask = null;
-          state.section = 'all tasks';
-        });
       }
       },
 
@@ -191,7 +234,7 @@ export const useTasks = create<TaskState>()(
         state.tasks = state.tasks.map((task) => {
           if (task.taskid === taskId) {
             const newSubtasks = task.subtasks.map((subtask) => 
-              subtask.subtask_id === subtaskId ? { ...subtask, completed: !subtask.completed } : subtask
+              subtask.subtaskid === subtaskId ? { ...subtask, completed: !subtask.completed } : subtask
             );
             return { ...task, subtasks: newSubtasks };
           }

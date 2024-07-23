@@ -30,19 +30,7 @@ function EditGoals() {
         }
       }
       }, []);
-    
-  useEffect(() => {
-        if (currentGoal.tags) {
-          console.log('Current tags:', currentGoal.tags);
-      
-          const mappedTagIds = currentGoal.tags.map(tag => tag.tagid);
-          console.log('Mapped Tag IDs:', mappedTagIds); 
-      
-          useTags.setState({
-            selectedTagIds: mappedTagIds,
-          });
-        }
-      }, [currentGoal.tags]);
+
     
   useEffect(() => {    
       const progress = calculateProgress();

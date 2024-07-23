@@ -7,7 +7,7 @@ import { FaRegTrashAlt } from 'react-icons/fa'
 import { Button } from '../../../../components/@/ui/button'
 
 function Milestones({goal}: { goal: Goal}) {
-  const {section, updateCurrentGoal, handleRemoveMilestone, handleMilestoneCompletion, currentGoal} = useGoals()
+  const {section, updateCurrentGoal, handleRemoveMilestone, handleMilestoneCompletion} = useGoals()
   return (
     <div>
         {goal.milestones
@@ -25,7 +25,7 @@ function Milestones({goal}: { goal: Goal}) {
                                 type="text"
                                 value={milestone.description}
                                 onChange={(e) => updateCurrentGoal('milestones', goal.milestones.map(ms => ms.milestoneid === milestone.milestoneid ? { ...ms, description: e.target.value } : ms))}
-                                placeholder={milestone.index === 0 || milestone.index === goal.milestones.length - 1   ? "Starting Point" : `Milestone ${milestone.index + 1}`}
+                                placeholder={milestone.index === 0   ? "Starting Point" : `Milestone ${milestone.index }`}
                                 className="flex-grow p-2 border rounded mr-2"
                                 />
                             <Button size="icon" variant={"secondary"} 

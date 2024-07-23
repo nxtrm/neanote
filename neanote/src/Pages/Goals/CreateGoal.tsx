@@ -20,7 +20,7 @@ import Inputs from './FormComponents/Inputs';
 
 
 function CreateGoal() {
-  const {currentGoal, loading, section, handleMilestoneCompletion, resetCurrentGoal,handleCreateGoal, handleUpdateGoal, handleAddMilestone, handleRemoveMilestone, updateCurrentGoal} = useGoals();
+  const {currentGoal, loading, section, pendingChanges, handleMilestoneCompletion, resetCurrentGoal,handleCreateGoal, handleUpdateGoal, handleAddMilestone, handleRemoveMilestone, updateCurrentGoal} = useGoals();
   const navigate = useNavigate();
 
   const handleClose = () => {
@@ -62,9 +62,9 @@ function CreateGoal() {
                         <FaPlus /> Add Milestone
                     </Button>
                   <div className='gap-2 flex flex-row'>
-                <Button onClick={handleSave}>
-                    Create
-                </Button>
+                    <Button disabled={!pendingChanges} onClick={handleSave}>
+                          {loading ? 'Saving...' : 'Save'}
+                    </Button>
                   </div>
             </div>
         </div>

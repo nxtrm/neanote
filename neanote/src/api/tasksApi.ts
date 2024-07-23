@@ -1,3 +1,4 @@
+import { UUID } from "crypto";
 import { showToast } from "../../components/Toast";
 import a from './api'
 import { TaskPreviewResponse, TaskResponse } from "./types/taskTypes";
@@ -9,7 +10,10 @@ const tasksApi = {
                 title,
                 tags,
                 content,
-                subtasks,
+                subtasks : subtasks.map((subtask) => {
+                    const {description, completed, index} = subtask
+                    return {description, completed, index};
+                }),
                 due_date,
             });
 
@@ -39,7 +43,7 @@ const tasksApi = {
     },
 
     
-    getTask: async (noteid: number) => {
+    getTask: async (noteid: string) => {
         try {
             let response = await a.get<TaskResponse>(`/api/task`, {params: {noteid}});
             return response.data;
@@ -60,7 +64,7 @@ const tasksApi = {
         }
     },
 
-    delete : async (taskId: number,noteId:number) => {
+    delete : async (taskId:UUID,noteId:UUID) => {
         try {
             const response = await a.put(`/api/tasks/delete`, {taskId,noteId})
             if (response.status === 200) {
@@ -72,7 +76,7 @@ const tasksApi = {
         }
     },
 
-    toggleCompleteness: async (taskId: number, subtaskId: number| null) => {
+    toggleCompleteness: async (taskId:UUID, subtaskId:UUID| null) => {
         try {
             const response = await a.put(`/api/tasks/toggle`, {"taskid": taskId,"subtaskid": subtaskId });
             if (response.status === 200) {

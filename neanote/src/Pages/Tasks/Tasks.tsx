@@ -9,7 +9,7 @@ import { useInfiniteQuery } from '@tanstack/react-query'
 import tasksApi from '../../api/tasksApi';
 
 const Tasks: React.FC = () => {
-  const { tasks, setSection, fetchTaskPreviews,  setCurrentTask, } = useTasks();
+  const { tasks, setSection, fetchTaskPreviews, resetCurrentTask,  setCurrentTask, } = useTasks();
   const navigate = useNavigate();
 
   const {
@@ -35,16 +35,7 @@ const Tasks: React.FC = () => {
   });
 
   const handleAddTaskClick = () => {
-    setCurrentTask({
-        taskid: -1,
-        noteid: -1,
-        title: '',
-        tags: [],
-        content: '',
-        subtasks: [],
-        due_date: undefined,
-        completed: false,
-      });
+    resetCurrentTask();
     setSection('create');
     navigate('/tasks/create')
   };
