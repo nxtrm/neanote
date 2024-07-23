@@ -61,7 +61,7 @@ def verify_task_ownership(user_id, task_id, cur):
     cur.execute(query, (task_id,))
     result = cur.fetchone()
 
-    if (len(result)<1) or (int(result['user_id']) != int(user_id)):
+    if (len(result)<1) or (result['user_id'] != user_id):
         print("False")
         return False
     return True
@@ -109,26 +109,20 @@ def verify_milestone_ownership(user_id, milestone_id, cur):
     result = cur.fetchone()
     print(result)
 
-    if (len(result)<1) or (str(result['user_id']) != str(user_id)):
+    if (len(result)<1) or (result['user_id'] != user_id):
         return False
     return True
 
 
 def verify_subtask_ownership(user_id, subtask_id, cur):
-    query = """
-    SELECT Notes.user_id
-    FROM Subtasks
-    JOIN Tasks ON Subtasks.task_id = Tasks.id
-    JOIN Notes ON Tasks.note_id = Notes.id
-    WHERE Subtasks.id = %s
-    """
-    cur.execute(query, (subtask_id,))
-    result = cur.fetchone()
-    print(subtask_id)
-
-    if (len(result)<1) or (int(result['user_id']) != int(user_id)):
-        return False
-    return True
+    cur.execute("""
+        SELECT st.id 
+        FROM Subtasks st
+        JOIN Tasks t ON st.task_id = t.id
+        JOIN Notes n ON t.note_id = n.id
+        WHERE st.id = %s AND n.user_id = %s
+    """, (subtask_id, user_id))
+    return cur.fetchone() is not None
 
 def verify_tag_ownership(user_id, tag_id, cur):
     query = """
@@ -139,6 +133,6 @@ def verify_tag_ownership(user_id, tag_id, cur):
     cur.execute(query, (tag_id,))
     result = cur.fetchone()
 
-    if (len(result)<1) or (int(result['user_id']) != int(user_id)):
+    if (len(result)<1) or (result['user_id'] != user_id):
         return False
     return True

@@ -85,7 +85,7 @@ def goal_routes(app, conn):
             conn.commit()
 
             return jsonify({
-                'message': 'Task created successfully',
+                'message': 'Goal created successfully',
                 'data': {
                     'noteId': noteId,
                     'goalId': goalId,

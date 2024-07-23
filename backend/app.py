@@ -33,7 +33,7 @@ conn = psycopg2.connect(
 # )
 
 
-# task_routes(app, conn)
+task_routes(app, conn)
 # habit_routes(app, conn)
 goal_routes(app,  conn)
 tag_routes(app, conn)

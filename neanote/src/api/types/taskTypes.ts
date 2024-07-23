@@ -25,10 +25,14 @@ export interface Task {
   };
 
   export interface TaskResponse {
-    data: Task;
+    task: Task;
     message: string
   }
 
+  export interface TaskCreateResponse {
+    message: string
+    data: {taskid: UUID, noteid: UUID, milestones: Subtask[]};
+}
 
   export interface TaskPreviewResponse {
     tasks: Task[];

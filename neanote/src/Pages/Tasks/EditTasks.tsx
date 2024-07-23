@@ -92,15 +92,10 @@ function EditTasks() {
           </div>
         </div>
 
-        <div className='py-3'>
-          <Separator />
-        </div>
-
         {/* Title and tags */}
         <FormInputs title={currentTask.title} content={currentTask.content} />
 
-        {/* Input Field */}
-        <div className='pt-3 rounded-md'>
+        <div className=' rounded-md'>
           {currentTask?.subtasks
            .slice()
            .sort((a, b) => a.index - b.index)

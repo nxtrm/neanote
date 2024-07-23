@@ -89,12 +89,20 @@ export const useTasks = create<TaskState>()(
       },
 
     fetchTask : async (noteId:string) => {
+      useTasks.getState().setLoading(true);
       const response = await tasksApi.getTask(noteId);
-      if (response) {
+      if (response && response.task) {
+        const dueDate = response.task.due_date ? new Date(response.task.due_date) : undefined;
+        const taskWithFormattedDate = {
+          ...response.task,
+          due_date: dueDate,
+        };
         set((state) => {
-          state.currentTask = response.data;
+          state.currentTask = taskWithFormattedDate;
+
         });
       }
+      useTasks.getState().setLoading(false);
       return response
     }
     ,
@@ -104,7 +112,7 @@ export const useTasks = create<TaskState>()(
       set((state) => {
         if (state.currentTask) {
           const subtasks = state.currentTask.subtasks
-          subtasks.push({ subtaskid: uuidv4(), description: '', completed: false, index: subtasks.length });
+          subtasks.push({ subtaskid: uuidv4(), description: '', completed: false, index: subtasks.length ? subtasks[subtasks.length - 1].index + 1 : 0 });
 
           subtasks.forEach((st, idx) => st.index = idx);
         }
@@ -133,11 +141,21 @@ export const useTasks = create<TaskState>()(
         // }
         
         const {title, content, subtasks, due_date } = currentTask;
-        const response = await tasksApi.create(title, selectedTagIds, content, subtasks, due_date ? due_date.toISOString() : undefined);
+        const response = await tasksApi.create(title, selectedTagIds, content, subtasks, due_date);
 
         if (response) {
           set((state) => {
-            state.tasks.push(currentTask) //assign ids here
+            state.tasks.push(({
+              taskid : response.data.taskid,
+              noteid : response.data.noteid,
+              title,
+              content,
+              completed:false,
+              due_date,
+              subtasks : response.data.subtasks,
+              tags: [],
+            })
+            ) //assign ids here
             state.section = 'all tasks';
             state.pendingChanges = false;
             state.loading = false;
@@ -148,7 +166,7 @@ export const useTasks = create<TaskState>()(
 
     handleEditTask: async () => {
       const { currentTask, setLoading } = get();
-      const { tags, selectedTagIds } = useTags.getState();
+      const { selectedTagIds } = useTags.getState();
       setLoading(true);
 
       if (currentTask) {
@@ -160,13 +178,13 @@ export const useTasks = create<TaskState>()(
         //   return; 
         // }
 
-        const { taskid, noteid, title, content, subtasks, due_date } = currentTask;
-        const filteredTags = tags.filter((tag) => selectedTagIds.includes(tag.tagid));
+        const { taskid, noteid, tags, title, content, completed, subtasks, due_date } = currentTask;
+  
 
-        const updatedTask: Task = {
+        const updatedTask = {
           ...currentTask,
           title,
-          tags: filteredTags,
+          tags: selectedTagIds,
           content,
           subtasks,
           due_date,
@@ -176,7 +194,7 @@ export const useTasks = create<TaskState>()(
 
         // optimistic update
         set((state) => {
-            state.tasks = state.tasks.map((task) => (task.taskid === taskid ? updatedTask : task));
+            state.tasks = state.tasks.map((task) => (task.taskid === taskid ? {taskid, noteid, title, content, subtasks, completed, tags, due_date} : task));
           });
 
         const response = await tasksApi.update(updatedTask);
@@ -188,9 +206,10 @@ export const useTasks = create<TaskState>()(
         } else {
           set((state) => {
             state.pendingChanges = false
-            setLoading(false);
+            
           })
         }
+        setLoading(false);
 
       }
       },

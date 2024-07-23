@@ -9,35 +9,30 @@ class LoginSchema(Schema):
     username = fields.Str(required=True, validate=lambda s: len(s) > 4)
     password = fields.Str(required=True, validate=lambda s: len(s) >= 6)
 
-class SubtaskSchema(Schema):
-    description = fields.Str(required=True, validate=lambda s: len(s) > 0)
-
-    completed = fields.Bool(required=True)
-    task_id = fields.Int(required=False)
-    subtask_id = fields.Int(required=True)
-
 class TagSchema(Schema):
     name = fields.Str(required=True, validate=lambda s: len(s) > 0)
     color = fields.Str(required=True, validate=lambda s: len(s) == 7)
     tagid = fields.UUID(required=False)  
 
+    
+class SubtaskSchema(Schema):
+    description = fields.Str(required=True, validate=lambda s: len(s) > 0)
+    completed = fields.Bool(required=True)
+    index = fields.Int(required=True)
+
+    subtaskid = fields.UUID(required=False)
+
 class TaskSchema(Schema):
     title = fields.Str(required=True, validate=lambda s: len(s) > 0)
     content = fields.Str(required=False)
-    due_date = fields.Str(required=False)
-    tags = fields.List(fields.Nested(TagSchema), required=False)  # Nested TagSchema for list of tags WILL NOT WORK WITH CREATE TASK, FIX
-    subtasks = fields.List(fields.Nested(SubtaskSchema), required=False)  # Nested SubtaskSchema for list of subtasks
-    completed = fields.Bool(required=True)
+    due_date = fields.Str(required=False, allow_none=True)
+    tags = fields.List(fields.UUID(), required=False)  # Nested TagSchema for list of tags WILL NOT WORK WITH CREATE TASK, FIX
+    subtasks = fields.List(fields.Nested(SubtaskSchema), required=False, allow_none=True)  # Nested SubtaskSchema for list of subtasks
+    completed = fields.Bool(required=False)
 
-    noteid = fields.Int(required=False)
-    taskid = fields.Int(required=False)
+    noteid = fields.UUID(required=False)
+    taskid = fields.UUID(required=False)
 
-class TaskCreateSchema(Schema):
-    title = fields.Str(required=True, validate=lambda s: len(s) > 0)
-    content = fields.Str(required=False)
-    due_date = fields.Str(required=False)
-    tags = fields.List(fields.Int(), required=False)
-    subtasks = fields.List(fields.Nested(SubtaskSchema), required=False)  
 
 class ReminderSchema(Schema):
     reminder_time = fields.Str(required=True)
