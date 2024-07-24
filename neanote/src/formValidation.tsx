@@ -42,6 +42,7 @@ export const loginFormSchema = z.object({
           subtaskid: z.string().uuid(),
           description: z.string().min(1, "Subtask description is required").max(500, "Subtask description cannot exceed 500 characters"),
           completed: z.boolean(),
+          index: z.number(),
         })
       ),
       due_date: z.date().optional(),

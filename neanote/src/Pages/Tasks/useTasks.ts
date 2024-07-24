@@ -250,7 +250,7 @@ export const useTasks = create<TaskState>()(
         }
         });
       }
-      console.log(tasks)
+    
     },
 
     toggleSubtaskCompleted: async (subtaskId, taskId) => {
@@ -265,7 +265,22 @@ export const useTasks = create<TaskState>()(
           return task;
         });
       });
-      await tasksApi.toggleCompleteness(taskId, subtaskId);
+      try {
+        const response = await tasksApi.toggleCompleteness(taskId, subtaskId);
+      } catch (error) {
+        // Revert subtask completion on failure
+        set((state) => {
+          state.tasks = state.tasks.map((task) => {
+            if (task.taskid === taskId) {
+              const revertedSubtasks = task.subtasks.map((subtask) => 
+                subtask.subtaskid === subtaskId ? { ...subtask, completed: !subtask.completed } : subtask
+              );
+              return { ...task, subtasks: revertedSubtasks };
+            }
+            return task;
+          });
+        });
+      }
     },
 
     setCurrentTask: (task) => 

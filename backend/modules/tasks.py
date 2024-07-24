@@ -132,7 +132,7 @@ def task_routes(app, conn):
                 for subtask in task.get('subtasks', []):
                     cur.execute("""
                         INSERT INTO Subtasks (task_id, description, completed, st_index) 
-                        VALUES (%s, %s, %s)
+                        VALUES (%s, %s, %s, %s)
                     """, (task_id, subtask['description'], subtask['completed'], subtask['index']))
 
                 cur.execute("DELETE FROM NoteTags WHERE note_id = %s", (note_id,))
@@ -196,7 +196,11 @@ def task_routes(app, conn):
                 if not subtaskId:
                     toggle_task_sql = """
                         UPDATE Tasks 
-                        SET completed = NOT completed
+                        SET completed = NOT completed,
+                            completion_timestamp = CASE 
+                                WHEN completed THEN NULL  -- If the task is being uncompleted, set timestamp to NULL
+                                ELSE CURRENT_TIMESTAMP    -- If the task is being completed, set timestamp to current date and time
+                            END
                         WHERE id = %s
                     """
                     cur.execute(toggle_task_sql, (taskId,))

@@ -16,22 +16,21 @@ class TagSchema(Schema):
 
     
 class SubtaskSchema(Schema):
-    description = fields.Str(required=True, validate=lambda s: len(s) > 0)
+    subtaskid = fields.UUID(required=False)
+    description = fields.Str(required=True, validate=lambda s: 500 >= len(s) > 0)
     completed = fields.Bool(required=True)
     index = fields.Int(required=True)
 
-    subtaskid = fields.UUID(required=False)
-
 class TaskSchema(Schema):
-    title = fields.Str(required=True, validate=lambda s: len(s) > 0)
-    content = fields.Str(required=False)
+    noteid = fields.UUID(required=False)
+    taskid = fields.UUID(required=False)
+    title = fields.Str(required=True, validate=lambda s: 100 >= len(s) > 0)
+    content = fields.Str(required=False, validate=lambda s: len(s) <= 1000)
     due_date = fields.Str(required=False, allow_none=True)
     tags = fields.List(fields.UUID(), required=False)  # Nested TagSchema for list of tags WILL NOT WORK WITH CREATE TASK, FIX
     subtasks = fields.List(fields.Nested(SubtaskSchema), required=False, allow_none=True)  # Nested SubtaskSchema for list of subtasks
     completed = fields.Bool(required=False)
 
-    noteid = fields.UUID(required=False)
-    taskid = fields.UUID(required=False)
 
 
 class ReminderSchema(Schema):
