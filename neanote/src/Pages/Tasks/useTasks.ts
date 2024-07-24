@@ -5,6 +5,9 @@ import { Task, TaskResponse } from '../../api/types/taskTypes';
 import { useTags } from '../Tags/useTags';
 import { v4 as uuidv4 } from 'uuid';
 import { UUID } from 'crypto';
+import { TaskSchema } from '../../formValidation';
+import { z } from 'zod';
+import { showToast } from '../../../components/Toast';
 
 const generateNewCurrentTask = () => {
 
@@ -46,6 +49,9 @@ type TaskState = {
 
   pendingChanges:boolean
   setPendingChanges(value: boolean): void;
+
+  validationErrors: Record<string, string | undefined>;
+  validateTask: () => boolean;
 };
 
 export const useTasks = create<TaskState>()(
@@ -54,6 +60,7 @@ export const useTasks = create<TaskState>()(
     selectedTagIds: [],
     tasks: [],
     loading: false,
+    validationErrors: {},
     currentTask: generateNewCurrentTask(),
 
     pendingChanges: false,
@@ -63,14 +70,36 @@ export const useTasks = create<TaskState>()(
     setLoading : (loading) => set({ loading }),
     
     setSection: (section) => set({ section }),
-    
-    updateCurrentTask: <K extends keyof Task>(key: K, value: Task[K]) => 
+
+    validateTask: () => {
+      const { currentTask } = get();
+      const result = TaskSchema.safeParse(currentTask);
+      if (!result.success) {
+        set((state) => {
+          const errors = Object.fromEntries(
+            Object.entries(result.error.flatten().fieldErrors).map(([key, value]) => [key, value.join(", ")])
+          );
+          state.validationErrors = errors;
+        });
+        return false;
+      } else {
+        set((state) => {
+          state.validationErrors = {};
+        });
+        return true;
+      }
+    },
+
+      updateCurrentTask: <K extends keyof Task>(key: K, value: Task[K]) => {
       set((state) => {
         if (state.currentTask) {
           state.currentTask[key] = value;
           state.pendingChanges = true;
         }
-      }),
+      });
+      get().validateTask();
+    },
+
       
       resetCurrentTask: () => {
         set((state) => {
@@ -81,11 +110,14 @@ export const useTasks = create<TaskState>()(
       
 
     fetchTaskPreviews: async (pageParam: number) => {
-        const setLoading = useTasks.getState().setLoading;
+        const {tasks} = get()
+        useTasks.getState().setLoading(true)
         const fetchedTasks = await tasksApi.getTaskPreviews(pageParam);
         if (fetchedTasks) { 
           set({ tasks: fetchedTasks.data })
+          console.log(tasks)
         }
+        useTasks.getState().setLoading(false)
       },
 
     fetchTask : async (noteId:string) => {
@@ -127,91 +159,50 @@ export const useTasks = create<TaskState>()(
         }
       }),
 
-    handleSaveTask: async () => {
-      const { currentTask, setLoading } = get();
-      const {selectedTagIds} = useTags.getState();
-      setLoading(true);
-
-      if (currentTask) {
-        // const result = TaskSchema.safeParse(currentTask);
-
-        // if (!result.success) {
-        //   showToast('e', 'Please fill in all required fields');
-        //   return; 
-        // }
-        
-        const {title, content, subtasks, due_date } = currentTask;
-        const response = await tasksApi.create(title, selectedTagIds, content, subtasks, due_date);
-
-        if (response) {
-          set((state) => {
-            state.tasks.push(({
-              taskid : response.data.taskid,
-              noteid : response.data.noteid,
-              title,
-              content,
-              completed:false,
-              due_date,
-              subtasks : response.data.subtasks,
-              tags: [],
-            })
-            ) //assign ids here
-            state.section = 'all tasks';
-            state.pendingChanges = false;
-            state.loading = false;
-          });
-        }
-      }
-    },
-
-    handleEditTask: async () => {
-      const { currentTask, setLoading } = get();
-      const { selectedTagIds } = useTags.getState();
-      setLoading(true);
-
-      if (currentTask) {
-
-        // const result = TaskSchema.safeParse(currentTask);
-
-        // if (!result.success) {
-        //   showToast('e', 'Please fill in all required fields');
-        //   return; 
-        // }
-
-        const { taskid, noteid, tags, title, content, completed, subtasks, due_date } = currentTask;
+      handleSaveTask: async () => {
+        const { currentTask, setLoading } = get();
+        const { selectedTagIds } = useTags.getState();
+        setLoading(true);
   
-
-        const updatedTask = {
-          ...currentTask,
-          title,
-          tags: selectedTagIds,
-          content,
-          subtasks,
-          due_date,
-        };
-
-        const previousTasks = get().tasks;
-
-        // optimistic update
-        set((state) => {
-            state.tasks = state.tasks.map((task) => (task.taskid === taskid ? {taskid, noteid, title, content, subtasks, completed, tags, due_date} : task));
-          });
-
-        const response = await tasksApi.update(updatedTask);
-        if (!response) {
-          // revert update
-          set({ 
-            tasks: previousTasks ,
-          });
+        if (get().validateTask()) {
+          const { title, content, subtasks, due_date } = currentTask;
+          const response = await tasksApi.create(title, selectedTagIds, content, subtasks, due_date);
+  
+          if (response) {
+            set((state) => {
+              state.tasks.push({ ...currentTask, taskid: response.data.taskid, noteid: response.data.noteid });
+              state.section = 'all tasks';
+              state.pendingChanges = false;
+              state.loading = false;
+            });
+          }
         } else {
-          set((state) => {
-            state.pendingChanges = false
-            
-          })
+          setLoading(false);
+          showToast('error', 'Validation failed');
         }
-        setLoading(false);
+      },
+  
+      handleEditTask: async () => {
+        const { currentTask, setLoading } = get();
+        const { selectedTagIds } = useTags.getState();
+        setLoading(true);
+  
+        if (get().validateTask()) {
+          const updatedTask = { ...currentTask, tags: selectedTagIds };
+          const response = await tasksApi.update(updatedTask);
+  
+          if (response) {
+            set((state) => {
+              state.tasks = state.tasks.map((task) => (task.taskid === currentTask.taskid ? currentTask : task));
+              state.pendingChanges = false;
+              state.loading = false;
+            });
+          }
+        } else {
+          setLoading(false);
+          showToast('error', 'Validation failed');
 
-      }
+        }
       },
 
     handleDeleteTask: async (taskId, noteId) => {
@@ -231,21 +222,35 @@ export const useTasks = create<TaskState>()(
     },
 
     toggleTaskCompleted: async (taskId) => {
+      const {tasks, section} = get()
+      console.log(tasks)
       set((state) => {
-        state.tasks = state.tasks.map((task) => 
-          task.taskid === taskId ? { ...task, completed: !task.completed } : task
+        if (section === 'all tasks') {
+          state.tasks = state.tasks.map((task) => 
+            task.taskid === taskId ? { ...task, completed: !task.completed } : task
         );
+      } else {
+
+        state.currentTask = state.currentTask ? { ...state.currentTask, completed: !state.currentTask.completed } : state.currentTask;
+      }
       });
       const response = await tasksApi.toggleCompleteness(taskId, null);
 
       // Revert the state if the API call fails
       if (!response) {
         set((state) => {
-          state.tasks = state.tasks.map((task) => 
-            task.taskid === taskId ? { ...task, completed: !task.completed } : task
+          if (section === 'all tasks') {
+
+            state.tasks = state.tasks.map((task) => 
+              task.taskid === taskId ? { ...task, completed: !task.completed } : task
           );
+        } else {
+
+          state.currentTask = state.currentTask ? { ...state.currentTask, completed: !state.currentTask.completed } : state.currentTask;
+        }
         });
       }
+      console.log(tasks)
     },
 
     toggleSubtaskCompleted: async (subtaskId, taskId) => {

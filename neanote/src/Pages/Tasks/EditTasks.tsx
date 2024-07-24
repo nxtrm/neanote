@@ -1,20 +1,18 @@
-import React, { useEffect } from 'react';
-import { Separator } from '@radix-ui/react-separator';
-import { Button } from '../../../components/@/ui/button';
-import { FaRegTrashAlt, FaPlus } from 'react-icons/fa';
+import React, { useEffect, useState } from 'react';
+import { FaPlus, FaRegTrashAlt } from 'react-icons/fa';
 import { MdCancel } from 'react-icons/md';
-import { Input } from '../../../components/@/ui/input';
-import { Textarea } from '../../../components/@/ui/textarea';
-import TagsDropdownMenu from '../Tags/components/TagsDropdownMenu';
-import { DatePicker } from './DatePicker/DatePicker';
-import { useTasks } from './useTasks';
-import PageContainer from '../../../components/PageContainer/PageContainer';
 import { useNavigate } from 'react-router-dom';
-import { useTags } from '../Tags/useTags';
+import { Button } from '../../../components/@/ui/button';
+import { Input } from '../../../components/@/ui/input';
 import CheckBox from '../../../components/CheckBox/CheckBox';
-import FormInputs from './FormComponents/FormInputs';
 import DeleteDialog from '../../../components/DeleteDialog/DeleteDialog';
+import PageContainer from '../../../components/PageContainer/PageContainer';
+import { useTags } from '../Tags/useTags';
+import { DatePicker } from './DatePicker/DatePicker';
 import EditTasksSkeleton from './EditTasksSkeleton';
+import FormInputs from './FormComponents/FormInputs';
+import { useTasks } from './useTasks';
+import {Label} from '../../../components/@/ui/label';
 
 function EditTasks() {
   const {
@@ -29,6 +27,7 @@ function EditTasks() {
     handleRemoveSubtask,
     handleEditTask,
     resetCurrentTask,
+    validationErrors,
     handleSaveTask,
     handleDeleteTask,
   } = useTasks();
@@ -61,7 +60,7 @@ function EditTasks() {
   const handleSave = async () => {
     await handleEditTask();
     navigate('/tasks');
-  }
+    }
 
   const handleDelete = async () => {
     await handleDeleteTask(currentTask?.taskid, currentTask?.noteid)
@@ -73,7 +72,9 @@ function EditTasks() {
       toggleTaskCompleted(currentTask.taskid);
     }
 
-};
+  };
+
+
   if (loading) return <EditTasksSkeleton/>
 
   if (currentTask) {
@@ -94,40 +95,49 @@ function EditTasks() {
 
         {/* Title and tags */}
         <FormInputs title={currentTask.title} content={currentTask.content} />
+        {validationErrors['title'] && (
+          <Label className='text-destructive'>{validationErrors['title']}</Label>
+        )}
+        {validationErrors['content'] && (
+          <Label className='text-destructive'>{validationErrors['content']}</Label>
+        )}
 
         <div className=' rounded-md'>
           {currentTask?.subtasks
-           .slice()
-           .sort((a, b) => a.index - b.index)
-          .map((subtask, index) => (
-            <div key={subtask.subtaskid} className='flex pt-3 gap-2 items-center'>
-              <CheckBox checked={subtask.completed} onChange={()=>toggleSubtaskCompleted(currentTask.taskid, subtask.subtaskid)} />
-              <Input type='text' value={subtask.description} onChange={(e) => updateCurrentTask('subtasks', currentTask.subtasks.map(st => st.subtaskid === subtask.subtaskid ? { ...st, description: e.target.value } : st))} />
-              <Button onClick={() => handleRemoveSubtask(subtask.subtaskid)} variant='secondary' size='icon'>
-                <FaRegTrashAlt />
+            .slice()
+            .sort((a, b) => a.index - b.index)
+            .map((subtask, index) => (
+              <div key={subtask.subtaskid} className='flex pt-3 gap-2 items-center'>
+                <CheckBox checked={subtask.completed} onChange={() => toggleSubtaskCompleted(currentTask.taskid, subtask.subtaskid)} />
+                <Input type='text' value={subtask.description} onChange={(e) => updateCurrentTask('subtasks', currentTask.subtasks.map(st => st.subtaskid === subtask.subtaskid ? { ...st, description: e.target.value } : st))} />
+                <Button onClick={() => handleRemoveSubtask(subtask.subtaskid)} variant='secondary' size='icon'>
+                  <FaRegTrashAlt />
+                </Button>
+              </div>
+            ))}
+
+          {/* Footer */}
+          {validationErrors['subtasks'] && (
+            <Label className='text-destructive'>{validationErrors['subtasks']}</Label>
+          )}
+          <div className='flex py-3 justify-between'>
+            <Button onClick={handleAddSubtask}>
+              <div className='flex flex-row items-center gap-2'>
+                <FaPlus />
+                Add Subtask
+              </div>
+            </Button>
+            <div className='flex flex-row gap-2'>
+              <DeleteDialog handleDelete={handleDelete}>
+                <Button variant="outline" >
+                  Delete
+                </Button>
+              </DeleteDialog>
+              <Button disabled={!pendingChanges} onClick={handleSave}>
+                {loading ? 'Saving...' : 'Save'}
               </Button>
             </div>
-          ))}
-
-              {/* Footer */}
-            <div className='flex py-3 justify-between'>
-              <Button onClick={handleAddSubtask}>
-                  <div className='flex flex-row items-center gap-2'>
-                        <FaPlus /> 
-                        Add Subtask
-                      </div>
-                    </Button>
-                    <div className='flex flex-row gap-2'>
-                        <DeleteDialog handleDelete={handleDelete}>
-                          <Button variant="outline" >
-                                  Delete
-                          </Button>
-                        </DeleteDialog>
-                      <Button disabled={!pendingChanges} onClick={handleSave}>
-                        {loading ? 'Saving...' : 'Save'}
-                      </Button>
-                    </div>
-                </div>
+          </div>
         </div>
       </div>
     </PageContainer>

@@ -131,9 +131,9 @@ def task_routes(app, conn):
                 cur.execute("DELETE FROM Subtasks WHERE task_id = %s", (task_id,))
                 for subtask in task.get('subtasks', []):
                     cur.execute("""
-                        INSERT INTO Subtasks (task_id, description, completed) 
+                        INSERT INTO Subtasks (task_id, description, completed, st_index) 
                         VALUES (%s, %s, %s)
-                    """, (task_id, subtask['description'], subtask['completed']))
+                    """, (task_id, subtask['description'], subtask['completed'], subtask['index']))
 
                 cur.execute("DELETE FROM NoteTags WHERE note_id = %s", (note_id,))
                 for tag in task.get('tags', []):

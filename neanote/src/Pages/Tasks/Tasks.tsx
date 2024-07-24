@@ -12,27 +12,31 @@ const Tasks: React.FC = () => {
   const { tasks, setSection, fetchTaskPreviews, resetCurrentTask,  setCurrentTask, } = useTasks();
   const navigate = useNavigate();
 
-  const {
-    data,
-    error,
-    fetchNextPage,
-    hasNextPage,
+  // const {
+  //   data,
+  //   error,
+  //   fetchNextPage,
+  //   hasNextPage,
    
-    isFetching,
-    isFetchingNextPage,
-    status,
-  } = useInfiniteQuery({
-    initialPageParam: 0,
-    queryKey: ['tasks'],
-    queryFn: async ({ pageParam}) =>  {
-      const response = await tasksApi.getTaskPreviews(pageParam)
-      return {
-        pages: response.data, 
-        nextPage: response.nextPage,
-      };
-    },
-    getNextPageParam: (lastPage, allPages) => lastPage.nextPage,
-  });
+  //   isFetching,
+  //   isFetchingNextPage,
+  //   status,
+  // } = useInfiniteQuery({
+  //   initialPageParam: 0,
+  //   queryKey: ['tasks'],
+  //   queryFn: async ({ pageParam}) =>  {
+  //     const response = await tasksApi.getTaskPreviews(pageParam)
+  //     return {
+  //       pages: response.data, 
+  //       nextPage: response.nextPage,
+  //     };
+  //   },
+  //   getNextPageParam: (lastPage, allPages) => lastPage.nextPage,
+  // });
+
+  useEffect(() => {
+    fetchTaskPreviews(1);
+  },[fetchTaskPreviews])
 
   const handleAddTaskClick = () => {
     resetCurrentTask();
@@ -51,7 +55,10 @@ const Tasks: React.FC = () => {
           </Button>
         </div>
         <div className="flex flex-col gap-3">
-          {data?.pages.map((page, pageIndex) => (
+          {tasks.map((task) => (
+            <TaskCard key={task.taskid} task={task} />
+          ))}
+          {/* {data?.pages.map((page, pageIndex) => (
             <React.Fragment key={pageIndex}>
               {page.pages.map((task) => (
                 <TaskCard key={task.taskid} task={task} />
@@ -65,7 +72,7 @@ const Tasks: React.FC = () => {
             >
               {isFetchingNextPage ? 'Loading more...' : 'Load More'}
             </Button>
-          )}
+          )} */}
         </div>
       </div>
     </PageContainer>

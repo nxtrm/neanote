@@ -336,7 +336,7 @@ def goal_routes(app, conn):
                     """, (note_id, str(tag_id)))  # Convert UUID to string if tag_id is a UUID
 
                 
-                for milestone in data['milestones']: #FIXME doesnt work for new milestones
+                for milestone in data['milestones']: #would not work if new milestone is resaved
                     if milestone.get('milestoneid'):
                         cur.execute("""
                             UPDATE Milestones

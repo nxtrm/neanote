@@ -30,11 +30,20 @@ export const loginFormSchema = z.object({
       description: z.string().min(1, "Description is required"),
       completed: z.boolean(),
     });
-    
-// export const TaskSchema = z.object({
-//       title: z.string().min(1, "Title is required"),
-//       content: z.string().optional(),
-//       due_date: z.date().optional(),
-//       subtasks: z.array(SubtaskSchema).optional(),
-//       tags: z.array(TagSchema).optional(),
-//     });
+
+    export const TaskSchema = z.object({
+      taskid: z.string().uuid(),
+      noteid: z.string().uuid(),
+      title: z.string().min(1, "Title is required").max(100, "Title cannot exceed 100 characters"),
+      tags: z.array(z.string().uuid()),
+      content: z.string().max(1000, "Content cannot exceed 1000 characters"),
+      subtasks: z.array(
+        z.object({
+          subtaskid: z.string().uuid(),
+          description: z.string().min(1, "Subtask description is required").max(500, "Subtask description cannot exceed 500 characters"),
+          completed: z.boolean(),
+        })
+      ),
+      due_date: z.date().optional(),
+      completed: z.boolean(),
+    });
