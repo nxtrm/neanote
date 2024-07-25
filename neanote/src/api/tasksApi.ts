@@ -4,95 +4,82 @@ import a from './api'
 import { TaskPreviewResponse, TaskResponse } from "./types/taskTypes";
 
 const tasksApi = {
-    create: async (title, tags, content, subtasks,due_date) => {
+    create: async (title, tags, content, subtasks, due_date) => {
         try {
             let response = await a.post(`/api/tasks/create`, {
                 title,
                 tags,
                 content,
-                subtasks : subtasks.map((subtask) => {
-                    const {description, completed, index} = subtask
-                    return {description, completed, index};
+                subtasks: subtasks.map((subtask) => {
+                    const { description, completed, index } = subtask;
+                    return { description, completed, index };
                 }),
                 due_date,
             });
 
             if (response.status === 200) {
-                showToast('s', 'Task has been created successfully');
+                return { success: true, data: response.data };
             } else {
-                showToast('e', 'There was an error creating the task')
+                return { success: false, message: 'There was an error creating the task' };
             }
-
-            return response.data;
         } catch (error) {
-            showToast('e', error);
-            return false;
+            return { success: false, message: error.message || 'An unknown error occurred' };
         }
     },
-    getTaskPreviews : async (pageParam) => {
+
+    getTaskPreviews: async (pageParam) => {
         try {
-            let response = await a.get<TaskPreviewResponse>(`/api/tasks/previews`, {params: {pageParam}});
-            return {
-                data: response.data.tasks,
-                nextPage: response.data.nextPage, 
-            };
+            let response = await a.get<TaskPreviewResponse>(`/api/tasks/previews`, { params: { pageParam } });
+            return { success: true, data: response.data.tasks, nextPage: response.data.nextPage };
         } catch (error) {
-            showToast('e', error);
-            throw error
+            return { success: false, message: error.message || 'Failed to fetch task previews' };
         }
     },
 
-    
     getTask: async (noteid: string) => {
         try {
-            let response = await a.get<TaskResponse>(`/api/task`, {params: {noteid}});
-            return response.data;
+            let response = await a.get<TaskResponse>(`/api/task`, { params: { noteid } });
+            return { success: true, data: response.data.task };
         } catch (error) {
-            showToast('e', error);
-            return false;
+            return { success: false, message: error.message || 'Failed to fetch task' };
         }
-    }
-    ,
+    },
 
     update: async (taskUpdates: {}) => {
         try {
             const response = await a.put(`/api/tasks/update`, taskUpdates);
-            return true
+            return response.status === 200
+                ? { success: true }
+                : { success: false, message: 'There was an error updating the task' };
         } catch (error) {
-            showToast('e', error);
-            return false
+            return { success: false, message: error.message || 'An unknown error occurred' };
         }
     },
 
-    delete : async (taskId:UUID,noteId:UUID) => {
+    delete: async (taskId: UUID, noteId: UUID) => {
         try {
-            const response = await a.put(`/api/tasks/delete`, {taskId,noteId})
-            if (response.status === 200) {
-                return true
-        }
+            const response = await a.put(`/api/tasks/delete`, { taskId, noteId });
+            return response.status === 200
+                ? { success: true }
+                : { success: false, message: 'Failed to delete task' };
         } catch (error) {
-            showToast('e', error);
-            return false
+            return { success: false, message: error.message || 'An unknown error occurred' };
         }
     },
 
-    toggleCompleteness: async (taskId:UUID, subtaskId:UUID| null) => {
+    toggleCompleteness: async (taskId: UUID, subtaskId: UUID | null) => {
         try {
-            const response = await a.put(`/api/tasks/toggle`, {"taskid": taskId,"subtaskid": subtaskId });
-            if (response.status === 200) {
-                
-            } else {
-                showToast('e', 'There was an error updating the task');
-            }
-            return true;
+            const response = await a.put(`/api/tasks/toggle`, { taskid: taskId, subtaskid: subtaskId });
+            return response.status === 200
+                ? { success: true }
+                : { success: false, message: 'Failed to toggle task completeness' };
         } catch (error) {
-            showToast('e', error);
-            return false;
+            return { success: false, message: error.message || 'An unknown error occurred' };
         }
-
     }
+};
 
     
-}
+
 
 export default tasksApi;

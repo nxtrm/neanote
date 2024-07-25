@@ -15,7 +15,7 @@ import CheckBox from '../../../components/CheckBox/CheckBox';
 import FormInputs from './FormComponents/FormInputs';
 import { Label } from '../../../components/@/ui/label';
 
-function EditTasks() {
+function CreateTask() {
   const {
     currentTask,
     section,
@@ -45,13 +45,7 @@ function EditTasks() {
 
   const handleClose = () => {
     localStorage.removeItem('currentTaskId');
-    useTasks.setState({
-      section: 'all tasks',
-    })
-    useTags.setState({
-      selectedTagIds: [],
-    })
-    resetCurrentTask()
+    resetCurrentTask();
     navigate('/tasks');
   };
 
@@ -84,7 +78,7 @@ function EditTasks() {
           <p className='pl-1 text-2xl font-bold'>Create Task</p>
           {/* Date Picker */}
           <div className='flex flex-row gap-2'>
-            <DatePicker onDateChange={(date) => updateCurrentTask('due_date', new Date(date))} data={currentTask.due_date} includeTime={true} />
+            <DatePicker onDateChange={(date) => updateCurrentTask('due_date',date)} data={currentTask.due_date} includeTime={true} />
             <Button size='icon' onClick={handleClose}>
               <MdCancel size={15} />
         </Button>
@@ -135,4 +129,4 @@ function EditTasks() {
 }
 }
 
-export default EditTasks;
+export default CreateTask;

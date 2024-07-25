@@ -1,5 +1,3 @@
-"use client"
-
 import * as React from "react"
 import { format } from "date-fns"
 import { Calendar as CalendarIcon } from "lucide-react"
@@ -15,9 +13,8 @@ import {
 import { Input } from "../../../../components/@/ui/input"
 import { useState, useEffect } from "react"
 
-
 interface DatePickerProps {
-  onDateChange: (newDate: string) => void;
+  onDateChange: (newDate: Date | null) => void;
   data?: Date;
   includeTime?: boolean;
 }
@@ -31,19 +28,15 @@ export function DatePicker({ onDateChange, data, includeTime = false }: DatePick
     } else {
       setDateTime(undefined);
     }
+    console.log(data)
   }, [data]);
-
-  const formatDate = (date: Date | undefined): string => {
-    if (!date) return '';
-    return includeTime ? date.toISOString() : format(date, 'yyyy-MM-dd');
-  };
 
   const handleDateSelect = (newDate: Date | undefined) => {
     if (newDate && dateTime) {
       newDate.setHours(dateTime.getHours(), dateTime.getMinutes());
     }
     setDateTime(newDate);
-    onDateChange(formatDate(newDate));
+    onDateChange(newDate || null);
   };
 
   const handleTimeSelect = (timeString: string) => {
@@ -53,7 +46,7 @@ export function DatePicker({ onDateChange, data, includeTime = false }: DatePick
     if (timeParts.length === 2) {
       newDateTime.setHours(timeParts[0], timeParts[1]);
       setDateTime(newDateTime);
-      onDateChange(formatDate(newDateTime));
+      onDateChange(newDateTime);
     } else {
       console.error('Invalid time format:', timeString);
     }
@@ -61,23 +54,22 @@ export function DatePicker({ onDateChange, data, includeTime = false }: DatePick
 
   const handleClear = () => {
     setDateTime(undefined);
-    onDateChange('');
+    onDateChange(null);
   };
 
   const formattedTime = (dateTime && includeTime) ? format(dateTime, "HH:mm") : "";
-
 
   return (
     <div>
       <Popover>
         <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          className={cn("w-[150px] justify-start text-left font-normal", !dateTime && "text-muted-foreground")}
-        >
-          <CalendarIcon className="mr-2 h-4 w-4" />
-          {dateTime ? format(dateTime, "PPP") : <span>Due date</span>}
-        </Button>
+          <Button
+            variant="outline"
+            className={cn("w-[150px] justify-start text-left font-normal", !dateTime && "text-muted-foreground")}
+          >
+            <CalendarIcon className="mr-2 h-4 w-4" />
+            {dateTime ? format(dateTime, "PPP") : <span>Due date</span>}
+          </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0">
           <Calendar
