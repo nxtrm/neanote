@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { useTags } from "../Tags/useTags";
 import goalsApi from "../../api/goalsApi";
 import { UUID } from "crypto";
+import { GoalSchema } from "../../formValidation";
 
 // Function to generate a new current goal object
 const generateNewCurrentGoal = () => {
@@ -48,12 +49,15 @@ type GoalState = {
 
     pendingChanges:boolean
     setPendingChanges(value: boolean): void;
+
+    validationErrors: Record<string, string | undefined>;
+    validateGoal: () => boolean;
 }
 
 export const useGoals = create<GoalState>()(
     immer((set, get) => ({
         goalPreviews: [],
-        
+        validationErrors:{},
         pendingChanges: false,
         section: "all goals",
         
@@ -234,15 +238,34 @@ export const useGoals = create<GoalState>()(
               }
             },
 
-        updateCurrentGoal: <K extends keyof Goal>(key: K, value: Goal[K]) => 
-            set((state) => {
-              if (!state.pendingChanges) {
-                state.pendingChanges = true;
+            validateGoal: () => {
+              const { currentGoal } = get();
+              const result = GoalSchema.safeParse(currentGoal);
+              if (!result.success) {
+                set((state) => {
+                  const errors = Object.fromEntries(
+                    Object.entries(result.error.flatten().fieldErrors).map(([key, value]) => [key, value.join(", ")])
+                  );
+                  state.validationErrors = errors;
+                });
+                return false;
+              } else {
+                set((state) => {
+                  state.validationErrors = {};
+                });
+                return true;
               }
-              if (state.currentGoal) {
-                state.currentGoal[key] = value;
-              }
-            }),
+            },
+            
+            updateCurrentGoal: <K extends keyof Goal>(key: K, value: Goal[K]) => {
+              set((state) => {
+                if (state.currentGoal) {
+                  state.currentGoal[key] = value;
+                  state.pendingChanges = true;
+                }
+              });
+              get().validateGoal();
+            },
 
         
         handleDeleteGoal: async (goalid, noteid) => {

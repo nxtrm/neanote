@@ -35,7 +35,7 @@ export const loginFormSchema = z.object({
       taskid: z.string().uuid(),
       noteid: z.string().uuid(),
       title: z.string().min(1, "Title is required").max(100, "Title cannot exceed 100 characters"),
-      tags: z.array(z.string().uuid()),
+      tags: z.array(z.string().uuid()), //tag ids
       content: z.string().max(1000, "Content cannot exceed 1000 characters"),
       subtasks: z.array(
         z.object({
@@ -43,8 +43,29 @@ export const loginFormSchema = z.object({
           description: z.string().min(1, "Subtask description is required").max(500, "Subtask description cannot exceed 500 characters"),
           completed: z.boolean(),
           index: z.number(),
+          isNew: z.boolean().optional(),
         })
       ),
       due_date: z.date().optional(),
       completed: z.boolean(),
+    });
+
+
+    export const GoalSchema = z.object({
+      goalid: z.string().uuid(),
+      noteid: z.string().uuid(),
+      title: z.string().min(1, "Title is required").max(100, "Title cannot exceed 100 characters"),
+      tags: z.array(z.string().uuid()), //tag ids
+      content: z.string().max(1000, "Content cannot exceed 1000 characters"),
+      subtasks: z.array(
+        z.object({
+          milestoneid: z.string().uuid(),
+
+          description: z.string().min(1, "Milestone description is required").max(500, "Milestone description cannot exceed 500 characters"),
+          completed: z.boolean(),
+          index: z.number(),
+          isNew: z.boolean().optional(),
+        })
+      ),
+      due_date: z.date().optional(),
     });

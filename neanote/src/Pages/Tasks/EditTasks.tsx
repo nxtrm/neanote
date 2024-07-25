@@ -44,11 +44,20 @@ function EditTasks() {
         });
     }}
   }, []);
+    
+  const [isValidationErrorsEmpty, setIsValidationErrorsEmpty] = useState(true);
+
+  useEffect(() => {
+    setIsValidationErrorsEmpty(
+      Object.keys(validationErrors).every(key => !validationErrors[key])
+    );
+  }, [validationErrors]);
 
   const handleClose = () => {
     localStorage.removeItem('currentTaskId');
     useTasks.setState({
       section: 'all tasks',
+      validationErrors: {},
     })
     useTags.setState({
       selectedTagIds: [],
@@ -73,8 +82,6 @@ function EditTasks() {
     }
 
   };
-
-
   if (loading) return <EditTasksSkeleton/>
 
   if (currentTask) {
@@ -133,7 +140,7 @@ function EditTasks() {
                   Delete
                 </Button>
               </DeleteDialog>
-              <Button disabled={!pendingChanges} onClick={handleSave}>
+              <Button disabled={!pendingChanges || !isValidationErrorsEmpty} onClick={handleSave}>
                 {loading ? 'Saving...' : 'Save'}
               </Button>
             </div>

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Separator } from '@radix-ui/react-separator';
 import { Button } from '../../../components/@/ui/button';
 import { FaRegTrashAlt, FaPlus } from 'react-icons/fa';
@@ -13,6 +13,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTags } from '../Tags/useTags';
 import CheckBox from '../../../components/CheckBox/CheckBox';
 import FormInputs from './FormComponents/FormInputs';
+import { Label } from '../../../components/@/ui/label';
 
 function EditTasks() {
   const {
@@ -27,10 +28,19 @@ function EditTasks() {
     handleRemoveSubtask,
     resetCurrentTask,
     handleEditTask,
+    validationErrors,
     handleSaveTask,
     handleDeleteTask,
   } = useTasks();
   const navigate = useNavigate();
+
+  const [isValidationErrorsEmpty, setIsValidationErrorsEmpty] = useState(true);
+
+  useEffect(() => {
+    setIsValidationErrorsEmpty(
+      Object.keys(validationErrors).every(key => !validationErrors[key])
+    );
+  }, [validationErrors]);
 
 
   const handleClose = () => {
@@ -83,7 +93,13 @@ function EditTasks() {
 
 
         {/* Title and tags */}
-        <FormInputs title={currentTask.title} content={currentTask.content} />
+          <FormInputs title={currentTask.title} content={currentTask.content} />
+          {validationErrors['title'] && (
+            <Label className='text-destructive'>{validationErrors['title']}</Label>
+          )}
+          {validationErrors['content'] && (
+            <Label className='text-destructive'>{validationErrors['content']}</Label>
+          )}
 
           {currentTask?.subtasks
             .slice()
@@ -97,7 +113,10 @@ function EditTasks() {
                 </div>
           ))}
 
-{/* Footer */}
+          {/* Footer */}
+          {validationErrors['subtasks'] && (
+            <Label className='text-destructive'>{validationErrors['subtasks']}</Label>
+          )}
             <div className='flex pt-2 justify-between'>
               <Button onClick={handleAddSubtask}>
                   <div className='flex flex-row items-center gap-2'>
@@ -105,7 +124,7 @@ function EditTasks() {
                         Add Subtask
                       </div>
                     </Button>
-                    <Button disabled={!pendingChanges} onClick={handleSave}>
+                    <Button disabled={!pendingChanges||!isValidationErrorsEmpty} onClick={handleSave}>
                         {loading ? 'Saving...' : 'Save'}
                       </Button>
                     

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { FaPlus } from 'react-icons/fa6';
 import { MdCancel } from 'react-icons/md';
 import { useNavigate } from 'react-router-dom';
@@ -12,10 +12,11 @@ import EditGoalsSkeleton from './EditGoalsSkeleton';
 import Inputs from './FormComponents/Inputs';
 import Milestones from './FormComponents/Milestones';
 import { useGoals } from './useGoals';
+import { Label } from '../../../components/@/ui/label';
 
 
 function EditGoals() {
-  const {currentGoal, loading, pendingChanges, section, handleDeleteGoal, fetchGoal, handleMilestoneCompletion, resetCurrentGoal,handleCreateGoal, handleUpdateGoal, handleAddMilestone, handleRemoveMilestone, updateCurrentGoal} = useGoals();
+  const {currentGoal, loading, pendingChanges, validationErrors, section, handleDeleteGoal, fetchGoal, handleMilestoneCompletion, resetCurrentGoal,handleCreateGoal, handleUpdateGoal, handleAddMilestone, handleRemoveMilestone, updateCurrentGoal} = useGoals();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -38,6 +39,15 @@ function EditGoals() {
               .filter(milestone => !milestone.completed)
               .sort((a, b) => a.index - b.index)[0]},[currentGoal.milestones]) //recalculate progressbars on milestone change
   
+  const [isValidationErrorsEmpty, setIsValidationErrorsEmpty] = useState(true);
+
+  useEffect(() => {
+                setIsValidationErrorsEmpty(
+                  Object.keys(validationErrors).every(key => !validationErrors[key])
+                );
+  }, [validationErrors]);
+            
+  
  const calculateProgress = () => {
       const sortedMilestones = [...currentGoal.milestones].sort((a, b) => a.index - b.index);
       const completedMilestones = sortedMilestones.filter(milestone => milestone.completed).length;
@@ -50,7 +60,8 @@ function EditGoals() {
       localStorage.removeItem('currentGoalId');
       useGoals.setState({
         section: 'all goals',
-        pendingChanges: false
+        pendingChanges: false,
+        validationErrors: {},
       })
       useTags.setState({
         selectedTagIds: [],
@@ -83,10 +94,19 @@ function EditGoals() {
                 </div>
             </div>
                 <Inputs content={currentGoal.content} title={currentGoal.title}/>
+                {validationErrors['title'] && (
+                  <Label className='text-destructive'>{validationErrors['title']}</Label>
+                )}
+                {validationErrors['content'] && (
+                  <Label className='text-destructive'>{validationErrors['content']}</Label>
+                )}
             <div className="mb-3">
                 <Progress className='rounded-sm mb-3' value={progress}/>
                 <Milestones goal={currentGoal}/>
             </div>
+            {validationErrors['milestones'] && (
+                  <Label className='text-destructive'>{validationErrors['milestones']}</Label>
+                )}
 
             <div className='flex flex-row justify-between'>
                 <Button size="sm"  className="gap-2 " onClick={handleAddMilestone}>
@@ -99,7 +119,7 @@ function EditGoals() {
                             Delete
                     </Button>
                   </DeleteDialog>
-                <Button disabled={!pendingChanges} onClick={handleSave}>
+                <Button disabled={!pendingChanges || !isValidationErrorsEmpty} onClick={handleSave}>
                   {loading ? 'Saving...' : 'Save'}
                 </Button>
                   </div>

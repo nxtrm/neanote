@@ -32,7 +32,6 @@ class TaskSchema(Schema):
     completed = fields.Bool(required=False)
 
 
-
 class ReminderSchema(Schema):
     reminder_time = fields.Str(required=True)
     repetition = fields.Str(required=True)
@@ -56,15 +55,15 @@ class HabitUpdateSchema(Schema):
 
 
 class MilestoneSchema(Schema) :
-    description = fields.Str(required=True, validate=lambda s: len(s) > 0)
+    description = fields.Str(required=True, validate=lambda s: 500 >= len(s) > 0)
     completed = fields.Bool(required=True)
     index = fields.Int(required=True)
 
     milestoneid = fields.UUID(required=False)
 
 class GoalSchema(Schema):
-    title = fields.Str(required=True, validate=lambda s: len(s) > 0)
-    content = fields.Str(required=False)
+    title = fields.Str(required=True, validate=lambda s: 100 >= len(s) > 0)
+    content = fields.Str(required=False, validate=lambda s: len(s) <= 1000)
     tags = fields.List(fields.Nested(TagSchema), required=False) 
     due_date = fields.Str(required=False,allow_none=True)
     tags = fields.List(fields.Int(), required=False)

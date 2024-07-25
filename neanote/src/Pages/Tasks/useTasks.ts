@@ -76,6 +76,7 @@ export const useTasks = create<TaskState>()(
       const result = TaskSchema.safeParse(currentTask);
       if (!result.success) {
         set((state) => {
+
           const errors = Object.fromEntries(
             Object.entries(result.error.flatten().fieldErrors).map(([key, value]) => [key, value.join(", ")])
           );

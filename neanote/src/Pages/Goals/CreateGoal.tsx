@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { FaRegTrashAlt } from 'react-icons/fa';
 import { FaPlus } from 'react-icons/fa6';
 import { MdCancel } from 'react-icons/md';
@@ -20,12 +20,21 @@ import Inputs from './FormComponents/Inputs';
 
 
 function CreateGoal() {
-  const {currentGoal, loading, section, pendingChanges, handleMilestoneCompletion, resetCurrentGoal,handleCreateGoal, handleUpdateGoal, handleAddMilestone, handleRemoveMilestone, updateCurrentGoal} = useGoals();
+  const {currentGoal, loading, validationErrors, section, pendingChanges, handleMilestoneCompletion, resetCurrentGoal,handleCreateGoal, handleUpdateGoal, handleAddMilestone, handleRemoveMilestone, updateCurrentGoal} = useGoals();
   const navigate = useNavigate();
+
+  const [isValidationErrorsEmpty, setIsValidationErrorsEmpty] = useState(true);
+
+  useEffect(() => {
+                setIsValidationErrorsEmpty(
+                  Object.keys(validationErrors).every(key => !validationErrors[key])
+                );
+  }, [validationErrors]);
 
   const handleClose = () => {
       useGoals.setState({
         section: 'all goals',
+        validationErrors: {},
       })
       useTags.setState({
         selectedTagIds: [],
@@ -62,7 +71,7 @@ function CreateGoal() {
                         <FaPlus /> Add Milestone
                     </Button>
                   <div className='gap-2 flex flex-row'>
-                    <Button disabled={!pendingChanges} onClick={handleSave}>
+                    <Button disabled={!pendingChanges || !isValidationErrorsEmpty} onClick={handleSave}>
                           {loading ? 'Saving...' : 'Save'}
                     </Button>
                   </div>
