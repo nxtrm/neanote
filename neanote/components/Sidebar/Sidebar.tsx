@@ -12,8 +12,7 @@ import {
 } from "../@/ui/drawer";
 import Title from "./Title";
 
-
-export const modules = [
+const modules = [
     {link: 'notes', text: 'Notes', disabled: false},
     {link: 'memory', text: 'Memory', disabled: true},
     {link: 'tasks', text: 'Tasks', disabled: false},
@@ -36,14 +35,14 @@ function Sidebar() {
   };
 
   return (
-    <Drawer direction="left">
+    <Drawer direction="left" open={open} onOpenChange={setOpen}>
       <DrawerTrigger asChild>
         <Button size="icon" variant="default"><IoMenu /></Button>
       </DrawerTrigger>
       <DrawerContent className="flex flex-col p-2 rounded-l-none rounded-r-xl h-full w-[200px] mt-24 fixed bottom-0 right-0">
         <DrawerHeader className="pt-0 pb-1">
           <div className="flex flex-row gap-2">
-            <Title/>
+            <Title font={"35px"}/>
           </div>
         </DrawerHeader>
           <div className="flex rounded-xl w-full h-full flex-col border-[2px] p-2">

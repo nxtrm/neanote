@@ -2,15 +2,21 @@ import React, { useState } from 'react';
 import ThemeSwitcher from './ThemeSwitcher/ThemeSwitcher';
 import LoginButton from './LoginButton/LoginButton';
 import Sidebar from '../Sidebar/Sidebar';
+import Title from '../Sidebar/Title';
 
 function NavBar() {
 
     return (
 
         <div className='p-2 rounded-xl flex flex-row justify-between items-center border-[2px]'>
-          <Sidebar/>
-          <ThemeSwitcher/>
-          <LoginButton/>
+          <div className='flex flex-row pl-2 gap-5 items-center'>
+            <Title font={"28px"}/>
+            <Sidebar/>
+          </div>
+          <div className='flex flex-row gap-2'>
+            <ThemeSwitcher/>
+            <LoginButton/>
+          </div>
         </div>
       )
   
