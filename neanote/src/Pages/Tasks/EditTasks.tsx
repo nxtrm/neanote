@@ -13,6 +13,7 @@ import EditTasksSkeleton from './EditTasksSkeleton';
 import FormInputs from './FormComponents/FormInputs';
 import { useTasks } from './useTasks';
 import {Label} from '../../../components/@/ui/label';
+import Subtasks from './FormComponents/Subtasks';
 
 function EditTasks() {
   const {
@@ -95,29 +96,7 @@ function EditTasks() {
         )}
 
         <div className="rounded-md">
-          {currentTask.subtasks
-            .slice()
-            .sort((a, b) => a.index - b.index)
-            .map((subtask) => (
-              <div key={subtask.subtaskid} className="flex pt-3 gap-2 items-center">
-                <CheckBox
-                  checked={subtask.completed}
-                  onChange={() => toggleSubtaskCompleted(subtask.subtaskid, currentTask.taskid)}
-                />
-                <Input
-                  type="text"
-                  value={subtask.description}
-                  onChange={(e) =>
-                    updateCurrentTask('subtasks', currentTask.subtasks.map((st) =>
-                      st.subtaskid === subtask.subtaskid ? { ...st, description: e.target.value } : st
-                    ))
-                  }
-                />
-                <Button onClick={() => handleRemoveSubtask(subtask.subtaskid)} variant="secondary" size="icon">
-                  <FaRegTrashAlt />
-                </Button>
-              </div>
-            ))}
+          <Subtasks task={currentTask}/>
           {validationErrors['subtasks'] && (
             <Label className="text-destructive">{validationErrors['subtasks']}</Label>
           )}

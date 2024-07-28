@@ -10,8 +10,8 @@ function NavBar() {
 
         <div className='p-2 rounded-xl flex flex-row justify-between items-center border-[2px]'>
           <div className='flex flex-row pl-2 gap-5 items-center'>
-            <Title font={"28px"}/>
             <Sidebar/>
+            <Title font={"28px"}/>
           </div>
           <div className='flex flex-row gap-2'>
             <ThemeSwitcher/>

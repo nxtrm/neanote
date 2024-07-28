@@ -14,6 +14,7 @@ import { useTags } from '../Tags/useTags';
 import CheckBox from '../../../components/CheckBox/CheckBox';
 import FormInputs from './FormComponents/FormInputs';
 import { Label } from '../../../components/@/ui/label';
+import Subtasks from './FormComponents/Subtasks';
 
 function CreateTask() {
   const {
@@ -95,17 +96,7 @@ function CreateTask() {
             <Label className='text-destructive'>{validationErrors['content']}</Label>
           )}
 
-          {currentTask?.subtasks
-            .slice()
-            .sort((a, b) => a.index - b.index)
-            .map((subtask, index) => (
-                <div key={subtask.subtaskid} className='flex pt-2 gap-2 items-center'>
-                <Input type='text' value={subtask.description} onChange={(e) => updateCurrentTask('subtasks', currentTask.subtasks.map(st => st.subtaskid === subtask.subtaskid ? { ...st, description: e.target.value } : st))} />
-                <Button onClick={() => handleRemoveSubtask(subtask.subtaskid)} variant='secondary' size='icon'>
-                    <FaRegTrashAlt />
-                </Button>
-                </div>
-          ))}
+          <Subtasks task={currentTask}/>
 
           {/* Footer */}
           {validationErrors['subtasks'] && (

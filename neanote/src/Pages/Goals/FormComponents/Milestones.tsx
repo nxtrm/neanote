@@ -28,10 +28,6 @@ function Milestones({ goal }: { goal: Goal }) {
         updateCurrentGoal('milestones', newMilestones);
       }
     };
-
-    useEffect(() => {
-        console.log(pendingChanges, validationErrors)
-    })
   
     return (
       <DndContext onDragEnd={onDragEnd} collisionDetection={closestCenter}>
@@ -63,13 +59,6 @@ function Milestones({ goal }: { goal: Goal }) {
       transition,
     };
 
-    // if (isDragging) {
-    //     return (
-    //     <Skeleton className='flex h-10 w-full'/>
-
-    //     )
-    // }
-  
     return (
       <div ref={setNodeRef} style={style} {...attributes} className="flex w-full items-center mb-2">
         <MdDragIndicator size={"25px"} className="cursor-grab mr-1"  {...listeners}/>
