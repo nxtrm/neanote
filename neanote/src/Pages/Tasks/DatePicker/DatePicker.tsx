@@ -14,7 +14,7 @@ import { Input } from "../../../../components/@/ui/input"
 import { useState, useEffect } from "react"
 
 interface DatePickerProps {
-  onDateChange: (newDate: Date | null) => void;
+  onDateChange: (newDate: Date | undefined) => void;
   data?: Date;
   includeTime?: boolean;
 }
@@ -36,7 +36,7 @@ export function DatePicker({ onDateChange, data, includeTime = false }: DatePick
       newDate.setHours(dateTime.getHours(), dateTime.getMinutes());
     }
     setDateTime(newDate);
-    onDateChange(newDate || null);
+    onDateChange(newDate || undefined);
   };
 
   const handleTimeSelect = (timeString: string) => {
@@ -54,7 +54,7 @@ export function DatePicker({ onDateChange, data, includeTime = false }: DatePick
 
   const handleClear = () => {
     setDateTime(undefined);
-    onDateChange(null);
+    onDateChange(undefined);
   };
 
   const formattedTime = (dateTime && includeTime) ? format(dateTime, "HH:mm") : "";

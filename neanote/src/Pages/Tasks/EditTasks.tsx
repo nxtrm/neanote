@@ -83,9 +83,9 @@ function EditTasks() {
             <Button size="icon" onClick={handleClose}>
               <MdCancel size={15} />
             </Button>
-          </div>
+          </div> 
         </div>
-
+        
         <FormInputs title={currentTask.title} content={currentTask.content} />
         {validationErrors['title'] && (
           <Label className="text-destructive">{validationErrors['title']}</Label>

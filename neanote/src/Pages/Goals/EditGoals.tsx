@@ -87,7 +87,7 @@ function EditGoals() {
             <div className='flex row justify-between'>
                 <h1 className="text-2xl font-bold mb-4">Edit Goal</h1>
                 <div className='flex gap-2'>
-                    <DatePicker onDateChange={(date) => updateCurrentGoal('due_date', new Date(date))} data={currentGoal.due_date} includeTime={false} />
+                    <DatePicker onDateChange={(date) => updateCurrentGoal('due_date', date)} data={currentGoal.due_date} includeTime={false} />
                     <Button size='icon' onClick={handleClose}>
                         <MdCancel size={15} />
                     </Button>
