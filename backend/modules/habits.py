@@ -35,10 +35,10 @@ def habit_routes(app,conn):
                 
                 cur.execute(
                     """
-                    INSERT INTO Habits (note_id, reminder_time, streak)
-                    VALUES (%s, %s, %s) RETURNING id
+                    INSERT INTO Habits (note_id, reminder_time, repetition, streak)
+                    VALUES (%s, %s, %s, %s) RETURNING id
                     """,
-                    (noteId, reminder['reminder_time'], 0)
+                    (noteId, reminder['reminder_time'],  reminder['repetition'], 0)
                 )
                 habitId = cur.fetchone()[0]
                 

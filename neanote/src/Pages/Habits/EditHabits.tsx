@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import PageContainer from '../../../components/PageContainer/PageContainer'
 import { Button } from '../../../components/@/ui/button'
 import { MdCancel } from 'react-icons/md'
@@ -12,13 +12,17 @@ import TimeSelector from './TimeSelector/TimeSelector';
 import LinkTasks from './LinkTasks/LinkTasks';
 import TaskCard from '../../../components/TaskCard/TaskCard';
 import CheckBox from '../../../components/CheckBox/CheckBox';
+import EditHabitsSkeleton from './EditHabitsSkeleton';
+import { Label } from '../../../components/@/ui/label';
+import Inputs from './FormComponents/Inputs';
 
 function EditHabits() {
-  const {currentHabit, handleCreateHabit, handleUpdateHabit, fetchHabit, toggleCompletedToday, section, resetCurrentHabit, updateCurrentHabit, handleDeleteHabit} = useHabits();
+  const {currentHabit, handleCreateHabit, pendingChanges, validationErrors, handleUpdateHabit, loading, fetchHabit, toggleCompletedToday, section, resetCurrentHabit, updateCurrentHabit, handleDeleteHabit} = useHabits();
   const navigate = useNavigate();
+  const [isValidationErrorsEmpty, setIsValidationErrorsEmpty] = useState(true);
 
   useEffect(() => {
-    const noteId = localStorage.getItem('currentGoalId');
+    const noteId = localStorage.getItem('currentHabitId');
     if (noteId) {
       fetchHabit(noteId);
       if (currentHabit && currentHabit.tags) {
@@ -29,6 +33,12 @@ function EditHabits() {
       }
     }
     }, []);
+
+    useEffect(() => {
+      setIsValidationErrorsEmpty(
+        Object.keys(validationErrors).every(key => !validationErrors[key])
+      );
+    }, [validationErrors]);
 
     const handleClose = () => {
       localStorage.removeItem('currentHabitId');
@@ -46,7 +56,6 @@ function EditHabits() {
 
   const handleDelete = async () => {
     await handleDeleteHabit(currentHabit.habitid, currentHabit.noteid)
-    navigate('/habits');
   }
 
   const handleSaveHabit = () => {
@@ -56,7 +65,13 @@ function EditHabits() {
     else {
       handleUpdateHabit();
     }
-    navigate('/habits')
+
+  }
+
+  if (loading) {
+    return (
+      <EditHabitsSkeleton/>
+    )
   }
 
   if (!currentHabit) {
@@ -65,12 +80,10 @@ function EditHabits() {
 
     return (
       <PageContainer>
-
-
           <div className='p-1'>
           {/* Navbar */}
           <div className='flex flex-row justify-between'>
-            <p className='pl-1 text-2xl font-bold'>{section === "edit habit" ? 'Edit Habit' : 'Create Habit'}</p>
+            <p className='pl-1 text-2xl font-bold'>{section === "edit" ? 'Edit Habit' : 'Create Habit'}</p>
             {/* Date Picker */}
             <div className='flex flex-row gap-2'>
               <TimeSelector/>
@@ -79,40 +92,21 @@ function EditHabits() {
               </Button>
             </div>
           </div>
-          <div className='flex flex-row items-center justify-between py-3 gap-2'>
-            <div className='w-10'>
-              <CheckBox checked={currentHabit.completed_today} disabled={currentHabit.completed_today} onChange={()=>toggleCompletedToday(currentHabit.habitid)} />
-            </div>
-            <Input
-              className='border rounded-md w-full h-10 leading-tight focus:outline-none focus:shadow-outline'
-              placeholder='Title'
-              type='text'
-              value={currentHabit?.title || ''}
-              onChange={(e) => updateCurrentHabit('title', e.target.value)}
-              />
-            {/* <TagsDropdownMenu /> */}
-          </div>
-          <div>
-          <Textarea
-              value={currentHabit?.content || ''}
-              placeholder='Describe your habit here'
-              onChange={(e) => updateCurrentHabit('content', e.target.value)}
-              />
-          </div>
-          <div className='flex flex-col pt-3 gap-2'>
-            {currentHabit?.linked_tasks ? currentHabit.linked_tasks.map((task) => {
+          <Inputs withChechbox/>
+          {currentHabit?.linked_tasks ? <div className='flex flex-col pt-3 gap-2'>
+             {currentHabit.linked_tasks.map((task) => {
               return (
                 <TaskCard key={task.taskid} task={task} />
               )
               
-            }): null}
-          </div>
-            <div className='pt-3 flex justify-between'>
+            })}
+          </div>: null}
+            <div className=' flex justify-between'>
               <LinkTasks linked_tasks={currentHabit?.linked_tasks ? currentHabit.linked_tasks : []}/>
               <div className='flex gap-2'>
-              <Button variant='outline' onClick={handleDelete}>Delete</Button>
-              <Button onClick={handleSaveHabit}>Save</Button>
-              </div>
+                <Button variant='outline' onClick={handleDelete}>Delete</Button>
+                <Button disabled={!isValidationErrorsEmpty} onClick={handleSaveHabit}>Save</Button>
+            </div>
             </div>
           </div>
           

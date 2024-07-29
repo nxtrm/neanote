@@ -7,6 +7,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { Task } from "../../api/types/taskTypes";
 import { UUID } from "crypto";
 import { HabitSchema } from "../../formValidation";
+import { useTasks } from "../Tasks/useTasks";
 
 // Function to generate a new habit object
 const generateNewHabit = () => ({
@@ -48,7 +49,7 @@ type HabitState = {
     toggleLinkTask: (task: Task) => Promise<void>;
 
     validationErrors: Record<string, string | undefined>;
-    validateGoal: () => boolean;
+    validateHabit: () => boolean;
 
     pendingChanges: boolean;
     setPendingChanges: (pendingChanges: boolean) => void;
@@ -68,7 +69,7 @@ export const useHabits = create<HabitState>()(
         setSection: (section) => set({ section }),
         setLoading: (loading) => set({ loading }),
 
-        validateGoal: () => {
+        validateHabit: () => {
           const { currentHabit } = get();
           const result = HabitSchema.safeParse(currentHabit);
           if (!result.success) {
@@ -93,6 +94,7 @@ export const useHabits = create<HabitState>()(
                     state.currentHabit[key] = value;
                 }
             });
+            get().validateHabit()
         },
 
         resetCurrentHabit: () => {
@@ -147,6 +149,7 @@ export const useHabits = create<HabitState>()(
                         });
                         state.section = 'all habits';
                     });
+
                     
                 }
             }
@@ -233,6 +236,12 @@ export const useHabits = create<HabitState>()(
                         set((state) => {
                             state.currentHabit!.linked_tasks = originalLinkedTasks;
                         });
+                    } else {
+                        const linked_tasks = currentHabit.linked_tasks
+                        useTasks.setState((state) => ({
+                            ...state,
+                            tasks: linked_tasks
+                          }));
                     }
                 } catch (error) {
                     set((state) => {
