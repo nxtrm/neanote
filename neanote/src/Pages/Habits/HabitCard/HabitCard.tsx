@@ -8,9 +8,10 @@ import { useHabits } from '../useHabits'
 import TagLabel from '../../../../components/TagLabel/TagLabel'
 import './HabitCard.css'
 import StreakLabel from './StreakLabel'
+import { Skeleton } from '../../../../components/@/ui/skeleton'
 
 function HabitCard({habit}: {habit: HabitPreview}) {
-    const {fetchHabit, setSection, toggleCompletedToday} = useHabits();
+    const {fetchHabit,loading, setSection, toggleCompletedToday} = useHabits();
     const navigate = useNavigate()
 
     function handleEditClick(noteId) {
@@ -45,27 +46,28 @@ function HabitCard({habit}: {habit: HabitPreview}) {
   
     const isTagCompressed = screenSize !== 'large';
   
+  if (loading) {
+    return <Skeleton className="p-3 w-full h-[100px] rounded-xl"/>
+  }
 
   return (
     <div className='p-3 w-full rounded-xl border-[2px]'>
-    <div className='flex flex-row items-center gap-3 justify-between'>
-      <div className='flex flex-row items-center gap-3'>
-        <CheckBox checked={habit.completed_today} disabled={habit.completed_today} onChange={handleSetCompleted} />
-        <h3 className='habit-title'>{habit.title}</h3>
-      </div>                                                       
-      <div className='flex flex-row items-center gap-1'>
-        <StreakLabel streak={habit.streak} completed_today={habit.completed_today} />
-        {habit.tags.map((tag, index) => (
-          <TagLabel key={index} name={tag.name} color={tag.color} compressed={isTagCompressed}/>
-        ))}
-        <Button variant="ghost" size={"icon"} onClick={
-          ()=>handleEditClick(habit.noteid)
-          // () => console.log('edit')
-        }><FaEdit/></Button>
+      <div className='flex flex-row items-center gap-3 justify-between'>
+        <div className='flex flex-row items-center gap-3'>
+          <CheckBox checked={habit.completed_today} disabled={habit.completed_today} onChange={handleSetCompleted} />
+          <h3 className='habit-title'>{habit.title}</h3>
+        </div>                                                       
+        <div className='flex flex-row items-center gap-1'>
+          <StreakLabel streak={habit.streak} completed_today={habit.completed_today} />
+          {habit.tags.map((tag, index) => (
+            <TagLabel key={index} name={tag.name} color={tag.color} compressed={isTagCompressed}/>
+          ))}
+          <Button variant="ghost" size={"icon"} onClick={
+            ()=>handleEditClick(habit.noteid)
+          }><FaEdit/></Button>
+        </div>
       </div>
-    </div>
-    {habit.content && <p className="habit-content">{habit.content}</p>}
-
+      {habit.content && <p className="habit-content">{habit.content}</p>}
   </div>
   )
 }

@@ -106,7 +106,7 @@ export const useGoals = create<GoalState>()(
           },
 
         handleUpdateGoal: async () => {
-            const { currentGoal, resetCurrentGoal, setLoading } = get();
+            const { currentGoal, resetCurrentGoal } = get();
             const { tags, selectedTagIds } = useTags.getState();
       
             if (currentGoal) {

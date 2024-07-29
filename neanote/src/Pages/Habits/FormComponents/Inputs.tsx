@@ -28,7 +28,7 @@ function Inputs({withChechbox}:{withChechbox?: boolean}) {
         )}
 
           <Textarea
-            className='pt-3'
+            className='mt-3'
             value={currentHabit?.content || ''}
             placeholder='Describe your habit here'
             onChange={(e) => updateCurrentHabit('content', e.target.value)}

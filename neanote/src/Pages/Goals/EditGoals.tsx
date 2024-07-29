@@ -31,13 +31,6 @@ function EditGoals() {
         }
       }
       }, []);
-
-    
-  useEffect(() => {    
-      const progress = calculateProgress();
-      var next_milestone =  currentGoal.milestones
-              .filter(milestone => !milestone.completed)
-              .sort((a, b) => a.index - b.index)[0]},[currentGoal.milestones]) //recalculate progressbars on milestone change
   
   const [isValidationErrorsEmpty, setIsValidationErrorsEmpty] = useState(true);
 
@@ -83,48 +76,40 @@ function EditGoals() {
 
   return (
     <PageContainer>
-        <div className="p-2">
-            <div className='flex row justify-between'>
-                <h1 className="text-2xl font-bold mb-4">Edit Goal</h1>
-                <div className='flex gap-2'>
-                    <DatePicker onDateChange={(date) => updateCurrentGoal('due_date', date)} data={currentGoal.due_date} includeTime={false} />
-                    <Button size='icon' onClick={handleClose}>
-                        <MdCancel size={15} />
-                    </Button>
-                </div>
-            </div>
-                <Inputs content={currentGoal.content} title={currentGoal.title}/>
-                {validationErrors['title'] && (
-                  <Label className='text-destructive'>{validationErrors['title']}</Label>
-                )}
-                {validationErrors['content'] && (
-                  <Label className='text-destructive'>{validationErrors['content']}</Label>
-                )}
-            <div className="mb-3">
-                <Progress className='rounded-sm mb-3' value={progress}/>
-                <Milestones goal={currentGoal}/>
-            </div>
-            {validationErrors['milestones'] && (
-                  <Label className='text-destructive'>{validationErrors['milestones']}</Label>
-                )}
-
-            <div className='flex flex-row justify-between'>
-                <Button size="sm"  className="gap-2 " onClick={handleAddMilestone}>
-                        <FaPlus /> Add Milestone
-                    </Button>
-                  <div className='gap-2 flex flex-row'>
-
-                  <DeleteDialog handleDelete={handleDelete}>
-                    <Button variant="outline" >
-                            Delete
-                    </Button>
-                  </DeleteDialog>
-                <Button disabled={!pendingChanges || !isValidationErrorsEmpty} onClick={handleSave}>
-                  {loading ? 'Saving...' : 'Save'}
+      <div className="p-2">
+        <div className='flex row justify-between'>
+            <h1 className="text-2xl font-bold mb-4">Edit Goal</h1>
+            <div className='flex gap-2'>
+                <DatePicker onDateChange={(date) => updateCurrentGoal('due_date', date)} data={currentGoal.due_date} includeTime={false} />
+                <Button size='icon' onClick={handleClose}>
+                    <MdCancel size={15} />
                 </Button>
-                  </div>
             </div>
         </div>
+            <Inputs content={currentGoal.content} title={currentGoal.title}/>
+        <div className="mb-3">
+            <Progress className='rounded-sm mb-3' value={progress}/>
+            <Milestones goal={currentGoal}/>
+        </div>
+        {validationErrors['milestones'] && (
+              <Label className='text-destructive'>{validationErrors['milestones']}</Label>
+            )}
+        <div className='flex flex-row justify-between'>
+            <Button size="sm"  className="gap-2 " onClick={handleAddMilestone}>
+                    <FaPlus /> Add Milestone
+                </Button>
+              <div className='gap-2 flex flex-row'>
+              <DeleteDialog handleDelete={handleDelete}>
+                <Button variant="outline" >
+                        Delete
+                </Button>
+              </DeleteDialog>
+            <Button disabled={!pendingChanges || !isValidationErrorsEmpty} onClick={handleSave}>
+              {loading ? 'Saving...' : 'Save'}
+            </Button>
+              </div>
+        </div>
+      </div>
     </PageContainer>
   );
 }

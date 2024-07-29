@@ -23,6 +23,7 @@ const generateNewHabit = () => ({
     streak: 0,
     completed_today: false,
     linked_tasks: [],
+    isNew: true,
 });
 
 type HabitState = {
@@ -93,6 +94,9 @@ export const useHabits = create<HabitState>()(
                 if (state.currentHabit) {
                     state.currentHabit[key] = value;
                 }
+                if (!state.pendingChanges) {
+                    state.pendingChanges = true;
+                  }
             });
             get().validateHabit()
         },
@@ -146,6 +150,7 @@ export const useHabits = create<HabitState>()(
                             streak: 0,
                             completed_today: false,
                             tags: [],
+                            
                         });
                         state.section = 'all habits';
                     });
@@ -157,9 +162,9 @@ export const useHabits = create<HabitState>()(
         },
 
         handleUpdateHabit: async () => {
-            const { currentHabit,setLoading } = get();
+            const { currentHabit} = get();
             const { selectedTagIds } = useTags.getState();
-            setLoading(true)
+
 
             if (currentHabit) {
                 const { habitid, noteid, title, content, reminder, streak, completed_today,tags } = currentHabit;
@@ -179,14 +184,18 @@ export const useHabits = create<HabitState>()(
                     state.habitPreviews = state.habitPreviews.map((habit) =>
                         habit.habitid === habitid ? { habitid,noteid,title,streak,completed_today,tags,content } : habit
                     );
+                    state.currentHabit = {...currentHabit,isNew:false}
+                    state.pendingChanges = false;
                 });
 
                 const response = await habitsApi.update(updatedHabit);
                 if (!response) {
-                    set({ habitPreviews: previousHabits });
+                    set({ habitPreviews: previousHabits,
+                        currentHabit: {...currentHabit,isNew:true},
+                        pendingChanges: true
+                     });
             }
           }
-            setLoading(false)
         },
 
         handleDeleteHabit: async (habitid: UUID, noteid: UUID) => {

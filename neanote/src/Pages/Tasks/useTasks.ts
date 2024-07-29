@@ -166,9 +166,8 @@ export const useTasks = create<TaskState>()(
       },
 
       handleSaveTask: async () => {
-        const { currentTask, setLoading } = get();
+        const { currentTask } = get();
         const { selectedTagIds } = useTags.getState();
-        setLoading(true);
         try {
           if (get().validateTask()) {
             const response = await tasksApi.create(currentTask.title, selectedTagIds, currentTask.content, currentTask.subtasks, currentTask.due_date);
@@ -185,14 +184,12 @@ export const useTasks = create<TaskState>()(
             showToast('error', 'Validation failed');
           }
         } finally {
-          setLoading(false);
         }
       },
   
       handleEditTask: async () => {
-        const { currentTask, setLoading } = get();
+        const { currentTask} = get();
         const { selectedTagIds } = useTags.getState();
-        setLoading(true);
         try {
           if (get().validateTask()) {
             const updatedTask = { ...currentTask, tags: selectedTagIds };
@@ -212,7 +209,6 @@ export const useTasks = create<TaskState>()(
           }
 
         } finally {
-          setLoading(false);
         }
       },
 

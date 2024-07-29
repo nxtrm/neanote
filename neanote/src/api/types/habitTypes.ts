@@ -13,6 +13,8 @@ export interface Habit {
     tags: Tag[];
     linked_tasks : Task[]
     completed_today: boolean;
+
+    isNew?: boolean;
 }
 
 export interface HabitPreview {

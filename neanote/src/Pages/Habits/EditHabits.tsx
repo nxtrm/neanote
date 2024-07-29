@@ -23,7 +23,7 @@ function EditHabits() {
 
   useEffect(() => {
     const noteId = localStorage.getItem('currentHabitId');
-    if (noteId) {
+    if (noteId && currentHabit.isNew) {
       fetchHabit(noteId);
       if (currentHabit && currentHabit.tags) {
         const mappedTagIds = currentHabit.tags.map(tag => tag.tagid);
@@ -59,12 +59,8 @@ function EditHabits() {
   }
 
   const handleSaveHabit = () => {
-    if (section === 'create') {
-      handleCreateHabit();
-    }
-    else {
       handleUpdateHabit();
-    }
+    
 
   }
 
@@ -105,7 +101,7 @@ function EditHabits() {
               <LinkTasks linked_tasks={currentHabit?.linked_tasks ? currentHabit.linked_tasks : []}/>
               <div className='flex gap-2'>
                 <Button variant='outline' onClick={handleDelete}>Delete</Button>
-                <Button disabled={!isValidationErrorsEmpty} onClick={handleSaveHabit}>Save</Button>
+                <Button disabled={!isValidationErrorsEmpty || !pendingChanges} onClick={handleSaveHabit}>Save</Button>
             </div>
             </div>
           </div>
