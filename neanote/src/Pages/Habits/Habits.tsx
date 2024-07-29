@@ -7,20 +7,10 @@ import { useNavigate } from 'react-router-dom';
 import HabitCard from './HabitCard/HabitCard';
 
 function Habits() {
-    const {habitPreviews, setCurrentHabit, setSection, fetchHabitPreviews} = useHabits();  
+    const {habitPreviews, resetCurrentHabit, setSection, fetchHabitPreviews} = useHabits();  
     const navigate = useNavigate(); 
     const handleAddHabitClick = () => {
-        setCurrentHabit({
-          habitid: -1,
-          noteid: -1,
-          title: '',
-          tags: [],
-          content: '',
-          reminder: {reminder_time: '', repetition: 'daily'},
-          completed_today: false,
-          streak: 0,
-          linked_tasks: []
-        });
+        resetCurrentHabit();
         setSection('create');
         navigate('/habits/create')
       };

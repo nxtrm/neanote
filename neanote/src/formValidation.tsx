@@ -68,3 +68,18 @@ export const GoalSchema = z.object({
     ),
     due_date: z.date().optional(),
 });
+
+export const HabitSchema = z.object({
+  habitid: z.string().uuid(),
+  noteid: z.string().uuid(),
+  title: z.string().min(1, "Title is required").max(100, "Title cannot exceed 100 characters"),
+  // tags: z.array(z.string().uuid()), //tag ids
+  content: z.string().max(1000, "Content cannot exceed 1000 characters"),
+  reminder: z.object({
+    reminder_time: z.string().optional(),
+    repetition: z.string().optional(),
+  }),
+  streak: z.number(),
+  completed_today: z.boolean(),
+  
+});

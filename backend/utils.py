@@ -1,5 +1,6 @@
 
 from datetime import datetime
+from dateutil.relativedelta import relativedelta
 from email.utils import parsedate_to_datetime
 from functools import wraps
 import jwt
@@ -50,6 +51,16 @@ def token_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+def calculate_gap(repetition, today_date, last_date):
+    if repetition == 'daily':
+        return (today_date - last_date).days - 1
+    elif repetition == 'weekly':
+        return (today_date - last_date).days // 7
+    elif repetition == 'monthly':
+        delta = relativedelta(today_date, last_date)
+        return delta.months + 12 * delta.years
+    return None
+
 def verify_task_ownership(user_id, task_id, cur):
     
     query = """
@@ -77,7 +88,7 @@ def verify_habit_ownership(user_id, habit_id, cur):
     cur.execute(query, (habit_id,))
     result = cur.fetchone()
 
-    if (len(result)<1) or (int(result['user_id']) != int(user_id)):
+    if (len(result)<1) or (str(result['user_id']) != str(user_id)):
         print("False")
         return False
     return True

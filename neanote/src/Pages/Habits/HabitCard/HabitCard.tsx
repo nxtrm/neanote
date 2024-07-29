@@ -10,7 +10,7 @@ import './HabitCard.css'
 import StreakLabel from './StreakLabel'
 
 function HabitCard({habit}: {habit: HabitPreview}) {
-    const {setCurrentHabit, fetchHabit, setSection, setCompleted} = useHabits();
+    const {fetchHabit, setSection, toggleCompletedToday} = useHabits();
     const navigate = useNavigate()
 
     function handleEditClick(noteId) {
@@ -20,7 +20,7 @@ function HabitCard({habit}: {habit: HabitPreview}) {
     }
 
     function handleSetCompleted() {
-        setCompleted(habit.habitid);
+      toggleCompletedToday(habit.habitid);
     }
   
     const [screenSize, setScreenSize] = useState('large'); // Default to large

@@ -14,31 +14,40 @@ import TaskCard from '../../../components/TaskCard/TaskCard';
 import CheckBox from '../../../components/CheckBox/CheckBox';
 
 function EditHabits() {
-  const {currentHabit, handleCreateHabit, handleUpdateHabit, fetchHabit, setCompleted, section, setCurrentHabit, updateCurrentHabit, handleDelete} = useHabits();
+  const {currentHabit, handleCreateHabit, handleUpdateHabit, fetchHabit, toggleCompletedToday, section, resetCurrentHabit, updateCurrentHabit, handleDeleteHabit} = useHabits();
   const navigate = useNavigate();
 
   useEffect(() => {
-    const noteIdStr = localStorage.getItem('currentHabitId');
-    if (noteIdStr) {
-      const noteId = parseInt(noteIdStr, 10); 
+    const noteId = localStorage.getItem('currentGoalId');
+    if (noteId) {
       fetchHabit(noteId);
+      if (currentHabit && currentHabit.tags) {
+        const mappedTagIds = currentHabit.tags.map(tag => tag.tagid);
+        useTags.setState({
+          selectedTagIds: mappedTagIds,
+        });
+      }
+    }
+    }, []);
+
+    const handleClose = () => {
+      localStorage.removeItem('currentHabitId');
+      useHabits.setState({
+        section: 'all habits',
+        pendingChanges: false,
+        validationErrors: {},
+      })
       useTags.setState({
         selectedTagIds: [],
       })
-    }
-  }, []);
+      resetCurrentHabit()
+      navigate('/habits');
+    };
 
-  const handleClose = () => {
-    localStorage.removeItem('currentHabitId');
-    useHabits.setState({
-      currentHabit: null,
-      section: 'all habits',
-    })
-    useTags.setState({
-      selectedTagIds: [],
-    })
+  const handleDelete = async () => {
+    await handleDeleteHabit(currentHabit.habitid, currentHabit.noteid)
     navigate('/habits');
-  };
+  }
 
   const handleSaveHabit = () => {
     if (section === 'create') {
@@ -49,14 +58,19 @@ function EditHabits() {
     }
     navigate('/habits')
   }
-  
-  if (currentHabit) {
+
+  if (!currentHabit) {
+    return null;
+  }
+
     return (
       <PageContainer>
+
+
           <div className='p-1'>
           {/* Navbar */}
           <div className='flex flex-row justify-between'>
-            <p className='pl-1 text-2xl font-bold'>{currentHabit?.habitid !== -1 ? 'Edit Habit' : 'Create Habit'}</p>
+            <p className='pl-1 text-2xl font-bold'>{section === "edit habit" ? 'Edit Habit' : 'Create Habit'}</p>
             {/* Date Picker */}
             <div className='flex flex-row gap-2'>
               <TimeSelector/>
@@ -67,7 +81,7 @@ function EditHabits() {
           </div>
           <div className='flex flex-row items-center justify-between py-3 gap-2'>
             <div className='w-10'>
-              <CheckBox checked={currentHabit.completed_today} disabled={currentHabit.completed_today} onChange={()=>setCompleted(currentHabit.habitid)} />
+              <CheckBox checked={currentHabit.completed_today} disabled={currentHabit.completed_today} onChange={()=>toggleCompletedToday(currentHabit.habitid)} />
             </div>
             <Input
               className='border rounded-md w-full h-10 leading-tight focus:outline-none focus:shadow-outline'
@@ -75,22 +89,22 @@ function EditHabits() {
               type='text'
               value={currentHabit?.title || ''}
               onChange={(e) => updateCurrentHabit('title', e.target.value)}
-            />
-            <TagsDropdownMenu />
+              />
+            {/* <TagsDropdownMenu /> */}
           </div>
           <div>
           <Textarea
               value={currentHabit?.content || ''}
               placeholder='Describe your habit here'
               onChange={(e) => updateCurrentHabit('content', e.target.value)}
-            />
+              />
           </div>
           <div className='flex flex-col pt-3 gap-2'>
             {currentHabit?.linked_tasks ? currentHabit.linked_tasks.map((task) => {
               return (
                 <TaskCard key={task.taskid} task={task} />
               )
-  
+              
             }): null}
           </div>
             <div className='pt-3 flex justify-between'>
@@ -104,9 +118,7 @@ function EditHabits() {
           
       </PageContainer>
     ) 
-  } else {
-    return (<></>)
   }
-}
+
 
 export default EditHabits

@@ -36,23 +36,16 @@ class ReminderSchema(Schema):
     reminder_time = fields.Str(required=True)
     repetition = fields.Str(required=True)
 
-class HabitCreateSchema(Schema):
-    title = fields.Str(required=True, validate=lambda s: len(s) > 0)
-    content = fields.Str(required=False)
-    tags = fields.List(fields.Int(), required=False) 
+class HabitSchema(Schema):
+    title = fields.Str(required=True, validate=lambda s: 100 >= len(s) > 0)
+    content = fields.Str(required=False, validate=lambda s: len(s) <= 1000)
+    tags = fields.List(fields.UUID(), required=False) 
+    completed_today = fields.Bool(required=False)
     reminder = fields.Nested(ReminderSchema, required=True)
+    streak = fields.Int(required=False)
 
-class HabitUpdateSchema(Schema):
-    title = fields.Str(required=True, validate=lambda s: len(s) > 0)
-    content = fields.Str(required=False)
-    tags = fields.List(fields.Nested(TagSchema), required=False) 
-    completed_today = fields.Bool(required=True)
-    reminder = fields.Nested(ReminderSchema, required=True)
-    streak = fields.Int(required=True)
-
-    noteid = fields.Int(required=True)
-    habitid = fields.Int(required=True)  
-
+    noteid =  fields.UUID(required=False)
+    habitid = fields.UUID(required=False)
 
 class MilestoneSchema(Schema) :
     description = fields.Str(required=True, validate=lambda s: 500 >= len(s) > 0)
@@ -64,9 +57,8 @@ class MilestoneSchema(Schema) :
 class GoalSchema(Schema):
     title = fields.Str(required=True, validate=lambda s: 100 >= len(s) > 0)
     content = fields.Str(required=False, validate=lambda s: len(s) <= 1000)
-    tags = fields.List(fields.Nested(TagSchema), required=False) 
     due_date = fields.Str(required=False,allow_none=True)
-    tags = fields.List(fields.Int(), required=False)
+    tags = fields.List(fields.UUID(), required=False) 
     milestones = fields.List(fields.Nested(MilestoneSchema), required=False, allow_none=True)
 
     noteid = fields.UUID(required=False)

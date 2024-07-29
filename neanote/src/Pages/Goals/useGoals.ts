@@ -238,7 +238,7 @@ export const useGoals = create<GoalState>()(
               }
             },
 
-            validateGoal: () => {
+        validateGoal: () => {
               const { currentGoal } = get();
               const result = GoalSchema.safeParse(currentGoal);
               if (!result.success) {
@@ -257,7 +257,7 @@ export const useGoals = create<GoalState>()(
               }
             },
             
-            updateCurrentGoal: <K extends keyof Goal>(key: K, value: Goal[K]) => {
+        updateCurrentGoal: <K extends keyof Goal>(key: K, value: Goal[K]) => {
               set((state) => {
                 if (state.currentGoal) {
                   state.currentGoal[key] = value;

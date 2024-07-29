@@ -1,197 +1,245 @@
 import { create } from "zustand"
 import { immer } from "zustand/middleware/immer"
-import { Habit,HabitPreview,  HabitPreviewResponse,  HabitResponse } from "../../api/types/habitTypes";
+import { Habit, HabitPreview, HabitPreviewResponse, HabitResponse } from "../../api/types/habitTypes";
 import { useTags } from "../Tags/useTags";
 import habitsApi from "../../api/habitsApi";
+import { v4 as uuidv4 } from 'uuid';
 import { Task } from "../../api/types/taskTypes";
+import { UUID } from "crypto";
+import { HabitSchema } from "../../formValidation";
+
+// Function to generate a new habit object
+const generateNewHabit = () => ({
+    habitid: uuidv4(),
+    noteid: uuidv4(),
+    title: '',
+    content: '',
+    reminder: {
+      reminder_time: '',
+      repetition: 'daily',
+    },
+    tags: [],
+    streak: 0,
+    completed_today: false,
+    linked_tasks: [],
+});
 
 type HabitState = {
     habitPreviews: HabitPreview[];
-    pendingUpdates: Partial<Habit> | null;
-    currentHabit: Habit | null;
-    setCurrentHabit: (habit: Habit) => void;
-    updateCurrentHabit: <K extends keyof Habit>(key: K, value: Habit[K]) => void;
-    section: string
-    setSection: (section: string) => void;
+    currentHabit: Habit;
+
     loading: boolean;
     setLoading: (loading: boolean) => void;
-    setCompleted: (habitid: number) => void;
 
-    fetchHabitPreviews: ()=> Promise<HabitPreviewResponse | false>;
-    fetchHabit: (noteId: number) => Promise<HabitResponse | false>;
-    handleCreateHabit: () => void;
-    handleUpdateHabit: () => void;
-    handleDelete: () => void;
-    toggleLinkTask: (task: Task) => void;
+    section: string;
+    setSection: (section: string) => void;
+
+    updateCurrentHabit: <K extends keyof Habit>(key: K, value: Habit[K]) => void;
+    resetCurrentHabit: () => void;
+
+    fetchHabitPreviews: () => Promise<HabitPreviewResponse | null>;
+    fetchHabit: (noteId: string) => Promise<HabitResponse | null>;
+
+    handleCreateHabit: () => Promise<void>;
+    handleUpdateHabit: () => Promise<void>;
+    handleDeleteHabit: (habitid: UUID, noteid: UUID) => Promise<void>;
+
+    toggleCompletedToday: (habitId: UUID) => Promise<void>;
+    toggleLinkTask: (task: Task) => Promise<void>;
+
+    validationErrors: Record<string, string | undefined>;
+    validateGoal: () => boolean;
+
+    pendingChanges: boolean;
+    setPendingChanges: (pendingChanges: boolean) => void;
 }
 
 export const useHabits = create<HabitState>()(
     immer((set, get) => ({
         habitPreviews: [],
-        currentHabit: null,
-        loading:false,
+        currentHabit: generateNewHabit(),
+        loading: false,
         section: "all habits",
-        pendingUpdates: null,
+        validationErrors:{},
+        pendingChanges: false,
 
-        setCurrentHabit: (habit) => {
+
+        setPendingChanges : (pendingChanges) => set({pendingChanges}),
+        setSection: (section) => set({ section }),
+        setLoading: (loading) => set({ loading }),
+
+        validateGoal: () => {
+          const { currentHabit } = get();
+          const result = HabitSchema.safeParse(currentHabit);
+          if (!result.success) {
             set((state) => {
-                state.currentHabit = { ...habit };
-                useTags.getState().selectedTagIds = habit.tags.map((tag) => tag.tagid);
-              })
-            },
-        
-        updateCurrentHabit: <K extends keyof Habit>(key: K, value: Habit[K]) => 
+              const errors = Object.fromEntries(
+                Object.entries(result.error.flatten().fieldErrors).map(([key, value]) => [key, value.join(", ")])
+              );
+              state.validationErrors = errors;
+            });
+            return false;
+          } else {
             set((state) => {
-                  if (state.currentHabit) {
+              state.validationErrors = {};
+            });
+            return true;
+          }
+        },
+
+        updateCurrentHabit: <K extends keyof Habit>(key: K, value: Habit[K]) => {
+            set((state) => {
+                if (state.currentHabit) {
                     state.currentHabit[key] = value;
                 }
-            }),
+            });
+        },
 
-        setSection: (section) => set({section}),
-        setLoading: (loading) => set({loading}),
+        resetCurrentHabit: () => {
+            set({ currentHabit: generateNewHabit() });
+        },
 
-        handleDelete:async () => {
-            const { currentHabit } = get();
-            if (currentHabit) {
-              const response = await habitsApi.delete(currentHabit.habitid, currentHabit.noteid );
-              if (response) {
+        fetchHabitPreviews: async () => {
+            const {setLoading} = get()
+            setLoading(true)
+            const response = await habitsApi.getHabitPreviews();
+            if (response) {
                 set((state) => {
-                  state.habitPreviews = state.habitPreviews.filter((habit) => habit.habitid !== currentHabit.habitid);
-                  state.currentHabit = null;
-                  state.section = 'all habits';
+                    state.habitPreviews = response.data;
                 });
-              }
             }
+            setLoading(false)
+            return response;
+        },
+
+        fetchHabit: async (noteId: string) => {
+            const {setLoading} = get()
+            setLoading(true)
+            const response = await habitsApi.getHabit(noteId);
+            if (response && response.data) {
+                set((state) => {
+                    state.currentHabit = response.data;
+                });
+            }
+            setLoading(false)
+            return response;
         },
 
         handleCreateHabit: async () => {
-            const { currentHabit } = get();
-            const {selectedTagIds} = useTags.getState();
-      
+            const { currentHabit, resetCurrentHabit, setLoading } = get();
+            const { selectedTagIds } = useTags.getState();
+            setLoading(true)
+
             if (currentHabit) {
-              
-              const {title, content, reminder} = currentHabit;
-              
-              const response = await habitsApi.create(title, selectedTagIds, content, reminder);
-      
-              if (response) {
+                const { title, content, reminder } = currentHabit;
+                const response = await habitsApi.create(title, selectedTagIds, content, reminder);
+
+                if (response) {
+                    set((state) => {
+                        state.habitPreviews.push({
+                            habitid: response.data.habitid,
+                            noteid: response.data.noteid,
+                            title,
+                            content,
+                            streak: 0,
+                            completed_today: false,
+                            tags: [],
+                        });
+                        state.section = 'all habits';
+                    });
+                    
+                }
+            }
+            setLoading(false)
+        },
+
+        handleUpdateHabit: async () => {
+            const { currentHabit,setLoading } = get();
+            const { selectedTagIds } = useTags.getState();
+            setLoading(true)
+
+            if (currentHabit) {
+                const { habitid, noteid, title, content, reminder, streak, completed_today,tags } = currentHabit;
+                const updatedHabit = {
+                    habitid,
+                    noteid,
+                    title,
+                    content,
+                    reminder,
+                    tags: selectedTagIds,
+                    streak,
+                    completed_today,
+                };
+
+                const previousHabits = get().habitPreviews;
                 set((state) => {
-                  state.habitPreviews.push({habitid: response.data.habitid, noteid: response.data.noteid, title, content, streak: 0, completed_today: false, tags: []});
-                  state.currentHabit = null;
-                  state.section = 'all habits';
+                    state.habitPreviews = state.habitPreviews.map((habit) =>
+                        habit.habitid === habitid ? { habitid,noteid,title,streak,completed_today,tags,content } : habit
+                    );
                 });
-              }
+
+                const response = await habitsApi.update(updatedHabit);
+                if (!response) {
+                    set({ habitPreviews: previousHabits });
             }
-          },
+          }
+            setLoading(false)
+        },
 
-          handleUpdateHabit: async () => {
-            const { currentHabit } = get();
-            const { tags, selectedTagIds } = useTags.getState();
-      
-            if (currentHabit) {
-
-              const { habitid, noteid, title, content, streak, reminder, completed_today } = currentHabit;
-              const filteredTags = tags.filter((tag) => selectedTagIds.includes(tag.tagid));
-      
-              const updatedHabit: Partial<Habit> = {
-                habitid,
-                noteid,
-
-                title,
-                tags: filteredTags,
-                streak,
-                content,
-                reminder,
-                completed_today
-              };
-      
-              const previousHabits = get().habitPreviews;
-      
-              // optimistic update
-              set((state) => {
-                  state.habitPreviews = state.habitPreviews.map((habit) => (habit.habitid === habitid ? {habitid, noteid, title, tags, streak, content, completed_today} : habit));
-                  state.pendingUpdates = updatedHabit;
-                });
-      
-              const response = await habitsApi.update(updatedHabit);
-              if (!response) {
-                // revert update
-                set({ habitPreviews: previousHabits, pendingUpdates: null });
-              }
-      
-              set((state) => {
-                state.currentHabit = null;
-                state.section = 'all habits';
-              });
-            }
-
-          },
-
-          setCompleted: async (habitId) => {
+        handleDeleteHabit: async (habitid: UUID, noteid: UUID) => {
+            const previousHabits = get().habitPreviews;
             set((state) => {
-              state.habitPreviews = state.habitPreviews.map((habit) => 
-                habit.habitid === habitId ? { ...habit, completed_today: true } : habit
-              );
+                state.habitPreviews = state.habitPreviews.filter((habit) => habit.habitid !== habitid);
+            });
+            const response = await habitsApi.delete(habitid, noteid);
+            if (!response) {
+                set({ habitPreviews: previousHabits });
+            }
+        },
+
+        toggleCompletedToday: async (habitId: UUID) => {
+            set((state) => {
+                state.habitPreviews = state.habitPreviews.map((habit) =>
+                    habit.habitid === habitId ? { ...habit, completed_today: !habit.completed_today } : habit
+                );
             });
             const response = await habitsApi.setCompleted(habitId);
-      
-            // Revert the state if the API call fails
             if (!response) {
-              set((state) => {
-                state.habitPreviews = state.habitPreviews.map((habit) => 
-                 habit.habitid ===habitId ? { ...habit, completed_today: false } :habit
-                );
-              });
-            }
-          },
-        
-          fetchHabitPreviews: async () => {
-            const response = await habitsApi.getHabitPreviews(); //implement pagination
-            if (response) {
-              set((state) => {
-                state.habitPreviews = response.data;
-              });
-            }
-            return response;
-          },
-
-          fetchHabit : async (noteId:number) => {
-            const response = await habitsApi.getHabit(noteId);
-            if (response) {
-              set((state) => {
-                state.currentHabit = response.data;
-              });
-            }
-            return response
-          }
-          ,
-
-          toggleLinkTask: async (task) => {
-            const { currentHabit } = get();
-            console.log("clicked")
-            if (currentHabit) {
-              const isLinked = currentHabit.linked_tasks.some((linkedTask) => linkedTask.taskid === task.taskid);
-              // Store a copy of the original linked tasks for potential rollback
-              const originalLinkedTasks = [...currentHabit.linked_tasks];
-          
-              set((state) => {
-                if (isLinked) {
-                  state.currentHabit!.linked_tasks = state.currentHabit!.linked_tasks.filter((linkedTask) => linkedTask.taskid !== task.taskid);
-                } else {
-                  state.currentHabit!.linked_tasks.push(task);
-                }
-              });
-          
-              try {
-                const response = await habitsApi.linkTask(currentHabit.habitid, task.taskid, isLinked ? 'unlink' : 'link');
-              } catch (error) {
-                // Rollback to the original state in case of an error
                 set((state) => {
-                  state.currentHabit!.linked_tasks = originalLinkedTasks;
+                    state.habitPreviews = state.habitPreviews.map((habit) =>
+                        habit.habitid === habitId ? { ...habit, completed_today: !habit.completed_today } : habit
+                    );
                 });
-              }
             }
-          }
-      
-    }),
-))
+        },
+
+        toggleLinkTask: async (task) => {
+            const { currentHabit } = get();
+            if (currentHabit) {
+                const isLinked = currentHabit.linked_tasks.some((linkedTask) => linkedTask.taskid === task.taskid);
+                const originalLinkedTasks = [...currentHabit.linked_tasks];
+
+                set((state) => {
+                    if (isLinked) {
+                        state.currentHabit!.linked_tasks = state.currentHabit!.linked_tasks.filter((linkedTask) => linkedTask.taskid !== task.taskid);
+                    } else {
+                        state.currentHabit!.linked_tasks.push(task);
+                    }
+                });
+
+                try {
+                    const response = await habitsApi.linkTask(currentHabit.habitid, task.taskid, isLinked ? 'unlink' : 'link');
+                    if (!response) {
+                        set((state) => {
+                            state.currentHabit!.linked_tasks = originalLinkedTasks;
+                        });
+                    }
+                } catch (error) {
+                    set((state) => {
+                        state.currentHabit!.linked_tasks = originalLinkedTasks;
+                    });
+                }
+            }
+        }
+    }))
+);

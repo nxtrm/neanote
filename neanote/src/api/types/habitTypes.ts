@@ -1,9 +1,10 @@
+import { UUID } from "crypto";
 import { Tag } from "./tagTypes";
 import { Task } from "./taskTypes";
 
 export interface Habit {
-    habitid: number;
-    noteid:number
+    habitid:UUID;
+    noteid:UUID
 
     title: string;
     content:string
@@ -15,8 +16,8 @@ export interface Habit {
 }
 
 export interface HabitPreview {
-    habitid: number;
-    noteid:number
+    habitid:UUID;
+    noteid:UUID
 
     title: string;
     content: string;
@@ -27,7 +28,7 @@ export interface HabitPreview {
 
 export interface HabitCreateResponse {
     message: string
-    data: {habitid: number, noteid: number};
+    data: {habitid: UUID, noteid: UUID};
 }
 
 export interface HabitResponse {
