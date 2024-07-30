@@ -79,7 +79,7 @@ function EditHabits() {
           <div className='p-1'>
           {/* Navbar */}
           <div className='flex flex-row justify-between'>
-            <p className='pl-1 text-2xl font-bold'>{section === "edit" ? 'Edit Habit' : 'Create Habit'}</p>
+            <p className='pl-1 text-2xl font-bold'>Edit Habit</p>
             {/* Date Picker */}
             <div className='flex flex-row gap-2'>
               <TimeSelector/>
@@ -89,16 +89,17 @@ function EditHabits() {
             </div>
           </div>
           <Inputs withChechbox/>
-          {currentHabit?.linked_tasks ? <div className='flex flex-col pt-3 gap-2'>
+          {(currentHabit.linked_tasks.length > 0) && 
+          <div className='flex pt-3 flex-col gap-2'>
              {currentHabit.linked_tasks.map((task) => {
               return (
                 <TaskCard key={task.taskid} task={task} />
               )
               
             })}
-          </div>: null}
-            <div className=' flex justify-between'>
-              <LinkTasks linked_tasks={currentHabit?.linked_tasks ? currentHabit.linked_tasks : []}/>
+          </div>}
+            <div className=' flex mt-3 justify-between'>
+              <LinkTasks linked_tasks={currentHabit.linked_tasks ? currentHabit.linked_tasks : []}/>
               <div className='flex gap-2'>
                 <Button variant='outline' onClick={handleDelete}>Delete</Button>
                 <Button disabled={!isValidationErrorsEmpty || !pendingChanges} onClick={handleSaveHabit}>Save</Button>

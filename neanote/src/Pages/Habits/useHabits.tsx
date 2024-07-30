@@ -212,15 +212,17 @@ export const useHabits = create<HabitState>()(
         toggleCompletedToday: async (habitId: UUID) => {
             set((state) => {
                 state.habitPreviews = state.habitPreviews.map((habit) =>
-                    habit.habitid === habitId ? { ...habit, completed_today: !habit.completed_today } : habit
+                    habit.habitid === habitId ? { ...habit, completed_today: !habit.completed_today, streak: (habit.streak+1) } : habit
                 );
+                state.currentHabit = state.currentHabit ? { ...state.currentHabit, completed_today: !state.currentHabit.completed_today } : state.currentHabit;
             });
             const response = await habitsApi.setCompleted(habitId);
             if (!response) {
                 set((state) => {
                     state.habitPreviews = state.habitPreviews.map((habit) =>
-                        habit.habitid === habitId ? { ...habit, completed_today: !habit.completed_today } : habit
+                        habit.habitid === habitId ? { ...habit, completed_today: !habit.completed_today, streak: (habit.streak-1) } : habit
                     );
+                    state.currentHabit = state.currentHabit ? { ...state.currentHabit, completed_today: !state.currentHabit.completed_today } : state.currentHabit;
                 });
             }
         },

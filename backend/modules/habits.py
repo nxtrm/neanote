@@ -197,7 +197,9 @@ def habit_routes(app,conn):
     @app.route('/api/habit', methods=['GET'])
     @jwt_required()
     @token_required
+
     def get_habit():
+        cur=None
         try:
             userId = g.userId
             noteid = request.args.get('noteid')
@@ -205,27 +207,41 @@ def habit_routes(app,conn):
             cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
             habit = None
 
-            # Main query to fetch the specific habit and its linked tasks
             cur.execute(
                 '''
-                SELECT n.id AS note_id, n.title, n.content, h.id AS habit_id, h.reminder_time, h.repetition, h.streak, 
-                CASE WHEN hc.completion_date IS NOT NULL AND hc.completion_date::date = CURRENT_DATE THEN TRUE ELSE FALSE END AS completed_today, 
-                t.id AS tagid, t.name, t.color, 
-                ln.id AS linked_note_id, ln.title AS linked_note_title, ln.content AS linked_note_content, 
-                lt.id AS linked_task_id, lt.completed AS linked_task_completed, lt.due_date AS linked_task_due_date, 
-                lst.id AS linked_subtask_id, lst.description AS linked_subtask_description, lst.completed AS linked_subtask_completed
-                FROM Notes n 
-                JOIN Habits h ON n.id = h.note_id 
+                SELECT 
+                    n.id AS note_id, 
+                    n.title, 
+                    n.content, 
+                    h.id AS habit_id, 
+                    h.reminder_time, 
+                    h.repetition, 
+                    h.streak,
+                    CASE WHEN hc.completion_date = CURRENT_DATE THEN TRUE ELSE FALSE END AS completed_today, 
+                    t.id AS tagid, 
+                    t.name, 
+                    t.color,
+                    ln.id AS linked_note_id, 
+                    ln.title AS linked_note_title, 
+                    ln.content AS linked_note_content,
+                    lt.id AS linked_task_id, 
+                    lt.completed AS linked_task_completed, 
+                    lt.due_date AS linked_task_due_date,
+                    lst.id AS linked_subtask_id, 
+                    lst.description AS linked_subtask_description, 
+                    lst.completed AS linked_subtask_completed
+                FROM Notes n
+                JOIN Habits h ON n.id = h.note_id
                 LEFT JOIN HabitCompletion hc ON h.id = hc.habit_id
                 LEFT JOIN HabitTasks ht ON h.id = ht.habit_id
                 LEFT JOIN Notes ln ON ht.task_id = ln.id
                 LEFT JOIN Tasks lt ON ln.id = lt.note_id
                 LEFT JOIN Subtasks lst ON lt.id = lst.task_id
-                LEFT JOIN NoteTags nt ON n.id = nt.note_id 
-                LEFT JOIN Tags t ON nt.tag_id = t.id 
+                LEFT JOIN NoteTags nt ON n.id = nt.note_id
+                LEFT JOIN Tags t ON nt.tag_id = t.id
                 WHERE n.user_id = %s AND n.type = %s AND n.id = %s
                 ''',
-                (str(userId), "habit", str(noteid))
+                (userId, 'habit', noteid)
             )
 
             rows = cur.fetchall()
@@ -267,7 +283,7 @@ def habit_routes(app,conn):
                             'subtasks': []
                         }
                         habit['linked_tasks'].append(linked_task)
-                    
+
                     if row['linked_subtask_id']:
                         if not any(subtask['subtask_id'] == row['linked_subtask_id'] for subtask in linked_task['subtasks']):
                             linked_task['subtasks'].append({
@@ -283,10 +299,12 @@ def habit_routes(app,conn):
                 return jsonify({'message': 'Habit not found'}), 404
 
         except Exception as e:
-            conn.rollback()
+            if conn:
+                conn.rollback()
             raise
         finally:
-            cur.close()
+            if cur:
+                cur.close()
 
     
     @app.route('/api/habits/delete', methods=['PUT'])
@@ -368,16 +386,15 @@ def habit_routes(app,conn):
     @jwt_required()
     @token_required
     def link_habit():
+        cur = None
         try:
             userId = g.userId
 
-            cur = conn.cursor(cursorclass=psycopg2.extras.DictCursor)
+            cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
             data = request.get_json()
             habit_id = data['habitid']
             task_id = data['taskid']
             action_type = data['type']
-
-
 
             if action_type == "link":
                 cur.execute("INSERT INTO HabitTasks VALUES (%s, %s)", (habit_id, task_id))
@@ -389,7 +406,9 @@ def habit_routes(app,conn):
             conn.commit()
             return jsonify({'message': 'Habit linked successfully'}), 200
         except Exception as e:
-            conn.rollback()
+            if conn:
+                conn.rollback()
             raise
         finally:
-            cur.close()
+            if cur:
+                cur.close()

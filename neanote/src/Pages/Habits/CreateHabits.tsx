@@ -37,7 +37,7 @@ function CreateHabits() {
 
   const handleSaveHabit = async () => {
       await handleCreateHabit();
-      navigate('/goals/edit');
+      navigate('/habits/edit');
   }
 
     return (

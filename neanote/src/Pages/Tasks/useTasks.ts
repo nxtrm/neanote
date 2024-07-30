@@ -46,6 +46,7 @@ type TaskState = {
   
   fetchTaskPreviews: (pageParam:number) => Promise<void>;
   fetchTask: (noteId:string) => Promise<void>;
+  nextPage: number;
 
   pendingChanges:boolean
   setPendingChanges(value: boolean): void;
@@ -62,6 +63,7 @@ export const useTasks = create<TaskState>()(
     loading: false,
     validationErrors: {},
     currentTask: generateNewCurrentTask(),
+    nextPage:0,
 
     pendingChanges: false,
 
@@ -120,7 +122,7 @@ export const useTasks = create<TaskState>()(
         try {
           const response = await tasksApi.getTaskPreviews(pageParam);
           if (response && response.success) {
-            set({ tasks: response.data });
+            set({ tasks: response.data, nextPage: response.nextPage });
           }
           else {
             showToast('error', response.message);

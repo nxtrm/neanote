@@ -36,7 +36,6 @@ const habitsApi = {
             let response = await a.get<HabitPreviewResponse>(`/api/habits/previews`);
             return response.data;
         } catch (error) {
-            console.error('Error getting habit previews:', error);
 
             if (axios.isAxiosError(error)) {
                 showToast('e', error.response?.data?.message || 'An error occurred while fetching habit previews');
