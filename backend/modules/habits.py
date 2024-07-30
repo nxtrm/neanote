@@ -199,108 +199,107 @@ def habit_routes(app,conn):
     @token_required
 
     def get_habit():
-        cur=None
         try:
             userId = g.userId
             noteid = request.args.get('noteid')
 
-            cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-            habit = None
+            with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
+                cur.execute(
+                    '''
+                    SELECT 
+                        n.id AS note_id, 
+                        n.title, 
+                        n.content, 
+                        h.id AS habit_id, 
+                        h.reminder_time, 
+                        h.repetition, 
+                        h.streak,
+                        BOOL_OR(hc.completion_date = CURRENT_DATE) AS completed_today, 
+                        t.id AS tagid, 
+                        t.name, 
+                        t.color,
+                        ln.id AS linked_note_id, 
+                        ln.title AS linked_note_title, 
+                        ln.content AS linked_note_content,
+                        lt.id AS linked_task_id, 
+                        lt.completed AS linked_task_completed, 
+                        lt.due_date AS linked_task_due_date,
+                        lst.id AS linked_subtask_id, 
+                        lst.description AS linked_subtask_description, 
+                        lst.completed AS linked_subtask_completed
+                    FROM Notes n
+                    JOIN Habits h ON n.id = h.note_id
+                    LEFT JOIN HabitCompletion hc ON h.id = hc.habit_id
+                    LEFT JOIN HabitTasks ht ON h.id = ht.habit_id
+                    LEFT JOIN Notes ln ON ht.task_id = ln.id
+                    LEFT JOIN Tasks lt ON ln.id = lt.note_id
+                    LEFT JOIN Subtasks lst ON lt.id = lst.task_id
+                    LEFT JOIN NoteTags nt ON n.id = nt.note_id
+                    LEFT JOIN Tags t ON nt.tag_id = t.id
+                    WHERE n.user_id = %s AND n.type = %s AND n.id = %s
+                    GROUP BY n.id, h.id, t.id, ln.id, lt.id, lst.id
+                    ''',
+                    (userId, 'habit', noteid)
+                )
 
-            cur.execute(
-                '''
-                SELECT 
-                    n.id AS note_id, 
-                    n.title, 
-                    n.content, 
-                    h.id AS habit_id, 
-                    h.reminder_time, 
-                    h.repetition, 
-                    h.streak,
-                    CASE WHEN hc.completion_date = CURRENT_DATE THEN TRUE ELSE FALSE END AS completed_today, 
-                    t.id AS tagid, 
-                    t.name, 
-                    t.color,
-                    ln.id AS linked_note_id, 
-                    ln.title AS linked_note_title, 
-                    ln.content AS linked_note_content,
-                    lt.id AS linked_task_id, 
-                    lt.completed AS linked_task_completed, 
-                    lt.due_date AS linked_task_due_date,
-                    lst.id AS linked_subtask_id, 
-                    lst.description AS linked_subtask_description, 
-                    lst.completed AS linked_subtask_completed
-                FROM Notes n
-                JOIN Habits h ON n.id = h.note_id
-                LEFT JOIN HabitCompletion hc ON h.id = hc.habit_id
-                LEFT JOIN HabitTasks ht ON h.id = ht.habit_id
-                LEFT JOIN Notes ln ON ht.task_id = ln.id
-                LEFT JOIN Tasks lt ON ln.id = lt.note_id
-                LEFT JOIN Subtasks lst ON lt.id = lst.task_id
-                LEFT JOIN NoteTags nt ON n.id = nt.note_id
-                LEFT JOIN Tags t ON nt.tag_id = t.id
-                WHERE n.user_id = %s AND n.type = %s AND n.id = %s
-                ''',
-                (userId, 'habit', noteid)
-            )
-
-            rows = cur.fetchall()
-            for row in rows:
-                if habit is None:
-                    habit = {
-                        'noteid': row['note_id'],
-                        'habitid': row['habit_id'],
-                        'title': row['title'],
-                        'content': row['content'],
-                        'streak': row['streak'],
-                        'reminder': {
-                            'reminder_time': row['reminder_time'].strftime('%H:%M') if row['reminder_time'] else None,
-                            'repetition': row['repetition']
-                        },
-                        'completed_today': row['completed_today'],
-                        'tags': [],
-                        'linked_tasks': []
-                    }
-
-                if row['tagid']:
-                    if not any(tag['tagid'] == row['tagid'] for tag in habit['tags']):
-                        habit['tags'].append({
-                            'tagid': row['tagid'],
-                            'name': row['name'],
-                            'color': row['color']
-                        })
-
-                if row['linked_task_id']:
-                    linked_task = next((task for task in habit['linked_tasks'] if task['taskid'] == row['linked_task_id']), None)
-                    if not linked_task:
-                        linked_task = {
-                            'noteid': row['linked_note_id'],
-                            'taskid': row['linked_task_id'],
-                            'title': row['linked_note_title'],
-                            'content': row['linked_note_content'],
-                            'completed': row['linked_task_completed'],
-                            'due_date': row['linked_task_due_date'],
-                            'subtasks': []
+                rows = cur.fetchall()
+                habit = None
+                for row in rows:
+                    if habit is None:
+                        habit = {
+                            'noteid': row['note_id'],
+                            'habitid': row['habit_id'],
+                            'title': row['title'],
+                            'content': row['content'],
+                            'streak': row['streak'],
+                            'reminder': {
+                                'reminder_time': row['reminder_time'].strftime('%H:%M') if row['reminder_time'] else None,
+                                'repetition': row['repetition']
+                            },
+                            'completed_today': row['completed_today'],
+                            'tags': [],
+                            'linked_tasks': []
                         }
-                        habit['linked_tasks'].append(linked_task)
 
-                    if row['linked_subtask_id']:
-                        if not any(subtask['subtask_id'] == row['linked_subtask_id'] for subtask in linked_task['subtasks']):
-                            linked_task['subtasks'].append({
-                                'subtask_id': row['linked_subtask_id'],
-                                'description': row['linked_subtask_description'],
-                                'completed': row['linked_subtask_completed']
+                    if row['tagid']:
+                        if not any(tag['tagid'] == row['tagid'] for tag in habit['tags']):
+                            habit['tags'].append({
+                                'tagid': row['tagid'],
+                                'name': row['name'],
+                                'color': row['color']
                             })
 
-            conn.commit()
-            if habit:
-                return jsonify({'message': 'Habit fetched successfully', 'data': habit}), 200
-            else:
-                return jsonify({'message': 'Habit not found'}), 404
+                    if row['linked_task_id']:
+                        linked_task = next((task for task in habit['linked_tasks'] if task['taskid'] == row['linked_task_id']), None)
+                        if not linked_task:
+                            linked_task = {
+                                'noteid': row['linked_note_id'],
+                                'taskid': row['linked_task_id'],
+                                'title': row['linked_note_title'],
+                                'content': row['linked_note_content'],
+                                'completed': row['linked_task_completed'],
+                                'due_date': row['linked_task_due_date'],
+                                'subtasks': []
+                            }
+                            habit['linked_tasks'].append(linked_task)
+
+                        if row['linked_subtask_id']:
+                            if not any(subtask['subtask_id'] == row['linked_subtask_id'] for subtask in linked_task['subtasks']):
+                                linked_task['subtasks'].append({
+                                    'subtask_id': row['linked_subtask_id'],
+                                    'description': row['linked_subtask_description'],
+                                    'completed': row['linked_subtask_completed']
+                                })
+
+                conn.commit()
+                if habit:
+                    return jsonify({'message': 'Habit fetched successfully', 'data': habit}), 200
+                else:
+                    return jsonify({'message': 'Habit not found'}), 404
 
         except Exception as e:
-            if conn:
-                conn.rollback()
+            conn.rollback()
+            print(f"An error occurred: {e}")
             raise
         finally:
             if cur:
