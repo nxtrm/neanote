@@ -2,14 +2,15 @@ import React from 'react'
 import { Subtask } from '../../src/api/types/taskTypes'
 import CheckBox from '../CheckBox/CheckBox'
 import { useTasks } from '../../src/Pages/Tasks/useTasks';
+import { UUID } from 'crypto';
 
-function SubTaskCard({ subtask, taskId }: { subtask: Subtask, taskId:number }) {
+function SubTaskCard({ subtask, taskId }: { subtask: Subtask, taskId:UUID}) {
   const {
     toggleSubtaskCompleted
   } = useTasks()
 
     const toggleCompleted = () => {
-        toggleSubtaskCompleted(subtask.subtask_id, taskId);
+        toggleSubtaskCompleted(subtask.subtaskid, taskId);
         console.log(subtask)
     };
 

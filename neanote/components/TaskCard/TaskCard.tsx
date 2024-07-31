@@ -70,7 +70,7 @@ function TaskCard({ task }: { task: Task }) {
             <h3 className="task-title">{task.title}</h3>
           </div>                                                       
           <div className='flex flex-row items-center gap-1'>
-            {task.due_date  && <DateLabel collapsed={isDateCollapsed} date={task.due_date} />}
+            {task.due_date  && <DateLabel collapsed={isDateCollapsed} includeTime date={task.due_date} />}
             {task.tags.map((tag, index) => (
               <TagLabel key={index} name={tag.name} color={tag.color} compressed={isTagCompressed}/>
             ))}
@@ -85,7 +85,7 @@ function TaskCard({ task }: { task: Task }) {
         </div>}
         
         {task.subtasks.map((subtask) => (
-            <div className='pt-2' key={subtask.subtask_id}>
+            <div className='pt-2' key={subtask.subtaskid}>
               <SubTaskCard subtask={subtask} taskId={task.taskid}/>
             </div>
         ))}

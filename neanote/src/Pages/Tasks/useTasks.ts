@@ -4,201 +4,279 @@ import tasksApi from '../../api/tasksApi';
 import { Task, TaskResponse } from '../../api/types/taskTypes';
 import { useTags } from '../Tags/useTags';
 import { v4 as uuidv4 } from 'uuid';
+import { UUID } from 'crypto';
+import { TaskSchema } from '../../formValidation';
+import { z } from 'zod';
+import { showToast } from '../../../components/Toast';
+
+const generateNewCurrentTask = () => {
+
+  return {
+    taskid: uuidv4(),
+    noteid: uuidv4(),
+    title: '',
+    tags: [],
+    content: '',
+    subtasks: [],
+    due_date: undefined,
+    completed: false,
+  };
+};
 
 type TaskState = {
   loading:boolean;
   setLoading: (loading: boolean) => void;
+  
   section: string;
-  currentTask: Task | null;
-  tasks: Task[];
-  pendingUpdates: Partial<Task> | null;
   setSection: (section: string) => void;
+
+  currentTask: Task;
+  setCurrentTask: (task: Task) => void;
+  resetCurrentTask: () => void;
   updateCurrentTask: (key: keyof Task, value: any) => void;
+
+  tasks: Task[];
   handleAddSubtask: () => void;
-  handleRemoveSubtask: (subtaskId: number) => void;
+  handleRemoveSubtask: (subtaskId:UUID) => void;
   handleSaveTask: () => Promise<void>;
   handleEditTask: () => Promise<void>;
-  handleDeleteTask: (taskId: number | undefined, noteId: number | undefined) => Promise<void>;
-  toggleTaskCompleted: (taskId: number) => Promise<void>;
-  toggleSubtaskCompleted: (subtaskId: number, taskId: number) => Promise<void>;
-  setCurrentTask: (task: Task) => void;
+  handleDeleteTask: (taskId:UUID, noteId:UUID) => Promise<void>;
+  toggleTaskCompleted: (taskId:UUID) => Promise<void>;
+  toggleSubtaskCompleted: (subtaskId:UUID, taskId:UUID) => Promise<void>;
   
   fetchTaskPreviews: (pageParam:number) => Promise<void>;
-  fetchTask: (noteId: number) => Promise<TaskResponse | false>;
+  fetchTask: (noteId:string) => Promise<void>;
+  nextPage: number;
+
+  pendingChanges:boolean
+  setPendingChanges(value: boolean): void;
+
+  validationErrors: Record<string, string | undefined>;
+  validateTask: () => boolean;
 };
 
 export const useTasks = create<TaskState>()(
   immer((set, get) => ({
     section: 'all tasks',
-    currentTask: null,
     selectedTagIds: [],
     tasks: [],
-    pendingUpdates: null,
     loading: false,
+    validationErrors: {},
+    currentTask: generateNewCurrentTask(),
+    nextPage:0,
 
+    pendingChanges: false,
+
+    setPendingChanges: (value) => set({pendingChanges: value}),
+    
     setLoading : (loading) => set({ loading }),
-
+    
     setSection: (section) => set({ section }),
 
-    updateCurrentTask: <K extends keyof Task>(key: K, value: Task[K]) => 
+    validateTask: () => {
+      const { currentTask } = get();
+      const result = TaskSchema.safeParse(currentTask);
+      if (!result.success) {
+        set((state) => {
+          const errors = Object.fromEntries(
+            Object.entries(result.error.flatten().fieldErrors).map(([key, value]) => [key, value.join(", ")])
+          );
+          state.validationErrors = errors;
+        });
+        return false;
+      } else {
+        set((state) => {
+          state.validationErrors = {};
+        });
+        return true;
+      }
+    },
+
+      updateCurrentTask: <K extends keyof Task>(key: K, value: Task[K]) => {
       set((state) => {
         if (state.currentTask) {
           state.currentTask[key] = value;
+
         }
-      }),
+        if (!state.pendingChanges) {
+          state.pendingChanges = true;
+        }
+
+      });
+      get().validateTask();
+    },
+
+      
+      resetCurrentTask: () => {
+        useTags.getState().selectedTagIds = [];
+        set((state) => {
+          state.section = 'all tasks';
+          state.currentTask = generateNewCurrentTask()
+          state.pendingChanges = false;
+        })
+      },
+      
 
       fetchTaskPreviews: async (pageParam: number) => {
-        const setLoading = useTasks.getState().setLoading;
-        const fetchedTasks = await tasksApi.getTaskPreviews(pageParam);
-        if (fetchedTasks) { 
-          set({ tasks: fetchedTasks.data })
+        set({ loading: true });
+        try {
+          const response = await tasksApi.getTaskPreviews(pageParam);
+          if (response && response.success) {
+            set({ tasks: response.data, nextPage: response.nextPage });
+          }
+          else {
+            showToast('error', response.message);
+          }
+        } finally {
+          set({ loading: false });
         }
       },
 
-    fetchTask : async (noteId:number) => {
-      const response = await tasksApi.getTask(noteId);
-      if (response) {
-        set((state) => {
-          state.currentTask = response.data;
-        });
-      }
-      return response
-    }
-    ,
+      fetchTask: async (noteId: string) => {
+        set({ loading: true });
+        try {
+          const response = await tasksApi.getTask(noteId);
+          if (response.success && response.data) {
+            const dueDate = response.data.due_date ? new Date(response.data.due_date) : undefined;
+            set((state) => {
+              state.currentTask = { ...response.data, due_date: dueDate };
+            });
+          } else {
+            showToast('error', response.message);
+          }
+        } finally {
+          set({ loading: false });
+        }
+      },
     
 
-    handleAddSubtask: () => 
-      set((state) => {
-        if (state.currentTask) {
-          state.currentTask.subtasks.push({ subtask_id: uuidv4(), description: '', completed: false });
-        }
-      }),
-
-    handleRemoveSubtask: (subtaskId) => 
-      set((state) => {
-        if (state.currentTask) {
-          state.currentTask.subtasks = state.currentTask.subtasks.filter((subtask) => subtask.subtask_id !== subtaskId);
-        }
-      }),
-
-    handleSaveTask: async () => {
-      const { currentTask } = get();
-      const {selectedTagIds} = useTags.getState();
-
-      if (currentTask) {
-        // const result = TaskSchema.safeParse(currentTask);
-
-        // if (!result.success) {
-        //   showToast('e', 'Please fill in all required fields');
-        //   return; 
-        // }
-        
-        const {title, content, subtasks, due_date } = currentTask;
-        const response = await tasksApi.create(title, selectedTagIds, content, subtasks, due_date ? due_date.toISOString() : undefined);
-
-        if (response) {
-          set((state) => {
-            state.tasks.push(currentTask)
-            state.currentTask = null;
-            state.section = 'all tasks';
-          });
-        }
-      }
-    },
-
-    handleEditTask: async () => {
-      const { currentTask } = get();
-      const { tags, selectedTagIds } = useTags.getState();
-
-      if (currentTask) {
-
-        // const result = TaskSchema.safeParse(currentTask);
-
-        // if (!result.success) {
-        //   showToast('e', 'Please fill in all required fields');
-        //   return; 
-        // }
-
-        const { taskid, noteid, title, content, subtasks, due_date } = currentTask;
-        const filteredTags = tags.filter((tag) => selectedTagIds.includes(tag.tagid));
-
-        const updatedTask: Task = {
-          ...currentTask,
-          title,
-          tags: filteredTags,
-          content,
-          subtasks,
-          due_date,
-        };
-
-        const previousTasks = get().tasks;
-
-        // optimistic update
+      handleAddSubtask: () => {
         set((state) => {
-            state.tasks = state.tasks.map((task) => (task.taskid === taskid ? updatedTask : task));
-            state.pendingUpdates = updatedTask;
-          });
-
-        const response = await tasksApi.update(updatedTask);
-        if (!response) {
-          // revert update
-          set({ tasks: previousTasks, pendingUpdates: null });
-        }
-
-        set((state) => {
-          state.currentTask = null;
-          state.section = 'all tasks';
+          const subtasks = state.currentTask.subtasks;
+          subtasks.push({ subtaskid: uuidv4(), description: '', completed: false, index: subtasks.length });
         });
-      }
+        get().validateTask();
+      },
+  
+      handleRemoveSubtask: (subtaskid: string) => {
+        set((state) => {
+          const subtasks = state.currentTask.subtasks.filter((subtask) => subtask.subtaskid !== subtaskid);
+          subtasks.forEach((subtask, index) => (subtask.index = index));
+          state.currentTask.subtasks = subtasks;
+        });
+        get().validateTask();
       },
 
-    handleDeleteTask: async (taskId, noteId) => {
-      if (taskId && noteId) {
-        const previousTasks = get().tasks;
-        set((state) => {
-          state.tasks = state.tasks.filter((task) => task.taskid !== taskId);
-        });
-      
-        const response = await tasksApi.delete(taskId, noteId);
-      
-        // Revert the state if the API call fails
-        if (!response) {
-          set({ tasks: previousTasks });
+      handleSaveTask: async () => {
+        const { currentTask } = get();
+        const { selectedTagIds } = useTags.getState();
+        try {
+          if (get().validateTask()) {
+            const response = await tasksApi.create(currentTask.title, selectedTagIds, currentTask.content, currentTask.subtasks, currentTask.due_date);
+            if (response && response.success) {
+              set((state) => {
+                state.tasks.push({ ...currentTask, taskid: response.data.taskid, noteid: response.data.noteid });
+                state.section = 'all tasks';
+                state.pendingChanges = false;
+              });
+            } else {
+              showToast('error', response.message);
+            }
+          } else {
+            showToast('error', 'Validation failed');
+          }
+        } finally {
         }
-      }
-    },
+      },
+  
+      handleEditTask: async () => {
+        const { currentTask} = get();
+        const { selectedTagIds } = useTags.getState();
+        try {
+          if (get().validateTask()) {
+            const updatedTask = { ...currentTask, tags: selectedTagIds };
+            const response = await tasksApi.update(updatedTask);
+  
+          if (response && response.success) {
+            set((state) => {
+              state.tasks = state.tasks.map((task) => (task.taskid === currentTask.taskid ? currentTask : task));
+              state.pendingChanges = false;
+              state.loading = false;
+            });
+          } else {
+            showToast('error', response.message);
+          }
+          } else {
+            showToast('error', 'Validation failed');
+          }
 
-    toggleTaskCompleted: async (taskId) => {
-      set((state) => {
-        state.tasks = state.tasks.map((task) => 
-          task.taskid === taskId ? { ...task, completed: !task.completed } : task
-        );
-      });
-      const response = await tasksApi.toggleCompleteness(taskId, null);
+        } finally {
+        }
+      },
 
-      // Revert the state if the API call fails
-      if (!response) {
+      handleDeleteTask: async (taskId: UUID, noteId: UUID) => {
+        if (taskId && noteId) {
+          const previousTasks = get().tasks;
+
+          set((state) => {
+            state.tasks = state.tasks.filter((task) => task.taskid !== taskId);
+          });
+
+          const response = await tasksApi.delete(taskId, noteId);
+          if (response && response.success) {
+              showToast('success', 'Task deleted successfully')
+          } else {
+              set({ tasks: previousTasks }); //revert
+              showToast('error', response.message);
+          }
+
+        }
+      },
+
+      toggleTaskCompleted: async (taskId: UUID) => {
+
         set((state) => {
-          state.tasks = state.tasks.map((task) => 
-            task.taskid === taskId ? { ...task, completed: !task.completed } : task
-          );
+          state.tasks = state.tasks.map((task) => (task.taskid === taskId ? { ...task, completed: !task.completed } : task));
         });
-      }
-    },
+
+        const response = await tasksApi.toggleCompleteness(taskId, null);
+        if (!response || !response.success) {
+          set((state) => {
+            state.tasks = state.tasks.map((task) => (task.taskid === taskId ? { ...task, completed: !task.completed } : task));
+          });
+          showToast('error', 'Failed to toggle task completeness');
+        }
+
+      },
 
     toggleSubtaskCompleted: async (subtaskId, taskId) => {
       set((state) => {
         state.tasks = state.tasks.map((task) => {
           if (task.taskid === taskId) {
             const newSubtasks = task.subtasks.map((subtask) => 
-              subtask.subtask_id === subtaskId ? { ...subtask, completed: !subtask.completed } : subtask
+              subtask.subtaskid === subtaskId ? { ...subtask, completed: !subtask.completed } : subtask
             );
             return { ...task, subtasks: newSubtasks };
           }
           return task;
         });
       });
-      await tasksApi.toggleCompleteness(taskId, subtaskId);
+      try {
+        await tasksApi.toggleCompleteness(taskId, subtaskId);
+      } catch (error) {
+        // Revert subtask completion on failure
+        set((state) => {
+          state.tasks = state.tasks.map((task) => {
+            if (task.taskid === taskId) {
+              const revertedSubtasks = task.subtasks.map((subtask) => 
+                subtask.subtaskid === subtaskId ? { ...subtask, completed: !subtask.completed } : subtask
+              );
+              return { ...task, subtasks: revertedSubtasks };
+            }
+            return task;
+          });
+        });
+      }
     },
 
     setCurrentTask: (task) => 

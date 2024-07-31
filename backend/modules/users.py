@@ -1,12 +1,11 @@
 from datetime import datetime, timedelta
 from flask import Blueprint, g, jsonify, request
 from flask_jwt_extended import create_access_token, jwt_required
-from MySQLdb.cursors import DictCursor
 from marshmallow import ValidationError
 from formsValidation import LoginSchema, TagSchema, UserSchema
 from utils import token_required, verify_tag_ownership
 
-def user_routes(app,mysql):
+def user_routes(app, conn):
     @app.route('/api/login', methods=['POST'])
     def login():
         try: #implement password hashing later
@@ -16,7 +15,7 @@ def user_routes(app,mysql):
             username = data['username']
             password = data['password']
 
-            cur = mysql.connection.cursor()
+            cur =  conn.cursor()
             cur.execute("SELECT * FROM users WHERE username = %s AND password = %s", (username, password))
             user = cur.fetchone()
             if user:
@@ -31,8 +30,8 @@ def user_routes(app,mysql):
         except ValidationError as err:
             return jsonify(err.messages), 400
         except Exception as error:
-            mysql.connection.rollback()
-            raise
+             conn.rollback()
+             raise
         finally:
             cur.close()
 
@@ -47,7 +46,7 @@ def user_routes(app,mysql):
             password = result['password']
             
 
-            cur = mysql.connection.cursor()
+            cur =  conn.cursor()
 
             cur.execute("SELECT * FROM users WHERE username = %s OR email = %s", (username, email))
             existing_user = cur.fetchone()
@@ -55,25 +54,27 @@ def user_routes(app,mysql):
 
             if existing_user:
                 return jsonify({'message': 'User with this username or email already exists'}), 400
-            cur.execute("INSERT INTO users ( username, email, password) VALUES ( %s, %s, %s)", ( username, email, password))
-            cur.execute("SELECT LAST_INSERT_ID()")
+            cur.execute("INSERT INTO users ( username, email, password) VALUES ( %s, %s, %s) RETURNING id", ( username, email, password))
             userId = cur.fetchone()[0]
 
-            mysql.connection.commit()
-            cur.close()
 
             try:
-                access_token = create_access_token(exp=(datetime.datetime.utcnow() + datetime.timedelta(days=1)),identity=userId)
+                access_token = create_access_token(identity=userId)
             except Exception as e:
+                conn.rollback()
                 raise
 
-            response.set_cookie('token', access_token)
+            conn.commit()
+            cur.close()
+
             response = jsonify({'message': 'User created successfully', 'userId': userId})
+            response.set_cookie('token', access_token)
+            
             return response
         except ValidationError as err:
             return jsonify(err.messages), 400
         except Exception as error:
-            mysql.connection.rollback()
-            raise
+             conn.rollback()
+             raise
         finally:
             cur.close()

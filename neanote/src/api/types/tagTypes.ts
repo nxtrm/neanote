@@ -1,5 +1,7 @@
+import { UUID } from "crypto";
+
 export interface Tag {
-    tagid: number;
+    tagid: UUID;
     name: string;
     color: string;
   };

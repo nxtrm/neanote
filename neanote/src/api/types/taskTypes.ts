@@ -1,9 +1,11 @@
+import { UUID } from "crypto";
 import { Tag } from "./tagTypes";
 
 export interface Subtask {
-    subtask_id: number;
+    subtaskid: UUID;
     description: string;
     completed: boolean;
+    index: number;
   };
 
 export interface TaskUpdate extends Task {
@@ -11,8 +13,9 @@ export interface TaskUpdate extends Task {
   }
 
 export interface Task {
-    noteid: number;
-    taskid: number;
+    noteid: UUID;
+    taskid: UUID;
+
     title: string;
     content: string;
     completed: boolean;
@@ -22,10 +25,14 @@ export interface Task {
   };
 
   export interface TaskResponse {
-    data: Task;
+    task: Task;
     message: string
   }
 
+  export interface TaskCreateResponse {
+    message: string
+    data: {taskid: UUID, noteid: UUID, milestones: Subtask[]};
+}
 
   export interface TaskPreviewResponse {
     tasks: Task[];

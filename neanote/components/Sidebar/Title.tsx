@@ -1,10 +1,10 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 
-function Title() {
+function Title({font}) {
   return (
     <Link to="/">
-        <h1 className="text-3xl pt-2 font-extrabold ">
+        <h1 style={{fontSize:font}} className="font-extrabold ">
             Neanote
         </h1>
     </Link>
