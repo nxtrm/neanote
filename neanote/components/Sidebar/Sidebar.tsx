@@ -39,7 +39,7 @@ function Sidebar() {
       <DrawerTrigger asChild>
         <Button size="icon" variant="default"><IoMenu /></Button>
       </DrawerTrigger>
-      <DrawerContent className="flex flex-col p-2 rounded-l-none rounded-r-xl h-full w-[200px] mt-24 fixed bottom-0 right-0">
+      <DrawerContent className="flex flex-col p-2 rounded-r-xl h-full w-[200px] mt-24 fixed bottom-0 right-0">
         <DrawerHeader className="pt-0 pb-1">
           <div className="flex flex-row gap-2">
             <Title font={"35px"}/>
