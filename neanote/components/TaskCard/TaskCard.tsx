@@ -63,9 +63,9 @@ function TaskCard({ task }: { task: Task }) {
       }
       
       return (
-      <div className='p-3 w-full rounded-xl border-[2px]'>
+      <div className='p-2 h-fit w-full rounded-xl  border-[2px]'>
         <div className='flex flex-row items-center gap-3 justify-between'>
-          <div className='flex flex-row items-center gap-3'>
+          <div className='flex flex-row items-center pl-1 gap-3'>
             <CheckBox checked={task.completed} onChange={toggleCompleted} />
             <h3 className="task-title">{task.title}</h3>
           </div>                                                       
@@ -77,12 +77,14 @@ function TaskCard({ task }: { task: Task }) {
             <Button variant="ghost" size={"icon"} onClick={()=>handleEditClick(task.noteid)}><FaEdit/></Button>
           </div>
         </div>
-        {task.content && <p className="text-md pl-1 pt-2">{task.content}</p>}
+        {task.content && 
+          <div className='pt-2'>
+            <p className="text-md items-center flex flex-row rounded-full bg-secondary p-3">
+              {task.content}
+            </p>
+          </div>
+        }
         
-        {task.subtasks.length > 0 && 
-        <div className='pt-2'>
-            <Separator />
-        </div>}
         
         {task.subtasks.map((subtask) => (
             <div className='pt-2' key={subtask.subtaskid}>

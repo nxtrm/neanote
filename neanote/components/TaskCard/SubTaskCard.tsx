@@ -15,7 +15,7 @@ function SubTaskCard({ subtask, taskId }: { subtask: Subtask, taskId:UUID}) {
     };
 
   return (
-    <div className={`gap-3 items-center flex flex-row rounded-xl`}>
+    <div className={`gap-3 items-center flex flex-row rounded-full p-1 bg-secondary`}>
         <CheckBox checked={subtask.completed} onChange={toggleCompleted} />
         {subtask.description}
     </div>

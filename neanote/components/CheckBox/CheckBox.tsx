@@ -1,6 +1,7 @@
 import React from 'react'
 import {Button} from "../@/ui/button"
 import { MdCheckBox, MdCheckBoxOutlineBlank} from "react-icons/md";
+import { FaCheck } from "react-icons/fa";
 
 interface Props {
     checked: boolean;
@@ -10,8 +11,8 @@ interface Props {
 
 function CheckBox({ checked, onChange, disabled }: Props) {
     return (
-        <Button disabled={disabled} variant={"secondary"} size={"icon"} onClick={onChange}>
-            {checked ? <MdCheckBox /> : <MdCheckBoxOutlineBlank />}
+        <Button disabled={disabled} className='rounded-full border-2 border-primary' variant={checked?"default":"secondary"} size={"icon"} onClick={onChange}>
+            <FaCheck />
         </Button>
     );
 }
