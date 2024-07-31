@@ -8,7 +8,9 @@ function NavBar() {
 
     return (
 
-        <div className='p-2 rounded-xl flex flex-row justify-between items-center border-[2px]'>
+        <div className='p-2 rounded-xl flex flex-row justify-between items-center 
+          border-[2px]
+        '>
           <div className='flex flex-row pl-2 gap-5 items-center'>
             <Sidebar/>
             <Title font={"28px"}/>

@@ -214,7 +214,7 @@ def habit_routes(app,conn):
                         h.reminder_time, 
                         h.repetition, 
                         h.streak,
-                        BOOL_OR(hc.completion_date = CURRENT_DATE) AS completed_today, 
+                        COALESCE(BOOL_OR(hc.completion_date = CURRENT_DATE),FALSE) AS completed_today, 
                         t.id AS tagid, 
                         t.name, 
                         t.color,
@@ -306,34 +306,35 @@ def habit_routes(app,conn):
                 cur.close()
 
     
-    @app.route('/api/habits/delete', methods=['PUT'])
+    @app.route('/api/habits/delete', methods=['DELETE'])
     @jwt_required()
     @token_required
     def delete_habit():
+        cur = None
         try:
             userId = g.userId
-            cur = conn.cursor(cursorclass=psycopg2.extras.DictCursor)
-            data = request.get_json()
-            habit_id = data['habitid']
-            note_id = data['noteid']
+            with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
+                habit_id = request.args.get('habitid')
+                note_id = request.args.get('noteid')
 
-            if verify_habit_ownership(userId, habit_id, cur) == False:
-                return jsonify({'message': 'You do not have permission to update this habit'}), 403
-            
-            cur.execute("DELETE FROM NoteTags WHERE note_id = %s", (note_id,))
-            cur.execute("DELETE FROM HabitTasks WHERE habit_id = %s", (habit_id,))
-            cur.execute("DELETE FROM HabitCompletion WHERE habit_id = %s", (habit_id,))
-            cur.execute("DELETE FROM Habits WHERE id = %s", (habit_id,))
-            cur.execute("DELETE FROM Notes WHERE id = %s", (note_id,))
-                        
-            conn.commit()
-            return jsonify({'message': 'Habit deleted successfully'}), 200
+                if not verify_habit_ownership(userId, habit_id, cur):
+                    return jsonify({'message': 'You do not have permission to update this habit'}), 403
+
+                cur.execute("DELETE FROM NoteTags WHERE note_id = %s", (note_id,))
+                cur.execute("DELETE FROM HabitTasks WHERE habit_id = %s", (habit_id,))
+                cur.execute("DELETE FROM HabitCompletion WHERE habit_id = %s", (habit_id,))
+                cur.execute("DELETE FROM Habits WHERE id = %s", (habit_id,))
+                cur.execute("DELETE FROM Notes WHERE id = %s", (note_id,))
+
+                conn.commit()
+                return jsonify({'message': 'Habit deleted successfully'}), 200
         except Exception as e:
             if conn:
                 conn.rollback()
             raise
         finally:
-            cur.close()
+            if cur:
+                cur.close()
     
 
     @app.route('/api/habits/complete', methods=['PUT'])

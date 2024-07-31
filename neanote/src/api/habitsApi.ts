@@ -122,7 +122,7 @@ const habitsApi = {
         } catch (error) {
             console.error('Error linking task to habit:', error);
 
-            if (axios.isAxiosError(error)) {
+        if (axios.isAxiosError(error)) {
                 showToast('e', error.response?.data?.message || 'An error occurred while linking the task to the habit');
             } else {
                 showToast('e', 'An unexpected error occurred');
@@ -134,7 +134,7 @@ const habitsApi = {
 
     delete: async (habitid: UUID, noteid: UUID) => {
         try {
-            const response = await a.put(`/api/tasks/delete`, { habitid, noteid });
+            const response = await a.delete(`/api/habits/delete`, {params: { habitid, noteid }});
 
             if (response.status === 200) {
                 showToast('s', 'Habit has been deleted successfully');

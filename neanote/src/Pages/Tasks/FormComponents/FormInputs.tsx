@@ -4,12 +4,20 @@ import { Textarea } from "../../../../components/@/ui/textarea"
 import { Task } from "../../../api/types/taskTypes"
 import TagsDropdownMenu from "../../Tags/components/TagsDropdownMenu"
 import { useTasks } from "../useTasks"
+import CheckBox from "../../../../components/CheckBox/CheckBox"
 
-function FormInputs({content, title}: Partial<Task>) {
-    const {updateCurrentTask, setPendingChanges} = useTasks()
+interface Props {
+    content: string
+    title: string
+    withCheckBox?: boolean
+}
+
+function FormInputs({content, title, withCheckBox}: Props) {
+    const {updateCurrentTask, setPendingChanges, toggleTaskCompleted, currentTask} = useTasks()
     return (
       <div className="pt-2">            
           <div className="flex flex-row gap-2 ">
+            {withCheckBox && <CheckBox checked={currentTask.completed} onChange={()=>toggleTaskCompleted(currentTask.taskid)} />}
               <Input
                   type="text"
                   value={title}

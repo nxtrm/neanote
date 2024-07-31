@@ -25,8 +25,8 @@ function TimeSelector() {
               Repeats:
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-auto p-2">
-            <Card className="w-[120px] h-[200px]">
+          <PopoverContent className="w-auto p-2 z-50">
+            <Card className="w-[120px] h-[200px] ">
               <CardDescription className='flex flex-col p-2 gap-y-2 justify-center'>
                 <Input 
                   type="time" 

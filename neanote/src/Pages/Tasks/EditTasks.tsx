@@ -87,7 +87,7 @@ function EditTasks() {
           </div> 
         </div>
         
-        <FormInputs title={currentTask.title} content={currentTask.content} />
+        <FormInputs title={currentTask.title} content={currentTask.content} withCheckBox/>
         {validationErrors['title'] && (
           <Label className="text-destructive">{validationErrors['title']}</Label>
         )}

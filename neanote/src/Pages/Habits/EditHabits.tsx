@@ -1,20 +1,16 @@
-import React, { useEffect, useState } from 'react'
-import PageContainer from '../../../components/PageContainer/PageContainer'
-import { Button } from '../../../components/@/ui/button'
-import { MdCancel } from 'react-icons/md'
-import { useHabits } from './useHabits';
-import { useTags } from '../Tags/useTags';
+import React, { useEffect, useState } from 'react';
+import { MdCancel } from 'react-icons/md';
 import { useNavigate } from 'react-router-dom';
-import { Input } from '../../../components/@/ui/input';
-import TagsDropdownMenu from '../Tags/components/TagsDropdownMenu';
-import { Textarea } from '../../../components/@/ui/textarea';
-import TimeSelector from './TimeSelector/TimeSelector';
-import LinkTasks from './LinkTasks/LinkTasks';
+import { Button } from '../../../components/@/ui/button';
+import DeleteDialog from '../../../components/DeleteDialog/DeleteDialog';
+import PageContainer from '../../../components/PageContainer/PageContainer';
 import TaskCard from '../../../components/TaskCard/TaskCard';
-import CheckBox from '../../../components/CheckBox/CheckBox';
+import { useTags } from '../Tags/useTags';
 import EditHabitsSkeleton from './EditHabitsSkeleton';
-import { Label } from '../../../components/@/ui/label';
 import Inputs from './FormComponents/Inputs';
+import LinkTasks from './LinkTasks/LinkTasks';
+import TimeSelector from './TimeSelector/TimeSelector';
+import { useHabits } from './useHabits';
 
 function EditHabits() {
   const {currentHabit, handleCreateHabit, pendingChanges, validationErrors, handleUpdateHabit, loading, fetchHabit, toggleCompletedToday, section, resetCurrentHabit, updateCurrentHabit, handleDeleteHabit} = useHabits();
@@ -35,6 +31,7 @@ function EditHabits() {
     }, []);
 
     useEffect(() => {
+      console.log(validationErrors)
       setIsValidationErrorsEmpty(
         Object.keys(validationErrors).every(key => !validationErrors[key])
       );
@@ -56,12 +53,11 @@ function EditHabits() {
 
   const handleDelete = async () => {
     await handleDeleteHabit(currentHabit.habitid, currentHabit.noteid)
+    navigate('/habits');
   }
 
   const handleSaveHabit = () => {
       handleUpdateHabit();
-    
-
   }
 
   if (loading) {
@@ -76,7 +72,7 @@ function EditHabits() {
 
     return (
       <PageContainer>
-          <div className='p-1'>
+        <div className='p-1'>
           {/* Navbar */}
           <div className='flex flex-row justify-between'>
             <p className='pl-1 text-2xl font-bold'>Edit Habit</p>
@@ -101,12 +97,13 @@ function EditHabits() {
             <div className=' flex mt-3 justify-between'>
               <LinkTasks linked_tasks={currentHabit.linked_tasks ? currentHabit.linked_tasks : []}/>
               <div className='flex gap-2'>
-                <Button variant='outline' onClick={handleDelete}>Delete</Button>
+                <DeleteDialog handleDelete={handleDelete}>
+                  <Button variant="outline">Delete</Button>
+                </DeleteDialog>
                 <Button disabled={!isValidationErrorsEmpty || !pendingChanges} onClick={handleSaveHabit}>Save</Button>
             </div>
             </div>
-          </div>
-          
+        </div>
       </PageContainer>
     ) 
   }

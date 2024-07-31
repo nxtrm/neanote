@@ -47,8 +47,6 @@ export function DatePicker({ onDateChange, data, includeTime = false }: DatePick
       newDateTime.setHours(timeParts[0], timeParts[1]);
       setDateTime(newDateTime);
       onDateChange(newDateTime);
-    } else {
-      console.error('Invalid time format:', timeString);
     }
   };
 
@@ -68,7 +66,7 @@ export function DatePicker({ onDateChange, data, includeTime = false }: DatePick
             className={cn("w-[150px] justify-start text-left font-normal", !dateTime && "text-muted-foreground")}
           >
             <CalendarIcon className="mr-2 h-4 w-4" />
-            {dateTime ? format(dateTime, "PPP") : <span>Due date</span>}
+            {dateTime ? format(dateTime, "PPP") : <span>Reminder</span>}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0">
