@@ -7,7 +7,7 @@ import { Input } from '../../../components/@/ui/input';
 import CheckBox from '../../../components/CheckBox/CheckBox';
 import DeleteDialog from '../../../components/DeleteDialog/DeleteDialog';
 import PageContainer from '../../../components/PageContainer/PageContainer';
-import { useTags } from '../Tags/useTags';
+import { FaSave, FaTrash } from "react-icons/fa";
 import { DatePicker } from './DatePicker/DatePicker';
 import EditTasksSkeleton from './EditTasksSkeleton';
 import FormInputs from './FormComponents/FormInputs';
@@ -22,12 +22,10 @@ function EditTasks() {
     loading,
     fetchTask,
     updateCurrentTask,
+    archive,
     handleAddSubtask,
-    handleRemoveSubtask,
     handleEditTask,
     handleDeleteTask,
-    toggleTaskCompleted,
-    toggleSubtaskCompleted,
     resetCurrentTask,
     validationErrors,
   } = useTasks();
@@ -65,6 +63,11 @@ function EditTasks() {
     await handleDeleteTask(currentTask?.taskid, currentTask?.noteid);
     navigate('/tasks');
   };
+
+  const handleArchive = async () => {
+    await archive(currentTask?.noteid);
+    navigate('/tasks');
+  }
 
   if (loading) return <EditTasksSkeleton />;
 
@@ -107,14 +110,7 @@ function EditTasks() {
                 Add Subtask
               </div>
             </Button>
-            <div className="flex flex-row gap-2">
-              <DeleteDialog handleDelete={handleDelete}>
-                <Button variant="outline">Delete</Button>
-              </DeleteDialog>
-              <Button disabled={!pendingChanges || !isValidationErrorsEmpty} onClick={handleSave}>
-                Save
-              </Button>
-            </div>
+
           </div>
         </div>
       </div>

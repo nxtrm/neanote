@@ -266,7 +266,7 @@ def task_routes(app, conn):
                     LEFT JOIN Subtasks st ON t.id = st.task_id
                     LEFT JOIN NoteTags nt ON n.id = nt.note_id
                     LEFT JOIN Tags tg ON nt.tag_id = tg.id
-                    WHERE n.user_id = %s AND n.type = 'task'
+                    WHERE n.user_id = %s AND n.type = 'task' AND n.archived = FALSE
                     ORDER BY n.created_at DESC
                     LIMIT %s OFFSET %s
                 """, (userId, per_page, offset))
@@ -351,7 +351,7 @@ def task_routes(app, conn):
                     LEFT JOIN Subtasks st ON t.id = st.task_id
                     LEFT JOIN NoteTags nt ON n.id = nt.note_id
                     LEFT JOIN Tags tg ON nt.tag_id = tg.id
-                    WHERE n.user_id = %s AND n.id = %s AND n.type = 'task'
+                    WHERE n.user_id = %s AND n.id = %s AND n.type = 'task' AND n.archived = FALSE
                 """, (userId, noteid))
 
                 rows = cur.fetchall()

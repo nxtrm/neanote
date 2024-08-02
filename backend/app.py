@@ -1,6 +1,6 @@
-from flask import Flask, jsonify
+from flask import Flask, g, jsonify, request
 from flask_cors import CORS
-from flask_jwt_extended import JWTManager
+from flask_jwt_extended import JWTManager, jwt_required
 import jwt
 import psycopg2 
 from config import Config
@@ -9,6 +9,7 @@ from modules.tasks import task_routes
 from modules.goals import goal_routes
 from modules.tags import tag_routes
 from modules.users import user_routes
+from utils import token_required
 
 
 app = Flask(__name__)
@@ -36,8 +37,30 @@ conn = psycopg2.connect(
 task_routes(app, conn)
 habit_routes(app, conn)
 goal_routes(app,  conn)
-tag_routes(app, conn)
+tag_routes(app, conn) 
 user_routes(app, conn)
+
+# UNIVERSAL ROUTES
+@app.route('/api/archive', methods=['PUT'])
+@jwt_required()
+@token_required
+def archive():
+    try:
+        userId = g.userId
+        cur = conn.cursor()
+        note_id = request.args.get('noteid')
+        cur.execute(
+            "UPDATE Notes SET archived = TRUE WHERE id = %s AND user_id = %s",
+            (note_id, userId)
+        )
+        conn.commit()
+        return jsonify({'message': 'Note archived successfully', 'data': None}), 200
+    except Exception as e:
+        conn.rollback()
+        raise
+    finally:
+        cur.close()
+
 
 #Centralized error handler
 @app.errorhandler(Exception)

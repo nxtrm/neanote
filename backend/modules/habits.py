@@ -154,7 +154,7 @@ def habit_routes(app,conn):
                     LEFT JOIN HabitCompletion hc ON h.id = hc.habit_id AND hc.completion_date = CURRENT_DATE
                     LEFT JOIN NoteTags nt ON n.id = nt.note_id 
                     LEFT JOIN Tags t ON nt.tag_id = t.id 
-                    WHERE n.user_id = %s AND n.type = %s
+                    WHERE n.user_id = %s AND n.type = %s AND n.archived = FALSE
                     GROUP BY n.id, h.id
                 '''
                 
@@ -236,7 +236,7 @@ def habit_routes(app,conn):
                     LEFT JOIN Subtasks lst ON lt.id = lst.task_id
                     LEFT JOIN NoteTags nt ON n.id = nt.note_id
                     LEFT JOIN Tags t ON nt.tag_id = t.id
-                    WHERE n.user_id = %s AND n.type = %s AND n.id = %s
+                    WHERE n.user_id = %s AND n.type = %s AND n.archived = FALSE AND n.id = %s
                     GROUP BY n.id, h.id, t.id, ln.id, lt.id, lst.id
                     ''',
                     (userId, 'habit', noteid)

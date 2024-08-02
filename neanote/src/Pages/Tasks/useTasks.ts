@@ -8,6 +8,7 @@ import { UUID } from 'crypto';
 import { TaskSchema } from '../../formValidation';
 import { z } from 'zod';
 import { showToast } from '../../../components/Toast';
+import utilsApi from '../../api/utilsApi';
 
 const generateNewCurrentTask = () => {
 
@@ -43,6 +44,7 @@ type TaskState = {
   handleDeleteTask: (taskId:UUID, noteId:UUID) => Promise<void>;
   toggleTaskCompleted: (taskId:UUID) => Promise<void>;
   toggleSubtaskCompleted: (subtaskId:UUID, taskId:UUID) => Promise<void>;
+  archive: (noteId:UUID) => Promise<void>;
   
   fetchTaskPreviews: (pageParam:number) => Promise<void>;
   fetchTask: (noteId:string) => Promise<void>;
@@ -106,6 +108,15 @@ export const useTasks = create<TaskState>()(
       get().validateTask();
     },
 
+      archive: async (noteId: UUID) => {
+        const response = await utilsApi.archive(noteId);
+        if (response) {
+          set((state) => {
+            state.tasks = state.tasks.filter((task) => task.noteid !== noteId);
+          });
+          //set archived tasks
+        }
+      },
       
       resetCurrentTask: () => {
         useTags.getState().selectedTagIds = [];

@@ -137,7 +137,7 @@ def goal_routes(app, conn):
                 LEFT JOIN Milestones m ON g.id = m.goal_id
                 LEFT JOIN NoteTags nt ON n.id = nt.note_id
                 LEFT JOIN Tags tg ON nt.tag_id = tg.id
-                WHERE n.user_id = %s AND n.type = 'goal'
+                WHERE n.user_id = %s AND n.type = 'goal' AND n.archived = FALSE
                 ORDER BY n.created_at DESC
                 LIMIT %s OFFSET %s
             """
@@ -218,7 +218,7 @@ def goal_routes(app, conn):
                 LEFT JOIN Milestones m ON g.id = m.goal_id
                 LEFT JOIN NoteTags nt ON n.id = nt.note_id
                 LEFT JOIN Tags tg ON nt.tag_id = tg.id
-                WHERE n.user_id = %s AND n.type = 'goal' AND n.id = %s
+                WHERE n.user_id = %s AND n.type = 'goal' AND n.id = %s AND n.archived = FALSE
             """
 
             cur.execute(query, (userId, noteid))
