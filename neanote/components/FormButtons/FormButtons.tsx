@@ -2,7 +2,7 @@
 import React from 'react'
 import DeleteDialog from '../DeleteDialog/DeleteDialog';
 import { Button } from '../@/ui/button';
-import { FaSave, FaTrash } from 'react-icons/fa';
+import { FaSave, FaTrash,FaArchive } from 'react-icons/fa';
 
 interface Props {
     handleArchive?: () => void;
@@ -10,22 +10,28 @@ interface Props {
     handleSave: () => void
     pendingChanges: boolean
     isValidationErrorsEmpty: boolean
+    hasDelete?: boolean
 
 }
 
-function FormButtons() {
+function FormButtons({handleArchive, handleDelete, handleSave, pendingChanges, isValidationErrorsEmpty, hasDelete}: Props) {
   return (
     <div className="flex flex-row gap-2">
-        <DeleteDialog handleArchive={()=>(console.log("archived"))} handleDelete={handleDelete}>
-          <Button size={"icon"} variant="outline">
-            <FaTrash />
-          </Button>
-        </DeleteDialog>
-        <Button size={"icon"} disabled={!pendingChanges || !isValidationErrorsEmpty} onClick={handleSave}>
-          <FaSave />
-        </Button>
-        <Button size={"icon"} disabled={!pendingChanges || !isValidationErrorsEmpty} onClick={handleSave}>
-          <FaSave />
+        {hasDelete && (
+            <>
+                <DeleteDialog handleArchive={handleArchive} handleDelete={handleDelete}>
+                <Button size={"icon"} variant="outline">
+                    <FaTrash /> 
+                </Button>
+                </DeleteDialog>
+                <Button className='gap-2' variant="outline" aria-label='archive' disabled={pendingChanges} onClick={handleArchive}>
+                    <FaArchive />  Archive
+                </Button> 
+            </>
+        )
+        }
+        <Button className='gap-2' disabled={!pendingChanges || !isValidationErrorsEmpty} onClick={handleSave}>
+          <FaSave /> Save
         </Button>
     </div>
   )

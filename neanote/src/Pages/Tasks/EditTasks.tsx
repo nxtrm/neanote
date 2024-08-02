@@ -14,6 +14,7 @@ import FormInputs from './FormComponents/FormInputs';
 import { useTasks } from './useTasks';
 import {Label} from '../../../components/@/ui/label';
 import Subtasks from './FormComponents/Subtasks';
+import FormButtons from '../../../components/FormButtons/FormButtons';
 
 function EditTasks() {
   const {
@@ -110,7 +111,14 @@ function EditTasks() {
                 Add Subtask
               </div>
             </Button>
-
+            <FormButtons 
+              pendingChanges={pendingChanges} 
+              isValidationErrorsEmpty={isValidationErrorsEmpty}
+              hasDelete 
+              handleSave={handleSave} 
+              handleArchive={handleArchive} 
+              handleDelete={handleDelete} //add this to all other forms
+            />
           </div>
         </div>
       </div>

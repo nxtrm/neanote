@@ -7,7 +7,7 @@ const utilsApi = {
 
     archive: async (noteId:UUID) => {
         try {
-            const response = await a.post(`/api/archive`, {noteId});
+            const response = await a.put(`/api/notes/archive`, {noteId});
 
             if (response.status === 200) {
                 showToast('s', 'Archived successfully');

@@ -19,8 +19,8 @@ function DeleteDialog({children, handleDelete, handleArchive})  {
             <AlertDialogFooter>
                 <div className='flex flex-row gap-3'>
                   <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
                   <AlertDialogAction onClick={handleArchive}>Archive instead</AlertDialogAction>
+                  <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
                 </div>
             </AlertDialogFooter>
         </AlertDialogContent>

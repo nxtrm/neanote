@@ -41,7 +41,7 @@ tag_routes(app, conn)
 user_routes(app, conn)
 
 # UNIVERSAL ROUTES
-@app.route('/api/archive', methods=['PUT'])
+@app.route('/api/notes/archive', methods=['PUT'])
 @jwt_required()
 @token_required
 def archive():
@@ -50,7 +50,7 @@ def archive():
         cur = conn.cursor()
         note_id = request.args.get('noteid')
         cur.execute(
-            "UPDATE Notes SET archived = TRUE WHERE id = %s AND user_id = %s",
+            "UPDATE Notes SET archived = TRUE WHERE id = %s AND user_id = %s", #fix this not setting the note as archived
             (note_id, userId)
         )
         conn.commit()
