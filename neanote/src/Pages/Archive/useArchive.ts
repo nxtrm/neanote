@@ -2,21 +2,42 @@ import { create } from "zustand"
 import { immer } from "zustand/middleware/immer"
 import { ArchiveType } from "../../api/types/archiveTypes"
 import archiveApi from "../../api/archiveApi"
+import { showToast } from "../../../components/Toast"
 
 type ArchiveState = {
     archive: ArchiveType[]
-    fetchArchivedNotes: () => void
+
+    fetchArchivedNotes: (pageParam:number) => void
+    nextPage: number | null
+
+    loading:boolean
 }
 
 export const useArchive = create<ArchiveState>()(
     immer((set, get) => ({
         archive: [],
+        nextPage:null,
+
+        loading:false,
+
         
-        fetchArchivedNotes: async () => {
-            const response = await archiveApi.getAll()
-            if (response && response.success) {
-                set({ archive: response.data })
+        fetchArchivedNotes: async (pageParam) => {
+            set({ loading: true });
+            try {
+
+                const response = await archiveApi.getAll(pageParam)
+                if (response && response.success) {
+                    set({ archive: response.data })
+                    if (response.nextPage) {
+                        set({ nextPage: response.nextPage })
+                    }
+                else {
+                    showToast('error', response.message);
+                }}
+            } finally {
+                set({ loading: true });
             }
+            
         }
         
     })))

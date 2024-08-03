@@ -3,6 +3,7 @@ import a from "./api";
 import axios from "axios";
 import { showToast } from "../../components/Toast";
 import { get } from "http";
+import { ArchiveResponse } from "./types/archiveTypes";
 
 const archiveApi = {
 
@@ -25,14 +26,14 @@ const archiveApi = {
         }
     },
 
-    getAll:async ()=> {
+    getAll:async (pageParam)=> {
         try {
-            const response = await a.get(`/api/notes/archive`);
+            const response = await a.get<ArchiveResponse>(`/api/notes/archive`, {params:{pageParam}});
 
             if (response.status === 200) {
-                return { success: true, data: response.data.tasks, nextPage: response.data.nextPage };}
+                return { success: true, data: response.data.data, nextPage: response.data.nextPage };}
             } catch (error) {
-                return { success: false, message: error.message || 'Failed to fetch task previews' };
+                return { success: false, message: error.message || 'Failed to fetch archived notes' };
             }
     }
 }

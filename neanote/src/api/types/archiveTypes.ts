@@ -6,3 +6,9 @@ export interface ArchiveType {
     content:string
     type:string
 }
+
+export interface ArchiveResponse {
+    success:boolean
+    data:ArchiveType[]
+    nextPage:number
+}

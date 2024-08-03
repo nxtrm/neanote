@@ -4,6 +4,7 @@ from flask_jwt_extended import JWTManager, jwt_required
 import jwt
 import psycopg2 
 from config import Config
+from modules.archive import archive_routes
 from modules.habits import habit_routes
 from modules.tasks import task_routes
 from modules.goals import goal_routes
@@ -39,29 +40,7 @@ habit_routes(app, conn)
 goal_routes(app,  conn)
 tag_routes(app, conn) 
 user_routes(app, conn)
-
-# UNIVERSAL ROUTES
-@app.route('/api/notes/archive', methods=['PUT'])
-@jwt_required()
-@token_required
-def archive():
-    try:
-        userId = g.userId
-        cur = conn.cursor()
-        data = request.get_json()
-        note_id = data.get('noteId')
-        print(note_id)
-        cur.execute(
-            "UPDATE Notes SET archived = TRUE WHERE id = %s AND user_id = %s",
-            (note_id, userId)
-        )
-        conn.commit()
-        return jsonify({'message': 'Note archived successfully', 'data': None}), 200
-    except Exception as e:
-        conn.rollback()
-        raise
-    finally:
-        cur.close()
+archive_routes(app, conn)
 
 
 #Centralized error handler
