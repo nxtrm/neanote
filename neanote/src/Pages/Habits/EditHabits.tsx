@@ -11,9 +11,10 @@ import Inputs from './FormComponents/Inputs';
 import LinkTasks from './LinkTasks/LinkTasks';
 import TimeSelector from './TimeSelector/TimeSelector';
 import { useHabits } from './useHabits';
+import FormButtons from '../../../components/FormButtons/FormButtons';
 
 function EditHabits() {
-  const {currentHabit, handleCreateHabit, pendingChanges, validationErrors, handleUpdateHabit, loading, fetchHabit, toggleCompletedToday, section, resetCurrentHabit, updateCurrentHabit, handleDeleteHabit} = useHabits();
+  const {currentHabit, archive, pendingChanges, validationErrors, handleUpdateHabit, loading, fetchHabit, resetCurrentHabit, handleDeleteHabit} = useHabits();
   const navigate = useNavigate();
   const [isValidationErrorsEmpty, setIsValidationErrorsEmpty] = useState(true);
 
@@ -50,13 +51,18 @@ function EditHabits() {
       resetCurrentHabit()
       navigate('/habits');
     };
+  
+  const handleArchive = async () => {
+      await archive(currentHabit?.noteid);
+      navigate('/habits');
+  }
 
   const handleDelete = async () => {
     await handleDeleteHabit(currentHabit.habitid, currentHabit.noteid)
     navigate('/habits');
   }
 
-  const handleSaveHabit = () => {
+  const handleSave = () => {
       handleUpdateHabit();
   }
 
@@ -96,12 +102,15 @@ function EditHabits() {
           </div>}
             <div className=' flex mt-3 justify-between'>
               <LinkTasks linked_tasks={currentHabit.linked_tasks ? currentHabit.linked_tasks : []}/>
-              <div className='flex gap-2'>
-                <DeleteDialog handleDelete={handleDelete}>
-                  <Button variant="outline">Delete</Button>
-                </DeleteDialog>
-                <Button disabled={!isValidationErrorsEmpty || !pendingChanges} onClick={handleSaveHabit}>Save</Button>
-            </div>
+              <FormButtons 
+                pendingChanges={pendingChanges} 
+                isValidationErrorsEmpty={isValidationErrorsEmpty}
+                loading={loading}
+                hasDelete 
+                handleSave={handleSave} 
+                handleArchive={handleArchive} 
+                handleDelete={handleDelete} //add this to all other forms
+              />
             </div>
         </div>
       </PageContainer>

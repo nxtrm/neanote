@@ -8,6 +8,7 @@ import { Task } from "../../api/types/taskTypes";
 import { UUID } from "crypto";
 import { HabitSchema } from "../../formValidation";
 import { useTasks } from "../Tasks/useTasks";
+import utilsApi from "../../api/utilsApi";
 
 // Function to generate a new habit object
 const generateNewHabit = () => ({
@@ -45,6 +46,7 @@ type HabitState = {
     handleCreateHabit: () => Promise<void>;
     handleUpdateHabit: () => Promise<void>;
     handleDeleteHabit: (habitid: UUID, noteid: UUID) => Promise<void>;
+    archive: (noteId: UUID) => Promise<void>;
 
     toggleCompletedToday: (habitId: UUID) => Promise<void>;
     toggleLinkTask: (task: Task) => Promise<void>;
@@ -88,6 +90,15 @@ export const useHabits = create<HabitState>()(
             return true;
           }
         },
+        archive: async (noteId: UUID) => {
+            const response = await utilsApi.archive(noteId);
+            if (response) {
+              set((state) => {
+                state.habitPreviews = state.habitPreviews.filter((habit) => habit.noteid !== noteId);
+              });
+              //set archived habits
+            }
+          },
 
         updateCurrentHabit: <K extends keyof Habit>(key: K, value: Habit[K]) => {
             set((state) => {

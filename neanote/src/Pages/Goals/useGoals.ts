@@ -6,6 +6,7 @@ import { useTags } from "../Tags/useTags";
 import goalsApi from "../../api/goalsApi";
 import { UUID } from "crypto";
 import { GoalSchema } from "../../formValidation";
+import utilsApi from "../../api/utilsApi";
 
 // Function to generate a new current goal object
 const generateNewCurrentGoal = () => {
@@ -40,6 +41,7 @@ type GoalState = {
     handleAddMilestone: () => void
     handleRemoveMilestone: (milestoneid:UUID) => void
     handleMilestoneCompletion: (goalid:UUID, milestoneid:UUID) => Promise<void>
+    archive: (noteId: UUID) => Promise<void>;
 
     section:string
     setSection: (section: string) => void;
@@ -237,6 +239,16 @@ export const useGoals = create<GoalState>()(
                 toggleMilestoneCompletion(goalid, milestoneid);
               }
             },
+        
+        archive: async (noteId: UUID) => {
+          const response = await utilsApi.archive(noteId);
+          if (response) {
+            set((state) => {
+              state.goalPreviews = state.goalPreviews.filter((goal) => goal.noteid !== noteId);
+            });
+            //set archived goals
+          }
+        },
 
         validateGoal: () => {
               const { currentGoal } = get();

@@ -13,10 +13,11 @@ import Inputs from './FormComponents/Inputs';
 import Milestones from './FormComponents/Milestones';
 import { useGoals } from './useGoals';
 import { Label } from '../../../components/@/ui/label';
+import FormButtons from '../../../components/FormButtons/FormButtons';
 
 
 function EditGoals() {
-  const {currentGoal, loading, pendingChanges, validationErrors, section, handleDeleteGoal, fetchGoal, handleMilestoneCompletion, resetCurrentGoal,handleCreateGoal, handleUpdateGoal, handleAddMilestone, handleRemoveMilestone, updateCurrentGoal} = useGoals();
+  const {currentGoal, loading, pendingChanges, archive, validationErrors,  handleDeleteGoal, fetchGoal, resetCurrentGoal,handleUpdateGoal, handleAddMilestone,updateCurrentGoal} = useGoals();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -35,10 +36,15 @@ function EditGoals() {
   const [isValidationErrorsEmpty, setIsValidationErrorsEmpty] = useState(true);
 
   useEffect(() => {
-                setIsValidationErrorsEmpty(
-                  Object.keys(validationErrors).every(key => !validationErrors[key])
-                );
+      setIsValidationErrorsEmpty(
+        Object.keys(validationErrors).every(key => !validationErrors[key])
+      );
   }, [validationErrors]);
+
+  const handleArchive = async () => {
+    await archive(currentGoal?.noteid);
+    navigate('/goals');
+  }
             
   
  const calculateProgress = () => {
@@ -99,14 +105,15 @@ function EditGoals() {
                     <FaPlus /> Add Milestone
                 </Button>
               <div className='gap-2 flex flex-row'>
-              <DeleteDialog handleDelete={handleDelete}>
-                <Button variant="outline" >
-                        Delete
-                </Button>
-              </DeleteDialog>
-            <Button disabled={!pendingChanges || !isValidationErrorsEmpty} onClick={handleSave}>
-              {loading ? 'Saving...' : 'Save'}
-            </Button>
+              <FormButtons 
+                pendingChanges={pendingChanges} 
+                isValidationErrorsEmpty={isValidationErrorsEmpty}
+                loading={loading}
+                hasDelete 
+                handleSave={handleSave} 
+                handleArchive={handleArchive} 
+                handleDelete={handleDelete} 
+              />
               </div>
         </div>
       </div>

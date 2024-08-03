@@ -10,6 +10,7 @@ import EditGoalsSkeleton from './EditGoalsSkeleton';
 import Inputs from './FormComponents/Inputs';
 import Milestones from './FormComponents/Milestones';
 import { useGoals } from './useGoals';
+import FormButtons from '../../../components/FormButtons/FormButtons';
 
 
 function CreateGoal() {
@@ -63,13 +64,14 @@ function CreateGoal() {
             </div>
             <div className='flex flex-row justify-between'>
                 <Button size="sm"  className="gap-2 " onClick={handleAddMilestone}>
-                        <FaPlus /> Add Milestone
-                    </Button>
-                  <div className='gap-2 flex flex-row'>
-                    <Button disabled={!pendingChanges || !isValidationErrorsEmpty} onClick={handleSave}>
-                          {loading ? 'Saving...' : 'Save'}
-                    </Button>
-                  </div>
+                    <FaPlus /> Add Milestone
+                </Button>
+                <FormButtons 
+                 pendingChanges={pendingChanges} 
+                 isValidationErrorsEmpty={isValidationErrorsEmpty}
+                 loading={loading}
+                 handleSave={handleSave} 
+                /> 
             </div>
         </div>
     </PageContainer>

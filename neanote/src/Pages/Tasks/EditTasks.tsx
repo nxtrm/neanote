@@ -57,7 +57,6 @@ function EditTasks() {
 
   const handleSave = async () => {
     await handleEditTask();
-    navigate('/tasks');
   };
 
   const handleDelete = async () => {
