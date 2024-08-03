@@ -11,7 +11,7 @@ import { useArchive } from '../useArchive'
 
 
 function NoteCard({note}:{note:ArchiveType}) {
-    const {handleDelete, handleRestore} = useArchive();
+    const {handleDelete, handleRestore} = useArchive(); 
   return (
     <div className='p-3 w-full rounded-xl border-[2px]'>
         <div className='flex flex-row justify-between '>

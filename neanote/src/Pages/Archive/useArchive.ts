@@ -7,6 +7,8 @@ import { showToast } from "../../../components/Toast"
 type ArchiveState = {
     archive: ArchiveType[]
 
+    handleDelete: () => void
+    handleRestore: () => void
     fetchArchivedNotes: (pageParam:number) => void
     nextPage: number | null
 
@@ -38,6 +40,8 @@ export const useArchive = create<ArchiveState>()(
                 set({ loading: true });
             }
             
-        }
+        },
+        handleDelete: async () => {}, //implement this
+        handleRestore: async () => {},
         
     })))
