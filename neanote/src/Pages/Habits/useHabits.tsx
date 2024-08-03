@@ -8,7 +8,7 @@ import { Task } from "../../api/types/taskTypes";
 import { UUID } from "crypto";
 import { HabitSchema } from "../../formValidation";
 import { useTasks } from "../Tasks/useTasks";
-import utilsApi from "../../api/utilsApi";
+import utilsApi from "../../api/archiveApi";
 
 // Function to generate a new habit object
 const generateNewHabit = () => ({

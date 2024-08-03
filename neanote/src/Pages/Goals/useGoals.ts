@@ -6,7 +6,7 @@ import { useTags } from "../Tags/useTags";
 import goalsApi from "../../api/goalsApi";
 import { UUID } from "crypto";
 import { GoalSchema } from "../../formValidation";
-import utilsApi from "../../api/utilsApi";
+import utilsApi from "../../api/archiveApi";
 
 // Function to generate a new current goal object
 const generateNewCurrentGoal = () => {

@@ -366,13 +366,15 @@ def habit_routes(app,conn):
                     gap = calculate_gap(repetition, today_date, last_date)
 
                     if gap > 1:
-                        cur.execute("UPDATE Habits SET streak = 0 WHERE id = %s", (habit_id,))
+                        cur.execute("UPDATE Habits SET streak = 1 WHERE id = %s", (habit_id,))
                     elif gap <= 1 and today_date != last_date:
                         cur.execute("UPDATE Habits SET streak = streak + 1 WHERE id = %s", (habit_id,))
-                        cur.execute("INSERT INTO HabitCompletion (habit_id, completion_date) VALUES (%s, %s)", (habit_id, today_date))
-                else:
-                    cur.execute("UPDATE Habits SET streak = 1 WHERE id = %s", (habit_id,))
-                    cur.execute("INSERT INTO HabitCompletion (habit_id, completion_date) VALUES (%s, %s)", (habit_id, today_date))
+                    elif gap>1 and today_date == last_date:
+                        cur.execute("UPDATE Habits SET streak = 1 WHERE id = %s", (habit_id,))
+                    else:
+                        cur.execute("UPDATE Habits SET streak = 1 WHERE id = %s", (habit_id,))
+                    
+                cur.execute("INSERT INTO HabitCompletion (habit_id, completion_date) VALUES (%s, %s)", (habit_id, today_date))
 
                 conn.commit()
                 return jsonify({'message': 'Habit completed successfully'}), 200

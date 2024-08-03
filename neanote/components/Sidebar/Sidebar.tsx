@@ -14,13 +14,12 @@ import Title from "./Title";
 
 const modules = [
     {link: 'notes', text: 'Notes', disabled: false},
-    {link: 'memory', text: 'Memory', disabled: true},
     {link: 'tasks', text: 'Tasks', disabled: false},
     {link: 'goals', text: 'Goals', disabled: false},
     {link: 'habits', text: 'Habits', disabled: false},
     {link: 'events', text: 'Events', disabled: true},
-    {link: 'projects', text: 'Projects', disabled: true},
-    {link: 'archive', text: 'Archive', disabled: true},
+    // {link: 'projects', text: 'Projects', disabled: true},
+    {link: 'archive', text: 'Archive', disabled: false},
     {link: 'tags', text: 'Tags', disabled: false},
 ]
 

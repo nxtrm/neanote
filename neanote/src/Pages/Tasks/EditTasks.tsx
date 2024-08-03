@@ -1,20 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { FaPlus, FaRegTrashAlt } from 'react-icons/fa';
+import { FaPlus } from 'react-icons/fa';
 import { MdCancel } from 'react-icons/md';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../../../components/@/ui/button';
-import { Input } from '../../../components/@/ui/input';
-import CheckBox from '../../../components/CheckBox/CheckBox';
-import DeleteDialog from '../../../components/DeleteDialog/DeleteDialog';
+import { Label } from '../../../components/@/ui/label';
+import FormButtons from '../../../components/FormButtons/FormButtons';
 import PageContainer from '../../../components/PageContainer/PageContainer';
-import { FaSave, FaTrash } from "react-icons/fa";
 import { DatePicker } from './DatePicker/DatePicker';
 import EditTasksSkeleton from './EditTasksSkeleton';
 import FormInputs from './FormComponents/FormInputs';
-import { useTasks } from './useTasks';
-import {Label} from '../../../components/@/ui/label';
 import Subtasks from './FormComponents/Subtasks';
-import FormButtons from '../../../components/FormButtons/FormButtons';
+import { useTasks } from './useTasks';
 
 function EditTasks() {
   const {
