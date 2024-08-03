@@ -48,9 +48,11 @@ def archive():
     try:
         userId = g.userId
         cur = conn.cursor()
-        note_id = request.args.get('noteid')
+        data = request.get_json()
+        note_id = data.get('noteId')
+        print(note_id)
         cur.execute(
-            "UPDATE Notes SET archived = TRUE WHERE id = %s AND user_id = %s", #fix this not setting the note as archived
+            "UPDATE Notes SET archived = TRUE WHERE id = %s AND user_id = %s",
             (note_id, userId)
         )
         conn.commit()

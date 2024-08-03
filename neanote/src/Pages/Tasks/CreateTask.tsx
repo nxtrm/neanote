@@ -86,8 +86,6 @@ function CreateTask() {
         </Button>
           </div>
         </div>
-
-
         {/* Title and tags */}
           <FormInputs title={currentTask.title} content={currentTask.content} />
           {validationErrors['title'] && (
@@ -104,19 +102,19 @@ function CreateTask() {
             <Label className='text-destructive'>{validationErrors['subtasks']}</Label>
           )}
           <div className='flex pt-2 justify-between'>
-                  <Button onClick={handleAddSubtask}>
-                    <div className='flex flex-row items-center gap-2'>
-                          <FaPlus /> 
-                          Add Subtask
-                    </div>
-                  </Button>
-                  <FormButtons 
-                       pendingChanges={pendingChanges} 
-                       isValidationErrorsEmpty={isValidationErrorsEmpty}
-                       loading={loading}
-                       handleSave={handleSave} 
-                      /> 
-                
+            <Button onClick={handleAddSubtask}>
+              <div className='flex flex-row items-center gap-2'>
+                    <FaPlus /> 
+                    Add Subtask
+              </div>
+            </Button>
+            <FormButtons 
+                 pendingChanges={pendingChanges} 
+                 isValidationErrorsEmpty={isValidationErrorsEmpty}
+                 loading={loading}
+                 handleSave={handleSave} 
+                /> 
+          
           </div>
         </div>
       </PageContainer>
