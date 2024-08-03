@@ -5,6 +5,7 @@ import { FaPlus } from 'react-icons/fa6'
 import { useHabits } from './useHabits';
 import { useNavigate } from 'react-router-dom';
 import HabitCard from './HabitCard/HabitCard';
+import { MdRepeat } from "react-icons/md";
 
 function Habits() {
     const {habitPreviews, resetCurrentHabit, setSection, fetchHabitPreviews} = useHabits();  
@@ -42,7 +43,7 @@ function Habits() {
     <div className='px-1 py-1'>
 
         <div className='flex flex-row justify-between pb-2'>
-            <p className='pl-1 text-2xl font-bold'>Habits</p>
+            <p className="pl-2 text-2xl flex-row flex items-center gap-3 font-bold"><MdRepeat size={'20px'}/> Habits</p>
             <Button size='sm' className='gap-2' onClick={handleAddHabitClick}>
               <FaPlus />  
                Add Habit

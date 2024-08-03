@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Button } from '../../../components/@/ui/button';
-import { FaPlus } from 'react-icons/fa6';
+import { FaPlus} from 'react-icons/fa6';
+import { FaTasks } from "react-icons/fa";
 import TaskCard from '../../../components/TaskCard/TaskCard';
 import { useTasks } from './useTasks';
 import PageContainer from '../../../components/PageContainer/PageContainer';
@@ -48,7 +49,7 @@ const Tasks: React.FC = () => {
     <PageContainer>
       <div className="px-1 py-1">
         <div className="flex flex-row justify-between pb-2">
-          <p className="pl-1 text-2xl font-bold">Tasks</p>
+          <p className="pl-2 text-2xl flex-row flex items-center gap-3 font-bold"><FaTasks size={'20px'}/> Tasks</p>
           <Button size="sm" className="gap-2" onClick={handleAddTaskClick}>
             <FaPlus />
             Add Task

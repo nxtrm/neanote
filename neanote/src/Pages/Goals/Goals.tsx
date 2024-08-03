@@ -5,6 +5,7 @@ import { FaPlus } from 'react-icons/fa6'
 import { useNavigate } from 'react-router-dom';
 import { useGoals } from './useGoals';
 import GoalCard from './GoalCard/GoalCard';
+import { LuGoal } from "react-icons/lu";
 
 function Goals() {
   const navigate = useNavigate(); 
@@ -39,7 +40,7 @@ function Goals() {
     <PageContainer>
         <div className="px-1 py-1">
             <div className="flex flex-row justify-between pb-2">
-              <p className="pl-1 text-2xl font-bold">Goals</p>
+              <p className="pl-2 text-2xl flex-row flex items-center gap-3 font-bold"><LuGoal size={'23px'}/> Goals</p>
               <Button size="sm" className="gap-2" onClick={handleAddGoalClick}>
                   <FaPlus />
                   Add Goal

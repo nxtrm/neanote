@@ -11,17 +11,7 @@ import {
   DrawerTrigger
 } from "../@/ui/drawer";
 import Title from "./Title";
-
-const modules = [
-    {link: 'notes', text: 'Notes', disabled: false},
-    {link: 'tasks', text: 'Tasks', disabled: false},
-    {link: 'goals', text: 'Goals', disabled: false},
-    {link: 'habits', text: 'Habits', disabled: false},
-    {link: 'events', text: 'Events', disabled: true},
-    // {link: 'projects', text: 'Projects', disabled: true},
-    {link: 'archive', text: 'Archive', disabled: false},
-    {link: 'tags', text: 'Tags', disabled: false},
-]
+import { modules } from './modules';
 
 function Sidebar() {
   const [open, setOpen] = useState(false);

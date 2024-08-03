@@ -10,6 +10,7 @@ import { MdCancel } from 'react-icons/md';
 import { Input } from '../../../components/@/ui/input';
 import { Popover } from '@radix-ui/react-popover';
 import { PopoverContent, PopoverTrigger } from '../../../components/@/ui/popover';
+import { FaTags } from "react-icons/fa";
 
 function Tags() {
   const {
@@ -34,7 +35,7 @@ function Tags() {
   let allTags = (
     <div className='p-1'>
         <div className='flex flex-row justify-between'>
-            <p className='pl-1 text-2xl font-bold'>Tags</p>
+          <p className="pl-2 text-2xl flex-row flex items-center gap-3 font-bold"><FaTags size={'20px'}/> Tags</p>
             <Button size="icon" onClick={() => setSection("create")}>
                 <FaPlus />
             </Button>
