@@ -114,6 +114,7 @@ function EditTasks() {
             <FormButtons 
               pendingChanges={pendingChanges} 
               isValidationErrorsEmpty={isValidationErrorsEmpty}
+              loading={loading}
               hasDelete 
               handleSave={handleSave} 
               handleArchive={handleArchive} 

@@ -15,6 +15,7 @@ import CheckBox from '../../../components/CheckBox/CheckBox';
 import FormInputs from './FormComponents/FormInputs';
 import { Label } from '../../../components/@/ui/label';
 import Subtasks from './FormComponents/Subtasks';
+import FormButtons from '../../../components/FormButtons/FormButtons';
 
 function CreateTask() {
   const {
@@ -102,20 +103,23 @@ function CreateTask() {
           {validationErrors['subtasks'] && (
             <Label className='text-destructive'>{validationErrors['subtasks']}</Label>
           )}
-            <div className='flex pt-2 justify-between'>
-              <Button onClick={handleAddSubtask}>
-                  <div className='flex flex-row items-center gap-2'>
-                        <FaPlus /> 
-                        Add Subtask
-                      </div>
-                    </Button>
-                    <Button disabled={!pendingChanges||!isValidationErrorsEmpty} onClick={handleSave}>
-                        {loading ? 'Saving...' : 'Save'}
-                      </Button>
-                    
-                </div>
+          <div className='flex pt-2 justify-between'>
+                  <Button onClick={handleAddSubtask}>
+                    <div className='flex flex-row items-center gap-2'>
+                          <FaPlus /> 
+                          Add Subtask
+                    </div>
+                  </Button>
+                  <FormButtons 
+                       pendingChanges={pendingChanges} 
+                       isValidationErrorsEmpty={isValidationErrorsEmpty}
+                       loading={loading}
+                       handleSave={handleSave} 
+                      /> 
+                
+          </div>
         </div>
-    </PageContainer>
+      </PageContainer>
   );
 }
 }
