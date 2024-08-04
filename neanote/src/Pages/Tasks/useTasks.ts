@@ -110,11 +110,13 @@ export const useTasks = create<TaskState>()(
 
       archive: async (noteId: UUID) => {
         const response = await utilsApi.archive(noteId);
-        if (response) {
+        if (response.success) {
           set((state) => {
             state.tasks = state.tasks.filter((task) => task.noteid !== noteId);
           });
-          //set archived tasks
+          showToast('success', 'Task archived successfully');
+        } else {
+          showToast('error', response.message);
         }
       },
       

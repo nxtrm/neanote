@@ -275,11 +275,14 @@ export const useGoals = create<GoalState>()(
         
         archive: async (noteId: UUID) => {
           const response = await utilsApi.archive(noteId);
-          if (response) {
+          if (response && response.success) {
             set((state) => {
               state.goalPreviews = state.goalPreviews.filter((goal) => goal.noteid !== noteId);
             });
-            //set archived goals
+           showToast('success', 'Goal archived successfully');
+
+          } else {
+            showToast('error', response.message);
           }
         },
 

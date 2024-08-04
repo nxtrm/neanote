@@ -2,7 +2,7 @@ import { toast } from 'react-toastify';
 
 export function  showToast(t,m){
 
-    if(t=='e'){
+    if(t=='e'||t=='error'){
 
         toast.error(m, {
             position: "bottom-right",
@@ -16,7 +16,7 @@ export function  showToast(t,m){
 
 
 
-    if(t=='s'){
+    if(t=='s'||t=='success'){
             toast.success(m, {
                 position: "bottom-right",
                 autoClose: 2000,

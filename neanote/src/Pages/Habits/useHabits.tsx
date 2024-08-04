@@ -94,11 +94,13 @@ export const useHabits = create<HabitState>()(
         },
         archive: async (noteId: UUID) => {
             const response = await utilsApi.archive(noteId);
-            if (response) {
+            if (response && response.success) {
               set((state) => {
                 state.habitPreviews = state.habitPreviews.filter((habit) => habit.noteid !== noteId);
               });
-              //set archived habits
+              showToast('success', 'Habit archived successfully');
+            } else {
+              showToast('error', response.message);
             }
           },
 

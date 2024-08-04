@@ -21,7 +21,7 @@ function Archive() {
             { archive.map((note) => (
                 <NoteCard note={note}/>
             ))}
-            <p className='text-destructive'>Archived notes will be removed after 30 days if not in use</p>
+            <p className='text-destructive ml-1'>Archived notes will be removed after 30 days if not in use</p>
             </div>
         </div>
     </PageContainer>
