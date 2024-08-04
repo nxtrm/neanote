@@ -41,19 +41,7 @@ def habit_routes(app,conn):
                     (noteId, reminder['reminder_time'],  reminder['repetition'], 0)
                 )
                 habitId = cur.fetchone()[0]
-                
-                if milestones:
-                    milestone_tuples = [
-                        (habitId, milestone['description'], False, milestone['index'])
-                        for milestone in milestones
-                    ]
-                    cur.executemany(
-                        """
-                        INSERT INTO Milestones (habit_id, description, completed, ms_index)
-                        VALUES (%s, %s, %s, %s)
-                        """,
-                        milestone_tuples
-                    )
+            
                 
                 if tags:
                     tag_tuples = [(noteId, str(tagId)) for tagId in tags]
@@ -72,7 +60,6 @@ def habit_routes(app,conn):
                     'data': {
                         'noteId': noteId,
                         'habitId': habitId,
-                        'milestones': milestone_tuples if milestones else []
                     }
                 }), 200
         

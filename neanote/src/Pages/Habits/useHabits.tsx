@@ -9,6 +9,8 @@ import { UUID } from "crypto";
 import { HabitSchema } from "../../formValidation";
 import { useTasks } from "../Tasks/useTasks";
 import utilsApi from "../../api/archiveApi";
+import { showToast } from "../../../components/Toast";
+import { current } from "immer";
 
 // Function to generate a new habit object
 const generateNewHabit = () => ({
@@ -40,8 +42,8 @@ type HabitState = {
     updateCurrentHabit: <K extends keyof Habit>(key: K, value: Habit[K]) => void;
     resetCurrentHabit: () => void;
 
-    fetchHabitPreviews: () => Promise<HabitPreviewResponse | null>;
-    fetchHabit: (noteId: string) => Promise<HabitResponse | null>;
+    fetchHabitPreviews: () => Promise<void>;
+    fetchHabit: (noteId: string) => Promise<void>;
 
     handleCreateHabit: () => Promise<void>;
     handleUpdateHabit: () => Promise<void>;
@@ -117,160 +119,123 @@ export const useHabits = create<HabitState>()(
         },
 
         fetchHabitPreviews: async () => {
-            const {setLoading} = get()
-            setLoading(true)
+            const { setLoading } = get();
+            setLoading(true);
             const response = await habitsApi.getHabitPreviews();
-            if (response) {
+            if (response.success && response.data) {
                 set((state) => {
-                    state.habitPreviews = response.data;
+                    state.habitPreviews = response.data.data;
                 });
+            } else {
+                showToast('error', response.message);
             }
-            setLoading(false)
-            return response;
+            setLoading(false);
         },
 
         fetchHabit: async (noteId: string) => {
-            const {setLoading} = get()
-            setLoading(true)
+            const { setLoading } = get();
+            setLoading(true);
             const response = await habitsApi.getHabit(noteId);
-            if (response && response.data) {
+            if (response.success && response.data) {
                 set((state) => {
-                    state.currentHabit = response.data;
+                    state.currentHabit = response.data.data;
                 });
+            } else {
+                showToast('error', response.message);
             }
-            setLoading(false)
-            return response;
+            setLoading(false);
         },
 
         handleCreateHabit: async () => {
             const { currentHabit, resetCurrentHabit, setLoading } = get();
-            const { selectedTagIds } = useTags.getState();
-            setLoading(true)
-
-            if (currentHabit) {
-                const { title, content, reminder } = currentHabit;
-                const response = await habitsApi.create(title, selectedTagIds, content, reminder);
-
-                if (response) {
-                    set((state) => {
-                        state.habitPreviews.push({
-                            habitid: response.data.habitid,
-                            noteid: response.data.noteid,
-                            title,
-                            content,
-                            streak: 0,
-                            completed_today: false,
-                            tags: [],
-                            
-                        });
-                        state.section = 'all habits';
+            setLoading(true);
+            const response = await habitsApi.create(currentHabit.title, currentHabit.tags, currentHabit.content, currentHabit.reminder);
+            if (response.success && response.data) {
+                set((state) => {
+                    state.habitPreviews.push({
+                        ...currentHabit,
+                        habitid: response.data.habitid,
+                        noteid: response.data.noteid
                     });
-
-                    
-                }
+                });
+                showToast('success', response.message);
+                resetCurrentHabit();
+            } else {
+                showToast('error', response.message);
             }
-            setLoading(false)
+            setLoading(false);
         },
 
         handleUpdateHabit: async () => {
-            const { currentHabit} = get();
-            const { selectedTagIds } = useTags.getState();
-
-
-            if (currentHabit) {
-                const { habitid, noteid, title, content, reminder, streak, completed_today,tags } = currentHabit;
-                const updatedHabit = {
-                    habitid,
-                    noteid,
-                    title,
-                    content,
-                    reminder,
-                    tags: selectedTagIds,
-                    streak,
-                    completed_today,
-                };
-
-                const previousHabits = get().habitPreviews;
+            const { currentHabit, setLoading } = get();
+            setLoading(true);
+            const response = await habitsApi.update(currentHabit);
+            if (response.success) {
                 set((state) => {
-                    state.habitPreviews = state.habitPreviews.map((habit) =>
-                        habit.habitid === habitid ? { habitid,noteid,title,streak,completed_today,tags,content } : habit
-                    );
-                    state.currentHabit = {...currentHabit,isNew:false}
-                    state.pendingChanges = false;
+                    const index = state.habitPreviews.findIndex(habit => habit.noteid === currentHabit.noteid);
+                    if (index !== -1) {
+                        state.habitPreviews[index] = { ...currentHabit };
+                    }
                 });
-
-                const response = await habitsApi.update(updatedHabit);
-                if (!response) {
-                    set({ habitPreviews: previousHabits,
-                        currentHabit: {...currentHabit,isNew:true},
-                        pendingChanges: true
-                     });
+                showToast('success', response.message);
+            } else {
+                showToast('error', response.message);
             }
-          }
+            setLoading(false);
         },
 
         handleDeleteHabit: async (habitid: UUID, noteid: UUID) => {
-            const previousHabits = get().habitPreviews;
-            set((state) => {
-                state.habitPreviews = state.habitPreviews.filter((habit) => habit.habitid !== habitid);
-            });
+            const { setLoading } = get();
+            setLoading(true);
             const response = await habitsApi.delete(habitid, noteid);
-            if (!response) {
-                set({ habitPreviews: previousHabits });
+            if (response.success) {
+                set((state) => {
+                    state.habitPreviews = state.habitPreviews.filter(habit => habit.noteid !== noteid);
+                });
+                showToast('success', response.message);
+            } else {
+                showToast('error', response.message);
             }
+            setLoading(false);
         },
 
         toggleCompletedToday: async (habitId: UUID) => {
-            set((state) => {
-                state.habitPreviews = state.habitPreviews.map((habit) =>
-                    habit.habitid === habitId ? { ...habit, completed_today: !habit.completed_today, streak: (habit.streak+1) } : habit
-                );
-                state.currentHabit = state.currentHabit ? { ...state.currentHabit, completed_today: !state.currentHabit.completed_today } : state.currentHabit;
-            });
+            const { setLoading } = get();
+            setLoading(true);
             const response = await habitsApi.setCompleted(habitId);
-            if (!response) {
+            if (response.success) {
                 set((state) => {
-                    state.habitPreviews = state.habitPreviews.map((habit) =>
-                        habit.habitid === habitId ? { ...habit, completed_today: !habit.completed_today, streak: (habit.streak-1) } : habit
-                    );
-                    state.currentHabit = state.currentHabit ? { ...state.currentHabit, completed_today: !state.currentHabit.completed_today } : state.currentHabit;
+                    const habit = state.habitPreviews.find(habit => habit.habitid === habitId);
+                    if (habit) {
+                        habit.completed_today = !habit.completed_today;
+                    }
                 });
+                showToast('success', 'Habit status updated successfully');
+            } else {
+                showToast('error', response.message);
             }
+            setLoading(false);
         },
 
-        toggleLinkTask: async (task) => {
-            const { currentHabit } = get();
-            if (currentHabit) {
-                const isLinked = currentHabit.linked_tasks.some((linkedTask) => linkedTask.taskid === task.taskid);
-                const originalLinkedTasks = [...currentHabit.linked_tasks];
-
+        toggleLinkTask: async (task: Task) => {
+            const { currentHabit, setLoading } = get();
+            const taskLinked = currentHabit.linked_tasks.some(t => t.taskid === task.taskid);
+            const actionType = taskLinked ? 'unlink' : 'link';
+            setLoading(true);
+            const response = await habitsApi.linkTask(currentHabit.habitid, task.taskid, actionType);
+            if (response.success) {
                 set((state) => {
-                    if (isLinked) {
-                        state.currentHabit!.linked_tasks = state.currentHabit!.linked_tasks.filter((linkedTask) => linkedTask.taskid !== task.taskid);
+                    if (taskLinked) {
+                        state.currentHabit.linked_tasks = state.currentHabit.linked_tasks.filter(t => t.taskid !== task.taskid);
                     } else {
-                        state.currentHabit!.linked_tasks.push(task);
+                        state.currentHabit.linked_tasks.push(task);
                     }
                 });
-
-                try {
-                    const response = await habitsApi.linkTask(currentHabit.habitid, task.taskid, isLinked ? 'unlink' : 'link');
-                    if (!response) {
-                        set((state) => {
-                            state.currentHabit!.linked_tasks = originalLinkedTasks;
-                        });
-                    } else {
-                        const linked_tasks = currentHabit.linked_tasks
-                        useTasks.setState((state) => ({
-                            ...state,
-                            tasks: linked_tasks
-                          }));
-                    }
-                } catch (error) {
-                    set((state) => {
-                        state.currentHabit!.linked_tasks = originalLinkedTasks;
-                    });
-                }
+                showToast('success', `Task ${taskLinked ? 'unlinked' : 'linked'} successfully`);
+            } else {
+                showToast('error', response.message);
             }
-        }
+            setLoading(false);
+        },
     }))
 );

@@ -103,6 +103,7 @@ export const useGoals = create<GoalState>()(
                   });
                   state.section = 'edit goal';
                 });
+                showToast('success', 'Goal created successfully');
               } else {
                 showToast('error', response.message);
               }
