@@ -26,63 +26,61 @@ export const useArchive = create<ArchiveState>()(
 
         loading:false,
 
-        
-        fetchArchivedNotes: async (pageParam) => {
+        fetchArchivedNotes: async (pageParam: number) => {
             set({ loading: true });
             try {
-
-                const response = await archiveApi.getAll(pageParam)
-                if (response && response.success) {
-                    set({ archive: response.data, nextPage: response.nextPage })
-
+                const response = await archiveApi.getAll(pageParam);
+                if (response.success) {
+                    set({ archive: response.data, nextPage: response.nextPage });
                 } else {
-                    showToast('error', response?.message);
+                    showToast('error', response.message);
                 }
             } finally {
-                set({ loading: true });
+                set({ loading: false });
             }
-            
         },
+    
         handleDelete: async (noteType: string, noteId: UUID, secondaryId: UUID) => {
             try {
-                let response = false;
-        
+                let response = { success: false };
+    
                 switch (noteType) {
-                    case 'habit':   
-                         response = (await habitsApi.delete(secondaryId, noteId)).success;
+                    case 'habit':
+                        response = await habitsApi.delete(secondaryId, noteId);
                         break;
                     case 'task':
-                         response = (await tasksApi.delete(noteId, secondaryId)).success
+                        response = await tasksApi.delete(noteId, secondaryId);
                         break;
                     case 'goal':
-                         response = (await goalsApi.delete(noteId, secondaryId)).success
+                        response = await goalsApi.delete(noteId, secondaryId);
                         break;
                     default:
                         showToast('e', 'Invalid note type');
                         return;
                 }
-        
-                if (response) {
+    
+                if (response.success) {
                     showToast('s', `${noteType.charAt(0).toUpperCase() + noteType.slice(1)} has been deleted successfully`);
                     set((state) => {
                         state.archive = state.archive.filter((note) => note.noteid !== noteId);
-                      });
+                    });
                 } else {
                     showToast('e', `Failed to delete ${noteType}`);
                 }
             } catch (error) {
                 showToast('e', `An error occurred while deleting the ${noteType}: ${error.message || error}`);
             }
-        }, //implement this
-        handleRestore: async (noteId:UUID) => {
-                const response = await archiveApi.restore(noteId);
-                if (response) {
-                    set((state) => {
-                        state.archive = state.archive.filter((note) => note.noteid !== noteId);
-                    });
-                    
-                }
-
         },
-        
+    
+        handleRestore: async (noteId: UUID) => {
+            const response = await archiveApi.restore(noteId);
+            if (response.success) {
+                showToast('s', 'Restored successfully');
+                set((state) => {
+                    state.archive = state.archive.filter((note) => note.noteid !== noteId);
+                });
+            } else {
+                showToast('e', response.message);
+            }
+        }
     })))
