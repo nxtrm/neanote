@@ -22,7 +22,28 @@ def archive_routes(app,conn):
                 (note_id, userId)
             )
             conn.commit()
-            return jsonify({'message': 'Note archived successfully', 'data': None}), 200
+            return jsonify({'message': 'Note archived successfully'}), 200
+        except Exception as e:
+            conn.rollback()
+            raise
+        finally:
+            cur.close()
+
+    @app.route('/api/notes/restore', methods=['PUT'])
+    @jwt_required()
+    @token_required
+    def restore():
+        try:
+            userId = g.userId
+            cur = conn.cursor()
+            data = request.get_json()
+            note_id = data.get('noteId')
+            cur.execute(
+                "UPDATE Notes SET archived = FALSE WHERE id = %s AND user_id = %s",
+                (note_id, userId)
+            )
+            conn.commit()
+            return jsonify({'message': 'Note restored successfully'}), 200
         except Exception as e:
             conn.rollback()
             raise
@@ -58,19 +79,20 @@ def archive_routes(app,conn):
                     'title': row['title'][:50] + '...' if len(row['title']) > 50 else row['title'],
                     'content': row['content'][:100] + '...' if len(row['content']) > 100 else row['content'],
                     'type': row['type'],
+                    'secondaryid': None
                 }
 
                 # Fetch the secondary ID based on the type
                 if row['type'] == 'task':
-                    cur.execute("SELECT taskid FROM Tasks WHERE note_id = %s", (row['note_id'],))
+                    cur.execute("SELECT id AS taskid FROM Tasks WHERE note_id = %s", (row['note_id'],))
                     secondary_id = cur.fetchone()
                     note['secondaryid'] = secondary_id['taskid'] if secondary_id else None
                 elif row['type'] == 'habit':
-                    cur.execute("SELECT habitid FROM Habits WHERE note_id = %s", (row['note_id'],))
+                    cur.execute("SELECT id AS habitid FROM Habits WHERE note_id = %s", (row['note_id'],))
                     secondary_id = cur.fetchone()
                     note['secondaryid'] = secondary_id['habitid'] if secondary_id else None
                 elif row['type'] == 'goal':
-                    cur.execute("SELECT goalid FROM Goals WHERE note_id = %s", (row['note_id'],))
+                    cur.execute("SELECT id AS goalid FROM Goals WHERE note_id = %s", (row['note_id'],))
                     secondary_id = cur.fetchone()
                     note['secondaryid'] = secondary_id['goalid'] if secondary_id else None
                 #add any other types here

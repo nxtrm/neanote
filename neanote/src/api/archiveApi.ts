@@ -26,6 +26,25 @@ const archiveApi = {
         }
     },
 
+    restore: async (noteId:UUID) => {
+        try {
+            const response = await a.put(`/api/notes/restore`, {noteId});
+
+            if (response.status === 200) {
+                showToast('s', 'Restored successfully');
+            }
+        } 
+        catch (error) {
+            if (axios.isAxiosError(error)) {
+                showToast('e', error.response?.data?.message || 'An error occurred while restoring the note');
+            } else {
+                showToast('e', 'An unexpected error occurred');
+            }
+            return null;
+
+        }
+    },
+
     getAll:async (pageParam)=> {
         try {
             const response = await a.get<ArchiveResponse>(`/api/notes/archive`, {params:{pageParam}});

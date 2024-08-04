@@ -12,6 +12,14 @@ import { useArchive } from '../useArchive'
 
 function NoteCard({note}:{note:ArchiveType}) {
   const {handleDelete, handleRestore} = useArchive(); 
+
+  const onDelete = async () => {
+    await handleDelete(note.type, note.noteid, note.secondaryid);
+  }
+  const onRestore = async () => {
+    await handleRestore(note.noteid);
+  }
+
   return (
     <div className='p-3 w-full rounded-xl border-[2px]'>
         <div className='flex flex-row justify-between '>
@@ -23,13 +31,13 @@ function NoteCard({note}:{note:ArchiveType}) {
                 <h3 className="task-title">{note.title}</h3>                                                       
             </div>
             <div className='flex flex-row items-center gap-2' >
-                <DeleteDialog handleDelete={handleDelete}>
+                <DeleteDialog handleDelete={onDelete}>
                     <Button size="icon" variant="destructive">
                         <FaTrash />
                     </Button>
                 </DeleteDialog>
                 
-                <Button size="icon">
+                <Button onClick={onRestore} size="icon">
                     <MdOutlineRestore size={'20px'}/>
                 </Button>
             </div>

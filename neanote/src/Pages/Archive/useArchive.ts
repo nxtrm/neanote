@@ -12,7 +12,7 @@ type ArchiveState = {
     archive: ArchiveType[]
 
     handleDelete: (noteType:string,noteId:UUID,secondaryId:UUID) => Promise<void>
-    handleRestore: () => void
+    handleRestore: (noteId:UUID) => Promise<void>
     fetchArchivedNotes: (pageParam:number) => void
     nextPage: number | null
 
@@ -44,33 +44,45 @@ export const useArchive = create<ArchiveState>()(
             
         },
         handleDelete: async (noteType: string, noteId: UUID, secondaryId: UUID) => {
-            // try {
-            //     let success = false;
+            try {
+                let response = false;
         
-            //     switch (noteType) {
-            //         case 'habit':
-            //             success = await habitsApi.delete(secondaryId, noteId);
-            //             break;
-            //         case 'task':
-            //             success = await tasksApi.delete(noteId, secondaryId);
-            //             break;
-            //         case 'goal':
-            //             success = await goalsApi.delete(noteId, secondaryId);
-            //             break;
-            //         default:
-            //             showToast('e', 'Invalid note type');
-            //             return;
-            //     }
+                switch (noteType) {
+                    case 'habit':   
+                         response = (await habitsApi.delete(secondaryId, noteId)).success;
+                        break;
+                    case 'task':
+                         response = (await tasksApi.delete(noteId, secondaryId)).success
+                        break;
+                    case 'goal':
+                         response = (await goalsApi.delete(noteId, secondaryId)).success
+                        break;
+                    default:
+                        showToast('e', 'Invalid note type');
+                        return;
+                }
         
-            //     if (success) {
-            //         showToast('s', `${noteType.charAt(0).toUpperCase() + noteType.slice(1)} has been deleted successfully`);
-            //     } else {
-            //         showToast('e', `Failed to delete ${noteType}`);
-            //     }
-            // } catch (error) {
-            //     showToast('e', `An error occurred while deleting the ${noteType}: ${error.message || error}`);
-            // }
+                if (response) {
+                    showToast('s', `${noteType.charAt(0).toUpperCase() + noteType.slice(1)} has been deleted successfully`);
+                    set((state) => {
+                        state.archive = state.archive.filter((note) => note.noteid !== noteId);
+                      });
+                } else {
+                    showToast('e', `Failed to delete ${noteType}`);
+                }
+            } catch (error) {
+                showToast('e', `An error occurred while deleting the ${noteType}: ${error.message || error}`);
+            }
         }, //implement this
-        handleRestore: async () => {},
+        handleRestore: async (noteId:UUID) => {
+                const response = await archiveApi.restore(noteId);
+                if (response) {
+                    set((state) => {
+                        state.archive = state.archive.filter((note) => note.noteid !== noteId);
+                    });
+                    
+                }
+
+        },
         
     })))
