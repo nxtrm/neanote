@@ -28,6 +28,7 @@ export interface GoalsPreview {
 }
 
 export interface GoalResponse {
+    success:boolean
     goal: Goal;
     message: string;
 }

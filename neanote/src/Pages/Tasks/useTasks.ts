@@ -95,17 +95,17 @@ export const useTasks = create<TaskState>()(
     },
 
       updateCurrentTask: <K extends keyof Task>(key: K, value: Task[K]) => {
-      set((state) => {
-        if (state.currentTask) {
-          state.currentTask[key] = value;
+        set((state) => {
+          if (state.currentTask) {
+            state.currentTask[key] = value;
 
-        }
-        if (!state.pendingChanges) {
-          state.pendingChanges = true;
-        }
+          }
+          if (!state.pendingChanges) {
+            state.pendingChanges = true;
+          }
 
-      });
-      get().validateTask();
+        });
+        get().validateTask();
     },
 
       archive: async (noteId: UUID) => {
@@ -190,6 +190,7 @@ export const useTasks = create<TaskState>()(
                 state.section = 'all tasks';
                 state.pendingChanges = false;
               });
+              showToast('success', 'Task created successfully');
             } else {
               showToast('error', response.message);
             }

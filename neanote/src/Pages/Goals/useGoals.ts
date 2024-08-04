@@ -7,6 +7,7 @@ import goalsApi from "../../api/goalsApi";
 import { UUID } from "crypto";
 import { GoalSchema } from "../../formValidation";
 import utilsApi from "../../api/archiveApi";
+import { showToast } from "../../../components/Toast";
 
 // Function to generate a new current goal object
 const generateNewCurrentGoal = () => {
@@ -36,7 +37,7 @@ type GoalState = {
     handleUpdateGoal: () => Promise<void>;
     handleDeleteGoal: (goalid: UUID, noteid: UUID) => Promise<void>;
     fetchGoalPreviews: (pageParam: number) => Promise<void>;
-    fetchGoal: (noteId: string) => Promise<null | GoalResponse>;
+    fetchGoal: (noteId: string) => Promise<void>
 
     handleAddMilestone: () => void
     handleRemoveMilestone: (milestoneid:UUID) => void
@@ -54,6 +55,8 @@ type GoalState = {
 
     validationErrors: Record<string, string | undefined>;
     validateGoal: () => boolean;
+
+    nextPage:number | null
 }
 
 export const useGoals = create<GoalState>()(
@@ -69,6 +72,7 @@ export const useGoals = create<GoalState>()(
         setSection: (section) => set({section}),
         setPendingChanges: (value) => set({pendingChanges: value}),
         
+        nextPage:null,
         resetCurrentGoal: () => {
           set(() => ({
             currentGoal: generateNewCurrentGoal()
@@ -78,17 +82,15 @@ export const useGoals = create<GoalState>()(
         currentGoal: generateNewCurrentGoal(),
               
         handleCreateGoal: async () => {
-            const { currentGoal, resetCurrentGoal,setLoading } = get();
+            const { currentGoal } = get();
             const { selectedTagIds } = useTags.getState();
-            setLoading(true)
-      
-            if (currentGoal) {
+            if (get().validateGoal()) {
               
               const {title, content, due_date, milestones} = currentGoal;
               
               const response = await goalsApi.create(title, selectedTagIds, content, due_date, milestones);
       
-              if (response) {
+              if (response && response.success) {
                 set((state) => {
                   state.goalPreviews.push({
                     goalid : response.data.goalid,
@@ -101,17 +103,19 @@ export const useGoals = create<GoalState>()(
                   });
                   state.section = 'edit goal';
                 });
-                // resetCurrentGoal();
-
-                setLoading(false)
-            }}
+              } else {
+                showToast('error', response.message);
+              }
+            } else {
+              showToast('error', 'Validation failed');
+            }
           },
 
         handleUpdateGoal: async () => {
             const { currentGoal, resetCurrentGoal } = get();
             const { tags, selectedTagIds } = useTags.getState();
       
-            if (currentGoal) {
+            if (get().validateGoal()) {
               const { goalid, noteid, title, content, due_date, milestones } = currentGoal;
 
               const preparedMilestones = currentGoal.milestones.map(milestone => {
@@ -142,16 +146,38 @@ export const useGoals = create<GoalState>()(
                 });
       
               const response = await goalsApi.update(updatedGoal);
-              if (!response) {
+              if (!response || !response.success) {
                 // revert update
                 set({ goalPreviews: previousGoals});
               } else {
                 set({pendingChanges: false })
               }
       
+            } else {
+              showToast('error', 'Validation failed');
             }
 
           },
+        
+        validateGoal: () => {
+            const { currentGoal } = get();
+            const result = GoalSchema.safeParse(currentGoal);
+            if (!result.success) {
+              set((state) => {
+                const errors = Object.fromEntries(
+                  Object.entries(result.error.flatten().fieldErrors).map(([key, value]) => [key, value.join(", ")])
+                );
+                state.validationErrors = errors;
+              });
+              return false;
+            } else {
+              set((state) => {
+                state.validationErrors = {};
+              });
+              return true;
+            }
+        },
+          
 
         handleAddMilestone: () => 
               set((state) => {
@@ -170,46 +196,52 @@ export const useGoals = create<GoalState>()(
 
         fetchGoalPreviews: async (pageParam: number) => {
               useGoals.getState().setLoading(true);
-              const fetchedGoals = await goalsApi.get_previews(pageParam);
-              if (fetchedGoals && fetchedGoals.data) {
+              const response = await goalsApi.getGoalPreviews(pageParam);
+              if (response && response.data) {
                 
-                const previewsWithFormattedDates = fetchedGoals.data.map(preview => ({
+                const previewsWithFormattedDates = response.data.map(preview => ({
                   ...preview,
                   due_date: preview.due_date ? new Date(preview.due_date) : undefined, 
                 }));
-                set({ goalPreviews: previewsWithFormattedDates });
+                set({ goalPreviews: previewsWithFormattedDates, nextPage: response.nextPage });
+              } else{
+                showToast('error', response.message);
               }
               useGoals.getState().setLoading(false);
             },
 
         fetchGoal: async(noteId:string) => {
+          try{
               useGoals.getState().setLoading(true);
               const response = await goalsApi.getGoal(noteId);
-              if (response && response.goal) {
-                const dueDate = response.goal.due_date ? new Date(response.goal.due_date) : undefined;
+              if (response && response.data) {
+                const dueDate = response.data.due_date ? new Date(response.data.due_date) : undefined;
                 const goalWithFormattedDate = {
-                  ...response.goal,
+                  ...response.data,
                   due_date: dueDate,
                 };
                 set((state) => {
                   state.currentGoal = goalWithFormattedDate;
 
                 });
+              } else {
+                showToast('error', response.message);
               }
-              useGoals.getState().setLoading(false);
-              return response
-            },
+            } finally {
+              set({ loading: false });
+            }
+          },
         
         handleRemoveMilestone: (milestoneid) => {
-                set((state) => {
+              set((state) => {
 
-                    if (state.currentGoal) {
-                        const milestones = state.currentGoal.milestones.filter((milestone) => milestone.milestoneid !== milestoneid);
-                        milestones.forEach((ms, idx) => ms.index = idx);
-                        state.currentGoal.milestones = milestones;
-                    }
-                })
-            },
+                  if (state.currentGoal) {
+                      const milestones = state.currentGoal.milestones.filter((milestone) => milestone.milestoneid !== milestoneid);
+                      milestones.forEach((ms, idx) => ms.index = idx);
+                      state.currentGoal.milestones = milestones;
+                  }
+              })
+          },
         
         handleMilestoneCompletion: async (goalid, milestoneid) => {
               const toggleMilestoneCompletion = (goalid, milestoneid) => {
@@ -234,7 +266,7 @@ export const useGoals = create<GoalState>()(
               toggleMilestoneCompletion(goalid, milestoneid);
             
               const response = await goalsApi.completeMilestone(goalid, milestoneid);
-              if (!response) {
+              if (!response || !response.success) {
                 // Revert completion if API call fails
                 toggleMilestoneCompletion(goalid, milestoneid);
               }
@@ -250,25 +282,6 @@ export const useGoals = create<GoalState>()(
           }
         },
 
-        validateGoal: () => {
-              const { currentGoal } = get();
-              const result = GoalSchema.safeParse(currentGoal);
-              if (!result.success) {
-                set((state) => {
-                  const errors = Object.fromEntries(
-                    Object.entries(result.error.flatten().fieldErrors).map(([key, value]) => [key, value.join(", ")])
-                  );
-                  state.validationErrors = errors;
-                });
-                return false;
-              } else {
-                set((state) => {
-                  state.validationErrors = {};
-                });
-                return true;
-              }
-            },
-            
         updateCurrentGoal: <K extends keyof Goal>(key: K, value: Goal[K]) => {
               set((state) => {
                 if (state.currentGoal) {

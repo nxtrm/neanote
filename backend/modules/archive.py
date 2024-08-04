@@ -53,13 +53,29 @@ def archive_routes(app,conn):
             rows = cur.fetchall()
 
             for row in rows:
-                notes.append({
-                        'noteid': row['note_id'],
-                        'title': row['title'][:50] + '...' if len(row['title']) > 50 else row['title'],
-                        'content': row['content'][:100] + '...' if len(row['content']) > 100 else row['content'],
-                        'type': row['type'],
-                        # 'tags': [],
-                    })
+                note = {
+                    'noteid': row['note_id'],
+                    'title': row['title'][:50] + '...' if len(row['title']) > 50 else row['title'],
+                    'content': row['content'][:100] + '...' if len(row['content']) > 100 else row['content'],
+                    'type': row['type'],
+                }
+
+                # Fetch the secondary ID based on the type
+                if row['type'] == 'task':
+                    cur.execute("SELECT taskid FROM Tasks WHERE note_id = %s", (row['note_id'],))
+                    secondary_id = cur.fetchone()
+                    note['secondaryid'] = secondary_id['taskid'] if secondary_id else None
+                elif row['type'] == 'habit':
+                    cur.execute("SELECT habitid FROM Habits WHERE note_id = %s", (row['note_id'],))
+                    secondary_id = cur.fetchone()
+                    note['secondaryid'] = secondary_id['habitid'] if secondary_id else None
+                elif row['type'] == 'goal':
+                    cur.execute("SELECT goalid FROM Goals WHERE note_id = %s", (row['note_id'],))
+                    secondary_id = cur.fetchone()
+                    note['secondaryid'] = secondary_id['goalid'] if secondary_id else None
+                #add any other types here
+
+                notes.append(note)
 
             # Determine if there is a next page
             if len(notes) > per_page:

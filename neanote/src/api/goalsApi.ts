@@ -8,87 +8,64 @@ const goalsApi = {
     create: async (title, selectedTagIds, content, due_date, milestones) => {
         try {
             let response = await a.post(`/api/goals/create`, {
-
                 title,
-                tags:selectedTagIds,
+                tags: selectedTagIds,
                 content,
                 due_date,
                 milestones: milestones.map((milestone) => {
-                    const {description, completed, index} = milestone
-                    return {description, completed, index};
+                    const { description, completed, index } = milestone;
+                    return { description, completed, index };
                 }),
             });
 
-            if (response.status === 200) {
-                showToast('s', 'Goal has been created successfully');
-                return response.data;
+            if (response.status === 200) { 
+                return { success: true, data: response.data };
+            } else {
+                return { success: false, message: 'An error occurred while creating the goal' };
             }
-            } catch (error) {
-              // Log error for debugging purposes
-              console.error('Error creating goal:', error);
-          
-              // Display error message to the user
-              if (axios.isAxiosError(error)) {
-                showToast('e', error.response?.data?.message || 'An error occurred while creating the goal');
-              } else {
-               
-                showToast('e', 'An unexpected error occurred');
-              }
-          
-              return null; 
-            }
-          },
+        } catch (error) {
+            const errorMessage = axios.isAxiosError(error) 
+                ? error.response?.data?.message || 'An error occurred while creating the goal'
+                : 'An unexpected error occurred';
+            return { success: false, message: errorMessage };
+        }
+    },
 
-    get_previews: async (page: number) => {
+    getGoalPreviews: async (page: number) => {
         try {
             const response = await a.get<GoalsPreview>(`/api/goals/previews?page=${page}`);
-            return {
-                data: response.data.goals,
-                nextPage: response.data.nextPage, 
-            };
+            return { success: true, data: response.data.goals, nextPage: response.data.nextPage };
         } catch (error) {
-            
-            console.error('Error getting goal previews:', error);
-
-            if (axios.isAxiosError(error)) {
-              showToast('e', error.response?.data?.message || 'An error occurred while fetching goal previews');
-            } else {
-             
-              showToast('e', 'An unexpected error occurred');
-            }
-        
-            return null; 
-          }
+            const errorMessage = axios.isAxiosError(error) 
+                ? error.response?.data?.message || 'An error occurred while fetching goal previews'
+                : 'An unexpected error occurred';
+            return { success: false, message: errorMessage };
+        }
     },
 
     getGoal: async (noteId: string) => {
         try {
-            const response = await a.get<GoalResponse>("/api/goal", {params: {noteId}});
-            return response.data;
+            const response = await a.get<GoalResponse>("/api/goal", { params: { noteId } });
+            return { success: true, data: response.data.goal };
         } catch (error) {
-            
-            console.error('Error getting goal:', error);
+            const errorMessage = axios.isAxiosError(error) 
+                ? error.response?.data?.message || 'An error occurred while fetching the goal previews'
+                : 'An unexpected error occurred';
+            return { success: false, message: errorMessage };
+        }
+    },
 
-            if (axios.isAxiosError(error)) {
-              showToast('e', error.response?.data?.message || 'An error occurred while fetching the goal previews');
-            } else {
-             
-              showToast('e', 'An unexpected error occurred');
-            }
-        
-            return null; 
-        }},
-
-    completeMilestone: async (goalid:UUID, milestoneid: UUID) => {
+    completeMilestone: async (goalid: UUID, milestoneid: UUID) => {
         try {
-            const response = await a.put(`/api/goals/milestone/complete`, {goalid, milestoneid});
-            if (response.status === 200) {
-                return true
-            }
-            return false
+            const response = await a.put(`/api/goals/milestone/complete`, { goalid, milestoneid });
+            return response.status === 200
+                ? { success: true }
+                : { success: false, message: 'An error occurred while completing the milestone' };
         } catch (error) {
-            showToast('e', error);
-            return false
+            const errorMessage = axios.isAxiosError(error)
+                ? error.response?.data?.message || 'An error occurred while completing the milestone'
+                : 'An unexpected error occurred';
+            return { success: false, message: errorMessage };
         }
     },
 
@@ -97,43 +74,34 @@ const goalsApi = {
             const response = await a.put(`/api/goals/update`, goalUpdates);
 
             if (response.status === 200) {
-                showToast('s', 'Goal has been updated successfully');
+                return { success: true };
             } else {
-                showToast('e', 'There was an error updating the goal')
+                return { success: false, message: 'There was an error updating the goal' };
             }
-            return true
-
         } catch (error) {
-            
-            console.error('Error updating goal:', error);
-
-            if (axios.isAxiosError(error)) {
-              showToast('e', error.response?.data?.message || 'An error occurred while updating goals');
-            } else {
-             
-              showToast('e', 'An unexpected error occurred');
-            }
-        
-            return false; 
-        
-    }},
+            const errorMessage = axios.isAxiosError(error) 
+                ? error.response?.data?.message || 'An error occurred while updating goals'
+                : 'An unexpected error occurred';
+            return { success: false, message: errorMessage };
+        }
+    },
 
     delete: async (goalid: UUID, noteid: UUID) => {
         try {
-            const response = await a.delete(`/api/goals/delete`, {params: {goalid, noteid}});
+            const response = await a.delete(`/api/goals/delete`, { params: { goalid, noteid } });
 
             if (response.status === 200) {
-                showToast('s', 'Goal has been deleted successfully');
-                return true;
+                return { success: true };
             } else {
-                showToast('e', 'There was an error deleting the goal');
-                return false;
+                return { success: false, message: 'There was an error deleting the goal' };
             }
         } catch (error) {
-            showToast('e', `Failed to delete goal: ${error.message || error}`);
-            return false;
+            const errorMessage = axios.isAxiosError(error)
+                ? error.response?.data?.message || 'Failed to delete goal'
+                : 'An unexpected error occurred';
+            return { success: false, message: errorMessage };
         }
     }
 }
 
-export default goalsApi
+export default goalsApi;

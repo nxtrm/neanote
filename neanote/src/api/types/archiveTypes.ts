@@ -2,6 +2,7 @@ import { UUID } from "crypto";
 
 export interface ArchiveType {
     noteid: UUID
+    secondaryid: UUID
     title:string
     content:string
     type:string
