@@ -161,7 +161,6 @@ export const useHabits = create<HabitState>()(
                     });
                 });
                 showToast('success', response.message);
-                resetCurrentHabit();
             } else {
                 showToast('error', response.message);
             }
@@ -210,7 +209,13 @@ export const useHabits = create<HabitState>()(
                     const habit = state.habitPreviews.find(habit => habit.habitid === habitId);
                     if (habit) {
                         habit.completed_today = !habit.completed_today;
+                        if (response.streak == "+") {
+                            habit.streak = habit.streak + 1 
+                        } else if (response.streak == 1) {
+                            habit.streak = 1
+                        }
                     }
+
                 });
                 showToast('success', 'Habit status updated successfully');
             } else {

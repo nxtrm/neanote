@@ -44,7 +44,7 @@ const habitsApi = {
     setCompleted: async (habitid: UUID) => {
         try {
             const response = await a.put('/api/habits/complete', { habitid });
-            return { success: response.status === 200, message: response.status === 200 ? '' : 'There was an error setting the habit as completed' };
+            return { success: response.status === 200, streak:response.data.streak, message: response.status === 200 ? '' : 'There was an error setting the habit as completed' };
         } catch (error) {
             return { success: false, message: axios.isAxiosError(error) ? error.response?.data?.message || 'An error occurred while setting the habit as completed' : 'An unexpected error occurred' };
         }

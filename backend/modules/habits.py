@@ -347,6 +347,8 @@ def habit_routes(app,conn):
                 habit_info = cur.fetchone()
 
                 today_date = datetime.now().date()
+                streak = 1  # Initialize streak
+
                 if habit_info and habit_info['last_completion_date']:
                     last_date = habit_info['last_completion_date']
                     repetition = habit_info['repetition']
@@ -356,15 +358,16 @@ def habit_routes(app,conn):
                         cur.execute("UPDATE Habits SET streak = 1 WHERE id = %s", (habit_id,))
                     elif gap <= 1 and today_date != last_date:
                         cur.execute("UPDATE Habits SET streak = streak + 1 WHERE id = %s", (habit_id,))
-                    elif gap>1 and today_date == last_date:
+                        streak = "+"
+                    elif gap > 1 and today_date == last_date:
                         cur.execute("UPDATE Habits SET streak = 1 WHERE id = %s", (habit_id,))
                     else:
                         cur.execute("UPDATE Habits SET streak = 1 WHERE id = %s", (habit_id,))
-                    
+
                 cur.execute("INSERT INTO HabitCompletion (habit_id, completion_date) VALUES (%s, %s)", (habit_id, today_date))
 
                 conn.commit()
-                return jsonify({'message': 'Habit completed successfully'}), 200
+                return jsonify({'message': 'Habit completed successfully', 'data': streak}), 200
         except Exception as e:
             conn.rollback()
             print(f"An error occurred: {e}")
