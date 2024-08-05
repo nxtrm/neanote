@@ -110,7 +110,7 @@ def archive_routes(app,conn):
                         note['secondaryid'] = secondary_id['goalid'] if secondary_id else None
                     # Add any other types here
 
-                notes = list(notes_dict.values())
+            notes = list(notes_dict.values())
 
             # Determine if there is a next page
             if len(notes) > per_page:

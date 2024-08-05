@@ -6,6 +6,7 @@ import { useHabits } from './useHabits';
 import { useNavigate } from 'react-router-dom';
 import HabitCard from './HabitCard/HabitCard';
 import { MdRepeat } from "react-icons/md";
+import TitleComponent from '../../../components/TitleComponent/TitleComponent';
 
 function Habits() {
     const {habitPreviews, resetCurrentHabit, setSection, fetchHabitPreviews} = useHabits();  
@@ -43,7 +44,7 @@ function Habits() {
     <div className='px-1 py-1'>
 
         <div className='flex flex-row justify-between pb-2'>
-            <p className="pl-2 text-2xl flex-row flex items-center gap-3 font-bold"><MdRepeat size={'20px'}/> Habits</p>
+            <TitleComponent><MdRepeat size={'20px'}/> Habits</TitleComponent>
             <Button size='sm' className='gap-2' onClick={handleAddHabitClick}>
               <FaPlus />  
                Add Habit

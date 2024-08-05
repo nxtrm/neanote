@@ -3,6 +3,7 @@ import PageContainer from '../../../components/PageContainer/PageContainer'
 import { useArchive } from './useArchive';
 import NoteCard from './Components/NoteCard';
 import { FaArchive } from 'react-icons/fa';
+import TitleComponent from '../../../components/TitleComponent/TitleComponent';
 
 function Archive() {
     const { fetchArchivedNotes, nextPage, archive } = useArchive();
@@ -15,7 +16,7 @@ function Archive() {
     <PageContainer>
         <div className="p-1">
             <div className="flex flex-row gap-3 items-center pb-2">
-                <p className="pl-2 text-2xl flex-row flex items-center gap-3 font-bold"><FaArchive size={'20px'}/> Archive</p>
+                <TitleComponent><FaArchive size={'20px'}/> Archive</TitleComponent>
             </div> 
             <div className='flex flex-col gap-2'>
             { archive.map((note) => (

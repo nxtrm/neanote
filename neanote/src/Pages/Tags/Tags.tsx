@@ -11,6 +11,7 @@ import { Input } from '../../../components/@/ui/input';
 import { Popover } from '@radix-ui/react-popover';
 import { PopoverContent, PopoverTrigger } from '../../../components/@/ui/popover';
 import { FaTags } from "react-icons/fa";
+import TitleComponent from '../../../components/TitleComponent/TitleComponent';
 
 function Tags() {
   const {
@@ -35,7 +36,7 @@ function Tags() {
   let allTags = (
     <div className='p-1'>
         <div className='flex flex-row justify-between'>
-          <p className="pl-2 text-2xl flex-row flex items-center gap-3 font-bold"><FaTags size={'20px'}/> Tags</p>
+          <TitleComponent><FaTags size={'20px'}/> Tags</TitleComponent>
             <Button size="icon" onClick={() => setSection("create")}>
                 <FaPlus />
             </Button>

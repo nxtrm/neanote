@@ -8,6 +8,7 @@ import PageContainer from '../../../components/PageContainer/PageContainer';
 import { useNavigate } from 'react-router-dom';
 import { useInfiniteQuery } from '@tanstack/react-query'
 import tasksApi from '../../api/tasksApi';
+import TitleComponent from '../../../components/TitleComponent/TitleComponent';
 
 const Tasks: React.FC = () => {
   const { tasks, setSection, fetchTaskPreviews, resetCurrentTask,  setCurrentTask, } = useTasks();
@@ -49,7 +50,9 @@ const Tasks: React.FC = () => {
     <PageContainer>
       <div className="px-1 py-1">
         <div className="flex flex-row justify-between pb-2">
-          <p className="pl-2 text-2xl flex-row flex items-center gap-3 font-bold"><FaTasks size={'20px'}/> Tasks</p>
+          <TitleComponent>
+            <FaTasks size={'20px'}/> Tasks
+          </TitleComponent>
           <Button size="sm" className="gap-2" onClick={handleAddTaskClick}>
             <FaPlus />
             Add Task
