@@ -8,6 +8,7 @@ import { MdOutlineRestore } from "react-icons/md";
 import { FaTrash } from 'react-icons/fa6'
 import DeleteDialog from '../../../../components/DeleteDialog/DeleteDialog'
 import { useArchive } from '../useArchive'
+import TagLabel from '../../../../components/TagLabel/TagLabel'
 
 
 function NoteCard({note}:{note:ArchiveType}) {
@@ -31,6 +32,9 @@ function NoteCard({note}:{note:ArchiveType}) {
                 <h3 className="task-title">{note.title}</h3>                                                       
             </div>
             <div className='flex flex-row items-center gap-2' >
+              {note.tags.map((tag, index) => (
+                <TagLabel key={index} name={tag.name} color={tag.color} compressed={true}/>
+              ))}
                 <DeleteDialog handleDelete={onDelete}>
                     <Button size="icon" variant="destructive">
                         <FaTrash />
@@ -41,9 +45,6 @@ function NoteCard({note}:{note:ArchiveType}) {
                     <MdOutlineRestore size={'20px'}/>
                 </Button>
             </div>
-            {/* {note.tags.map((tag, index) => (
-              <TagLabel key={index} name={tag.name} color={tag.color} compressed={isTagCompressed}/>
-            ))} */}
         </div>
         {note.content && <p className="text-md pl-1 pt-2">{note.content}</p>}
       </div>

@@ -1,4 +1,5 @@
 import { UUID } from "crypto";
+import { Tag } from "./tagTypes";
 
 export interface ArchiveType {
     noteid: UUID
@@ -7,6 +8,7 @@ export interface ArchiveType {
     title:string
     content:string
     type:string
+    tags:Tag[]
 }
 
 export interface ArchiveResponse {

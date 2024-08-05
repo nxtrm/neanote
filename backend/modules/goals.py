@@ -236,26 +236,29 @@ def goal_routes(app, conn):
                 'tags': [],
                 'milestones': []
             }
+            milestone_ids = set()
+            tag_ids = set()
 
             for row in rows:
-                if row['milestone_id'] is not None:
+                if row['milestone_id'] is not None and row['milestone_id'] not in milestone_ids:
                     milestone = {
                         'milestoneid': row['milestone_id'],
                         'description': row['description'],
                         'completed': row['completed'],
                         'index': row['ms_index']
-  
                     }
                     goal['milestones'].append(milestone)
+                    milestone_ids.add(row['milestone_id'])
 
-                if row['tagid'] is not None:
+                if row['tagid'] is not None and row['tagid'] not in tag_ids:
                     tag = {
                         'tagid': row['tagid'],
                         'name': row['tag_name'],
                         'color': row['tag_color']
                     }
-                    if tag not in goal['tags']:
-                        goal['tags'].append(tag)
+                    goal['tags'].append(tag)
+                    tag_ids.add(row['tagid'])
+
 
             conn.commit()
 
@@ -385,8 +388,8 @@ def goal_routes(app, conn):
             with conn:
                 cur.execute("DELETE FROM Milestones WHERE goal_id = %s", (goal_id,))
                 cur.execute("DELETE FROM Goals WHERE id = %s", (goal_id,))
-                cur.execute("DELETE FROM Notes WHERE id = %s", (note_id,))
                 cur.execute("DELETE FROM NoteTags WHERE note_id = %s", (note_id,))
+                cur.execute("DELETE FROM Notes WHERE id = %s", (note_id,))
 
             return jsonify({'message': 'Goal deleted successfully'}), 200
         except Exception as e:

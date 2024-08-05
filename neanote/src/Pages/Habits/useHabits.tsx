@@ -45,7 +45,7 @@ type HabitState = {
     fetchHabitPreviews: () => Promise<void>;
     fetchHabit: (noteId: string) => Promise<void>;
 
-    handleCreateHabit: () => Promise<void>;
+    handleCreateHabit: () => Promise<boolean>;
     handleUpdateHabit: () => Promise<void>;
     handleDeleteHabit: (habitid: UUID, noteid: UUID) => Promise<void>;
     archive: (noteId: UUID) => Promise<void>;
@@ -149,22 +149,29 @@ export const useHabits = create<HabitState>()(
         },
 
         handleCreateHabit: async () => {
-            const { currentHabit, resetCurrentHabit, setLoading } = get();
+            const { currentHabit, validationErrors, setLoading } = get();
             setLoading(true);
-            const response = await habitsApi.create(currentHabit.title, currentHabit.tags, currentHabit.content, currentHabit.reminder);
-            if (response.success && response.data) {
-                set((state) => {
-                    state.habitPreviews.push({
-                        ...currentHabit,
-                        habitid: response.data.habitid,
-                        noteid: response.data.noteid
+            get().validateHabit()
+            if (get().validateHabit()) {
+                const response = await habitsApi.create(currentHabit.title, currentHabit.tags, currentHabit.content, currentHabit.reminder);
+                if (response.success && response.data) {
+                    set((state) => {
+                        state.habitPreviews.push({
+                            ...currentHabit,
+                            habitid: response.data.habitid,
+                            noteid: response.data.noteid
+                        });
                     });
-                });
-                showToast('success', response.message);
+                    showToast('success', response.message);
+                    return true
+                } else {
+                    showToast('error', response.message);
+                }
             } else {
-                showToast('error', response.message);
+                showToast('error', 'Validation failed');
             }
             setLoading(false);
+        return false
         },
 
         handleUpdateHabit: async () => {

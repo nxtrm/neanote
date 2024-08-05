@@ -63,41 +63,54 @@ def archive_routes(app,conn):
             cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
             cur.execute(
                 """
-                SELECT id AS note_id, title, content, type 
-                FROM Notes 
-                WHERE user_id = %s AND archived = TRUE 
+                SELECT n.id AS note_id, n.title, n.content, n.type, 
+                t.id AS tagid, 
+                t.name, 
+                t.color
+                FROM Notes n
+                LEFT JOIN NoteTags nt ON n.id = nt.note_id
+                LEFT JOIN Tags t ON nt.tag_id = t.id
+                WHERE n.user_id = %s AND n.archived = TRUE 
                 LIMIT %s OFFSET %s
                 """,
                 (userId, per_page + 1, offset)  # Fetch one more note than the limit
             )
-            notes = []
             rows = cur.fetchall()
-
+            notes_dict = {}
             for row in rows:
-                note = {
-                    'noteid': row['note_id'],
-                    'title': row['title'][:50] + '...' if len(row['title']) > 50 else row['title'],
-                    'content': row['content'][:100] + '...' if len(row['content']) > 100 else row['content'],
-                    'type': row['type'],
-                    'secondaryid': None
-                }
+                note_id = row['note_id']
+                if note_id not in notes_dict:
+                    notes_dict[note_id] = {
+                        'noteid': note_id,
+                        'title': row['title'][:50] + '...' if len(row['title']) > 50 else row['title'],
+                        'content': row['content'][:100] + '...' if len(row['content']) > 100 else row['content'],
+                        'type': row['type'],
+                        'tags': []
+                    }
+                if row['tagid']:
+                    notes_dict[note_id]['tags'].append({
+                        'tagid': row['tagid'],
+                        'name': row['name'],
+                        'color': row['color']
+                    })
 
                 # Fetch the secondary ID based on the type
-                if row['type'] == 'task':
-                    cur.execute("SELECT id AS taskid FROM Tasks WHERE note_id = %s", (row['note_id'],))
-                    secondary_id = cur.fetchone()
-                    note['secondaryid'] = secondary_id['taskid'] if secondary_id else None
-                elif row['type'] == 'habit':
-                    cur.execute("SELECT id AS habitid FROM Habits WHERE note_id = %s", (row['note_id'],))
-                    secondary_id = cur.fetchone()
-                    note['secondaryid'] = secondary_id['habitid'] if secondary_id else None
-                elif row['type'] == 'goal':
-                    cur.execute("SELECT id AS goalid FROM Goals WHERE note_id = %s", (row['note_id'],))
-                    secondary_id = cur.fetchone()
-                    note['secondaryid'] = secondary_id['goalid'] if secondary_id else None
-                #add any other types here
+                for note in notes_dict.values():
+                    if note['type'] == 'task':
+                        cur.execute("SELECT id AS taskid FROM Tasks WHERE note_id = %s", (note['noteid'],))
+                        secondary_id = cur.fetchone()
+                        note['secondaryid'] = secondary_id['taskid'] if secondary_id else None
+                    elif note['type'] == 'habit':
+                        cur.execute("SELECT id AS habitid FROM Habits WHERE note_id = %s", (note['noteid'],))
+                        secondary_id = cur.fetchone()
+                        note['secondaryid'] = secondary_id['habitid'] if secondary_id else None
+                    elif note['type'] == 'goal':
+                        cur.execute("SELECT id AS goalid FROM Goals WHERE note_id = %s", (note['noteid'],))
+                        secondary_id = cur.fetchone()
+                        note['secondaryid'] = secondary_id['goalid'] if secondary_id else None
+                    # Add any other types here
 
-                notes.append(note)
+                notes = list(notes_dict.values())
 
             # Determine if there is a next page
             if len(notes) > per_page:

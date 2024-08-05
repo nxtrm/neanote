@@ -36,8 +36,9 @@ function CreateHabits() {
     };
 
   const handleSaveHabit = async () => {
-      await handleCreateHabit();
-      navigate('/habits/edit');
+      if(await handleCreateHabit()) {
+        navigate('/habits/edit');
+      };
   }
 
     return (
