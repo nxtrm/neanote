@@ -38,8 +38,9 @@ function CreateGoal() {
     };
 
     const handleSave = async () => {
-        await handleCreateGoal();
-        navigate('/goals/edit');
+        if (await handleCreateGoal()) {
+          navigate('/goals/edit');
+        };
     }
     
   if (loading) return <EditGoalsSkeleton/>

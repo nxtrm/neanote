@@ -39,7 +39,7 @@ type TaskState = {
   tasks: Task[];
   handleAddSubtask: () => void;
   handleRemoveSubtask: (subtaskId:UUID) => void;
-  handleSaveTask: () => Promise<void>;
+  handleSaveTask: () => Promise<boolean>;
   handleEditTask: () => Promise<void>;
   handleDeleteTask: (taskId:UUID, noteId:UUID) => Promise<void>;
   toggleTaskCompleted: (taskId:UUID) => Promise<void>;
@@ -183,8 +183,7 @@ export const useTasks = create<TaskState>()(
       handleSaveTask: async () => {
         const { currentTask } = get();
         const { selectedTagIds } = useTags.getState();
-        try {
-          if (get().validateTask()) {
+        if (get().validateTask()) {
             const response = await tasksApi.create(currentTask.title, selectedTagIds, currentTask.content, currentTask.subtasks, currentTask.due_date);
             if (response && response.success) {
               set((state) => {
@@ -193,14 +192,15 @@ export const useTasks = create<TaskState>()(
                 state.pendingChanges = false;
               });
               showToast('success', 'Task created successfully');
+              return true
             } else {
               showToast('error', response.message);
             }
           } else {
             showToast('error', 'Validation failed');
-          }
-        } finally {
         }
+      return false
+
       },
   
       handleEditTask: async () => {

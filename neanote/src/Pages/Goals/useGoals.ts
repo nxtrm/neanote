@@ -33,7 +33,7 @@ type GoalState = {
 
     resetCurrentGoal: () => void;
     updateCurrentGoal: <K extends keyof Goal>(key: K, value: Goal[K]) => void;
-    handleCreateGoal: () => Promise<void>;
+    handleCreateGoal: () => Promise<boolean>;
     handleUpdateGoal: () => Promise<void>;
     handleDeleteGoal: (goalid: UUID, noteid: UUID) => Promise<void>;
     fetchGoalPreviews: (pageParam: number) => Promise<void>;
@@ -104,12 +104,14 @@ export const useGoals = create<GoalState>()(
                   state.section = 'edit goal';
                 });
                 showToast('success', 'Goal created successfully');
+                return true
               } else {
                 showToast('error', response.message);
               }
             } else {
               showToast('error', 'Validation failed');
             }
+            return false
           },
 
         handleUpdateGoal: async () => {

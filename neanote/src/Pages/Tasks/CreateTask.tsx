@@ -52,8 +52,9 @@ function CreateTask() {
   };
 
   const handleSave = async () => {
-    await handleSaveTask();
-    navigate('/tasks/edit');
+    if (await handleSaveTask()) {
+      navigate('/tasks/edit');
+    };
   }
 
   const handleDelete = async () => {
