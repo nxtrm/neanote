@@ -16,8 +16,6 @@ function TagLabel({ color, title, tagId, onChange }: Props) {
   const { selectedTagIds, setSelectedTagIds } = useTags();
   const checked = selectedTagIds.includes(tagId);
 
-  console.log(selectedTagIds);
-  console.log(tagId);
 
   const handleClick = () => {
     const newSelectedTagIds = checked

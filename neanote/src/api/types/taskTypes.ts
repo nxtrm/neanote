@@ -21,7 +21,7 @@ export interface Task {
     completed: boolean;
     due_date: Date | undefined;
     subtasks: Subtask[];
-    tags: Tag[];
+    tags: UUID[];
   };
 
   export interface TaskResponse {

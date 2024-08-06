@@ -32,7 +32,7 @@ type TaskState = {
   setSection: (section: string) => void;
 
   currentTask: Task;
-  setCurrentTask: (task: Task) => void;
+  // setCurrentTask: (task: Task) => void;
   resetCurrentTask: () => void;
   updateCurrentTask: (key: keyof Task, value: any) => void;
 
@@ -146,6 +146,7 @@ export const useTasks = create<TaskState>()(
       },
 
       fetchTask: async (noteId: string) => {
+        const{setSelectedTagIds} = useTags.getState();
         set({ loading: true });
         try {
           const response = await tasksApi.getTask(noteId);
@@ -154,6 +155,7 @@ export const useTasks = create<TaskState>()(
             set((state) => {
               state.currentTask = { ...response.data, due_date: dueDate };
             });
+            setSelectedTagIds(response.data.tags);
           } else {
             showToast('error', response.message);
           }
@@ -293,10 +295,10 @@ export const useTasks = create<TaskState>()(
       }
     },
 
-    setCurrentTask: (task) => 
-      set((state) => {
-        state.currentTask = { ...task };
-        useTags.getState().selectedTagIds = task.tags.map((tag) => tag.tagid);
-      }),
+    // setCurrentTask: (task) => 
+    //   set((state) => {
+    //     state.currentTask = { ...task };
+    //     useTags.getState().selectedTagIds = task.tags.map((tag) => tag.tagid);
+    //   }),
   }))
 );

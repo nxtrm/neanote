@@ -376,11 +376,14 @@ def task_routes(app, conn):
                             'index': row['subtask_index']
                         })
                     if row['tagid'] is not None:
-                        task['tags'].append({
-                            'tagid': row['tagid'],
-                            'name': row['tag_name'],
-                            'color': row['tag_color']
-                        })
+                        task['tags'].append(
+                            row['tagid']
+                            # {
+                            # 'tagid': row['tagid'],
+                            # 'name': row['tag_name'],
+                            # 'color': row['tag_color']
+                            # }
+                        )
 
                 return jsonify({"task": task, 'message': "Task fetched successfully"}), 200
 

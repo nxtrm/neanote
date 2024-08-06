@@ -12,7 +12,7 @@ import TitleComponent from '../../../components/TitleComponent/TitleComponent';
 import PaginationSelector from '../../../components/Pagination/PaginationSelector';
 
 const Tasks: React.FC = () => {
-  const { tasks, setSection, fetchTaskPreviews, resetCurrentTask, nextPage,  setCurrentTask, } = useTasks();
+  const { tasks, setSection, fetchTaskPreviews, resetCurrentTask, nextPage,  } = useTasks();
   const navigate = useNavigate();
 
   useEffect(() => {
