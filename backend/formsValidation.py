@@ -43,6 +43,7 @@ class HabitSchema(Schema):
     completed_today = fields.Bool(required=False)
     reminder = fields.Nested(ReminderSchema, required=True)
     streak = fields.Int(required=False)
+    linked_tasks = fields.List(fields.UUID(), required=False)
 
     noteid =  fields.UUID(required=False)
     habitid = fields.UUID(required=False)

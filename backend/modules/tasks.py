@@ -120,13 +120,11 @@ def task_routes(app, conn):
                     WHERE id = %s AND user_id = %s
                 """, (task['title'], task['content'], note_id, userId))
 
-
                 cur.execute("""
-                        UPDATE Tasks 
-                        SET due_date = %s 
-                        WHERE id = %s
-                    """, (due_date, task_id))
-
+                    UPDATE Tasks 
+                    SET due_date = %s 
+                    WHERE id = %s
+                """, (due_date, task_id))
 
                 cur.execute("DELETE FROM Subtasks WHERE task_id = %s", (task_id,))
                 for subtask in task.get('subtasks', []):
@@ -140,7 +138,7 @@ def task_routes(app, conn):
                     cur.execute("""
                         INSERT INTO NoteTags (note_id, tag_id) 
                         VALUES (%s, %s)
-                    """, (note_id, tag['tagid']))
+                    """, (note_id, str(tag)))
 
                 conn.commit()
                 return jsonify({'message': 'Task updated successfully', 'data': None}), 200
@@ -148,7 +146,6 @@ def task_routes(app, conn):
             conn.rollback()
             print(f"An error occurred: {e}")
             raise
-
         finally:        
             if 'cur' in locals():  # Check if 'cur' is defined
                 cur.close()
