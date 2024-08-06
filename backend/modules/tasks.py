@@ -232,7 +232,7 @@ def task_routes(app, conn):
         try:
             userId = g.userId
             # Pagination
-            page = int(request.args.get('page', 1))  # Default to page 1
+            page = int(request.args.get('pageParam', 1))  # Default to page 1
             per_page = int(request.args.get('per_page', 10))  # Default to 10 items per page
             offset = (page - 1) * per_page
 
@@ -241,7 +241,7 @@ def task_routes(app, conn):
                 cur.execute("""
                     SELECT COUNT(DISTINCT n.id) AS total
                     FROM Notes n
-                    WHERE n.user_id = %s AND n.type = 'task'
+                    WHERE n.user_id = %s AND n.type = 'task' AND n.archived = FALSE
                 """, (userId,))
                 total = cur.fetchone()['total']
 
@@ -269,7 +269,9 @@ def task_routes(app, conn):
                     WHERE n.user_id = %s AND n.type = 'task' AND n.archived = FALSE
                     ORDER BY n.created_at DESC
                     LIMIT %s OFFSET %s
-                """, (userId, per_page, offset))
+                """, (userId, per_page
+                      , offset
+                      ))
                 
                 rows = cur.fetchall()
                 tasks = {}
@@ -295,7 +297,6 @@ def task_routes(app, conn):
                                 'description': row['subtask_description'][:100] + '...' if len(row['subtask_description']) > 100 else row['subtask_description'],
                                 'index': row['subtask_index'],
                                 'completed': row['subtask_completed']
-                                
                             })
 
                     if row['tagid'] is not None:

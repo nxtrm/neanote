@@ -9,32 +9,11 @@ import { useNavigate } from 'react-router-dom';
 import { useInfiniteQuery } from '@tanstack/react-query'
 import tasksApi from '../../api/tasksApi';
 import TitleComponent from '../../../components/TitleComponent/TitleComponent';
+import PaginationSelector from '../../../components/Pagination/PaginationSelector';
 
 const Tasks: React.FC = () => {
-  const { tasks, setSection, fetchTaskPreviews, resetCurrentTask,  setCurrentTask, } = useTasks();
+  const { tasks, setSection, fetchTaskPreviews, resetCurrentTask, nextPage,  setCurrentTask, } = useTasks();
   const navigate = useNavigate();
-
-  // const {
-  //   data,
-  //   error,
-  //   fetchNextPage,
-  //   hasNextPage,
-   
-  //   isFetching,
-  //   isFetchingNextPage,
-  //   status,
-  // } = useInfiniteQuery({
-  //   initialPageParam: 0,
-  //   queryKey: ['tasks'],
-  //   queryFn: async ({ pageParam}) =>  {
-  //     const response = await tasksApi.getTaskPreviews(pageParam)
-  //     return {
-  //       pages: response.data, 
-  //       nextPage: response.nextPage,
-  //     };
-  //   },
-  //   getNextPageParam: (lastPage, allPages) => lastPage.nextPage,
-  // });
 
   useEffect(() => {
     fetchTaskPreviews(1);
@@ -79,8 +58,11 @@ const Tasks: React.FC = () => {
           )} */}
         </div>
       </div>
+      <div className='p-1 pt-2'> 
+        <PaginationSelector fetchingFunction={fetchTaskPreviews} nextPage={nextPage} />
+      </div>
     </PageContainer>
   );
-};
+}; //TODO: pagination per_page
 
 export default Tasks;
