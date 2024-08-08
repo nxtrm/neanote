@@ -56,6 +56,7 @@ type GoalState = {
     validationErrors: Record<string, string | undefined>;
     validateGoal: () => boolean;
 
+    page:number
     nextPage:number | null
 }
 
@@ -72,7 +73,9 @@ export const useGoals = create<GoalState>()(
         setSection: (section) => set({section}),
         setPendingChanges: (value) => set({pendingChanges: value}),
         
-        nextPage:null,
+        page:1,
+        nextPage:null,  
+        
         resetCurrentGoal: () => {
           set(() => ({
             currentGoal: generateNewCurrentGoal()
@@ -206,7 +209,7 @@ export const useGoals = create<GoalState>()(
                   ...preview,
                   due_date: preview.due_date ? new Date(preview.due_date) : undefined, 
                 }));
-                set({ goalPreviews: previewsWithFormattedDates, nextPage: response.nextPage });
+                set({ goalPreviews: previewsWithFormattedDates, nextPage: response.nextPage, page: response.page });
               } else{
                 showToast('error', response.message);
               }

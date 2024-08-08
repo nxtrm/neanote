@@ -23,7 +23,12 @@ export interface Milestone {
 
 export interface GoalsPreview {
     goals: Goal[];
-    nextPage: number;
+    pagination : {
+        page: number;
+        perPage: number;
+        total: number;
+        nextPage: number | null;
+    }
     message: string;
 }
 

@@ -183,7 +183,14 @@ def goal_routes(app, conn):
             conn.commit()
             nextPage = page + 1 if (offset + per_page) < total else None
 
-            return jsonify({"goals": goals_list, 'nextPage': nextPage, 'message': "Goals fetched successfully"}), 200
+            return jsonify({"goals": goals_list, 
+                            'pagination': {
+                                    'total': total,
+                                    'page': page,
+                                    'perPage': per_page,
+                                    'nextPage': nextPage
+                                }, 
+                            'message': "Goals fetched successfully"}), 200
         except Exception as e:
             conn.rollback()
             print(f"An error occurred: {e}")  

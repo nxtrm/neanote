@@ -11,7 +11,7 @@ import PaginationSelector from '../../../components/Pagination/PaginationSelecto
 
 function Goals() {
   const navigate = useNavigate(); 
-  const {resetCurrentGoal, goalPreviews, fetchGoalPreviews, setSection, nextPage} = useGoals();
+  const {resetCurrentGoal, goalPreviews, fetchGoalPreviews, setSection, nextPage, page} = useGoals();
 
   const handleAddGoalClick = () => {
         resetCurrentGoal();
@@ -24,7 +24,7 @@ function Goals() {
     const fetchIfNeeded = () => {
       // Check if never fetched or if 5 minutes have passed since the last fetch
       if (!lastFetchTime || new Date().getTime() - lastFetchTime.getTime() > 300000) {
-        fetchGoalPreviews(nextPage ? nextPage -1 : 1);
+        fetchGoalPreviews(page);
         setLastFetchTime(new Date());
       }
     };
@@ -55,7 +55,7 @@ function Goals() {
         ))}
       </div>
       <div className="p-1 pt-2">
-        <PaginationSelector fetchingFunction={fetchGoalPreviews} nextPage={nextPage} />
+        <PaginationSelector fetchingFunction={fetchGoalPreviews} nextPage={nextPage} page={page}/>
       </div>
     </>
   )

@@ -34,7 +34,7 @@ const goalsApi = {
     getGoalPreviews: async (page: number) => {
         try {
             const response = await a.get<GoalsPreview>(`/api/goals/previews?page=${page}`);
-            return { success: true, data: response.data.goals, nextPage: response.data.nextPage };
+            return { success: true, data: response.data.goals, nextPage: response.data.pagination.nextPage, page: response.data.pagination.page }; //total, perPage
         } catch (error) {
             const errorMessage = axios.isAxiosError(error) 
                 ? error.response?.data?.message || 'An error occurred while fetching goal previews'
