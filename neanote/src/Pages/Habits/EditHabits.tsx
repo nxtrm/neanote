@@ -77,7 +77,7 @@ function EditHabits() {
   }
 
     return (
-      <PageContainer>
+      <>
         <div className='p-1'>
           {/* Navbar */}
           <div className='flex flex-row justify-between'>
@@ -113,7 +113,7 @@ function EditHabits() {
               />
             </div>
         </div>
-      </PageContainer>
+      </>
     ) 
   }
 

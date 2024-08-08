@@ -38,7 +38,7 @@ function Goals() {
 }, [fetchGoalPreviews, lastFetchTime]);
 
   return (
-    <PageContainer>
+    <>
         <div className="px-1 py-1">
             <div className="flex flex-row justify-between pb-2">
               <TitleComponent><LuGoal size={'23px'}/> Goals</TitleComponent>
@@ -54,7 +54,7 @@ function Goals() {
                     </div>))}
             </div>
         </div>
-    </PageContainer>
+    </>
   )
 }
 

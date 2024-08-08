@@ -26,42 +26,27 @@ const Tasks: React.FC = () => {
   };
 
   return (
-    <PageContainer>
-      <div className="px-1 py-1">
+    <div className="flex flex-col flex-grow">
+      <div className="px-1 py-1 flex-grow">
         <div className="flex flex-row justify-between pb-2">
           <TitleComponent>
-            <FaTasks size={'20px'}/> Tasks
+            <FaTasks size={'20px'} /> Tasks
           </TitleComponent>
           <Button size="sm" className="gap-2" onClick={handleAddTaskClick}>
             <FaPlus />
             Add Task
           </Button>
         </div>
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-3 flex-grow">
           {tasks.map((task) => (
             <TaskCard key={task.taskid} task={task} />
           ))}
-          {/* {data?.pages.map((page, pageIndex) => (
-            <React.Fragment key={pageIndex}>
-              {page.pages.map((task) => (
-                <TaskCard key={task.taskid} task={task} />
-              ))}
-            </React.Fragment>
-          ))}
-          {hasNextPage && (
-            <Button
-              onClick={() => fetchNextPage()}
-              disabled={!hasNextPage || isFetchingNextPage}
-            >
-              {isFetchingNextPage ? 'Loading more...' : 'Load More'}
-            </Button>
-          )} */}
         </div>
       </div>
-      <div className='p-1 pt-2'> 
+      <div className="p-1 pt-2">
         <PaginationSelector fetchingFunction={fetchTaskPreviews} nextPage={nextPage} />
       </div>
-    </PageContainer>
+    </div>
   );
 }; //TODO: pagination per_page
 

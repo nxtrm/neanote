@@ -40,7 +40,7 @@ function Habits() {
     
 
   return (
-    <PageContainer>      
+    <>      
     <div className='px-1 py-1'>
 
         <div className='flex flex-row justify-between pb-2'>
@@ -55,7 +55,7 @@ function Habits() {
               <HabitCard habit={habit}/>
             </div>))}
           </div>
-    </div></PageContainer>
+    </div></>
   )
 }
 

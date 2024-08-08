@@ -3,9 +3,9 @@ import PageContainer from '../../../components/PageContainer/PageContainer'
 
 function Dashboard() {
   return (
-    <PageContainer>
+    <>
       Dashboard
-    </PageContainer>
+    </>
   )
 }
 

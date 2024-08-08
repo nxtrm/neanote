@@ -63,9 +63,9 @@ export function DatePicker({ onDateChange, data, includeTime = false }: DatePick
         <PopoverTrigger asChild>
           <Button
             variant="outline"
-            className={cn("w-[150px] justify-start text-left font-normal", !dateTime && "text-muted-foreground")}
+            className={cn("w-[170px] justify-center font-normal", !dateTime && "text-muted-foreground")}
           >
-            <CalendarIcon className="mr-2 h-4 w-4" />
+            <CalendarIcon className="mr-2 min-h-4 min-w-4" />
             {dateTime ? format(dateTime, "PPP") : <span>Reminder</span>}
           </Button>
         </PopoverTrigger>

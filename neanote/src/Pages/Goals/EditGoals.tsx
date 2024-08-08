@@ -81,7 +81,7 @@ function EditGoals() {
   if (loading) return <EditGoalsSkeleton/>
 
   return (
-    <PageContainer>
+    <>
       <div className="p-2">
         <div className='flex row justify-between'>
             <h1 className="text-2xl font-bold mb-4">Edit Goal</h1>
@@ -117,7 +117,7 @@ function EditGoals() {
               </div>
         </div>
       </div>
-    </PageContainer>
+    </>
   );
 }
 

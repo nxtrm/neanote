@@ -104,10 +104,10 @@ const createTagForm = (
 // ...
 
 return (
-  <PageContainer>
+  <>
     {section === 'all tags' && allTags}
     {(section === 'create' || section === 'edit') && createTagForm}
-  </PageContainer>
+  </>
 );
 }
 

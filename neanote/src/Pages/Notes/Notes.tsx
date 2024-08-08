@@ -19,9 +19,9 @@ function Notes() {
   )
 
   return (
-    <PageContainer>
+    <>
         {section == 'all notes' && allNotes}
-    </PageContainer>
+    </>
   )
 }
 

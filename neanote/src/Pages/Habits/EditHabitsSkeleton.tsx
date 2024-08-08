@@ -4,7 +4,7 @@ import PageContainer from '../../../components/PageContainer/PageContainer';
 
 function EditHabitsSkeleton() {
     return (
-        <PageContainer>
+        <>
             <div className="p-2">
                 <div className='flex row justify-between'>
 
@@ -20,7 +20,7 @@ function EditHabitsSkeleton() {
                 </div>
 
             </div>
-        </PageContainer>
+        </>
     );
 }
 

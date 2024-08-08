@@ -4,7 +4,7 @@ import PageContainer from '../../../components/PageContainer/PageContainer';
 
 function EditGoalsSkeleton() {
     return (
-        <PageContainer>
+        <>
             <div className="p-2">
                 <div className='flex row justify-between'>
 
@@ -22,7 +22,7 @@ function EditGoalsSkeleton() {
                 </div>
 
             </div>
-        </PageContainer>
+        </>
     );
 }
 

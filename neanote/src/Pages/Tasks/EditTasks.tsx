@@ -70,7 +70,7 @@ function EditTasks() {
   if (!currentTask) return null;
 
   return (
-    <PageContainer>
+    <>
       <div className="p-1">
         <div className="flex flex-row justify-between">
           <p className="pl-1 text-2xl font-bold">Edit Task</p>
@@ -118,7 +118,7 @@ function EditTasks() {
           </div>
         </div>
       </div>
-    </PageContainer>
+    </>
   );
 }
 

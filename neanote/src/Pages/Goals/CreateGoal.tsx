@@ -48,7 +48,7 @@ function CreateGoal() {
   if (!currentGoal) return null
 
   return (
-    <PageContainer>
+    <>
         <div className="p-2">
             <div className='flex row justify-between'>
                 <h1 className="text-2xl font-bold mb-4">Create Goal</h1>
@@ -75,7 +75,7 @@ function CreateGoal() {
                 /> 
             </div>
         </div>
-    </PageContainer>
+    </>
   );
 }
 
