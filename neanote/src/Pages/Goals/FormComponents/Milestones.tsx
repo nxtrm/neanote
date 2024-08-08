@@ -71,6 +71,9 @@ function Milestones({ goal }: { goal: Goal }) {
           </div>
         )}
         <Input
+          id="milestone"
+          name="Milestone desctiption*"
+          required
           type="text"
           value={milestone.description}
           onChange={(e) =>

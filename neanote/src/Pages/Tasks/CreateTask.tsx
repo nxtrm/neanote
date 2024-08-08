@@ -87,20 +87,13 @@ function CreateTask() {
           </div>
         </div>
         {/* Title and tags */}
-          <FormInputs title={currentTask.title} content={currentTask.content} />
-          {validationErrors['title'] && (
-            <Label className='text-destructive'>{validationErrors['title']}</Label>
-          )}
-          {validationErrors['content'] && (
-            <Label className='text-destructive'>{validationErrors['content']}</Label>
-          )}
+          <FormInputs title={currentTask.title} content={currentTask.content} validationErrors={validationErrors}/>
 
           <Subtasks task={currentTask}/>
-
-          {/* Footer */}
           {validationErrors['subtasks'] && (
             <Label className='text-destructive'>{validationErrors['subtasks']}</Label>
           )}
+          
           <div className='flex pt-2 justify-between'>
             <Button onClick={handleAddSubtask}>
               <div className='flex flex-row items-center gap-2'>

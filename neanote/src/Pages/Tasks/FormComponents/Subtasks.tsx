@@ -67,6 +67,9 @@ function Subtasks({ task }: { task: Task }) {
           onChange={() => toggleSubtaskCompleted(subtask.subtaskid, task.taskid)}
         />
         <Input
+          id="subtask"
+          name="Subtask description*"
+          required
           type="text"
           value={subtask.description}
           onChange={(e) =>

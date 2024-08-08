@@ -80,6 +80,8 @@ export function DatePicker({ onDateChange, data, includeTime = false }: DatePick
             <Button className="w-1/4 items-center" variant="secondary" onClick={handleClear}>Clear</Button>
             {includeTime && (
               <Input
+                id="date"
+                name="DateTime"
                 type="time"
                 value={formattedTime}
                 onChange={(e) => handleTimeSelect(e.target.value)}

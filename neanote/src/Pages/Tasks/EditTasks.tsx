@@ -85,13 +85,7 @@ function EditTasks() {
           </div> 
         </div>
         
-        <FormInputs title={currentTask.title} content={currentTask.content} withCheckBox/>
-        {validationErrors['title'] && (
-          <Label className="text-destructive">{validationErrors['title']}</Label>
-        )}
-        {validationErrors['content'] && (
-          <Label className="text-destructive">{validationErrors['content']}</Label>
-        )}
+        <FormInputs title={currentTask.title} content={currentTask.content} validationErrors={validationErrors} withCheckBox/>
 
         <div className="rounded-md">
           <Subtasks task={currentTask}/>

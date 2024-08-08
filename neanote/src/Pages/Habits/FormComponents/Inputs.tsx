@@ -15,6 +15,9 @@ function Inputs({withChechbox}:{withChechbox?: boolean}) {
             <CheckBox checked={currentHabit.completed_today} disabled={currentHabit.completed_today} onChange={()=>toggleCompletedToday(currentHabit.habitid)} />
             </div>}
             <Input
+                id="title"
+                name="Title*"
+                required
                 className='border rounded-md w-full h-10 leading-tight focus:outline-none focus:shadow-outline'
                 placeholder='Title'
                 type='text'
@@ -24,17 +27,19 @@ function Inputs({withChechbox}:{withChechbox?: boolean}) {
             <TagsDropdownMenu onChange={()=>setPendingChanges(true)}/>
         </div>
         {validationErrors['title'] && (
-            <Label className='text-destructive py-3'>{validationErrors['title']}</Label>
+            <Label htmlFor="title" className='text-destructive py-3'>{validationErrors['title']}</Label>
         )}
 
           <Textarea
+            id="content"
+            name="Content"
             className='mt-3'
             value={currentHabit?.content || ''}
             placeholder='Describe your habit here'
             onChange={(e) => updateCurrentHabit('content', e.target.value)}
             />
         {validationErrors['content'] && (
-            <Label className='text-destructive'>{validationErrors['content']}</Label>
+            <Label htmlFor='content' className='text-destructive'>{validationErrors['content']}</Label>
         )}
     </div>
 
