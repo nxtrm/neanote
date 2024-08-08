@@ -32,6 +32,8 @@ const generateNewHabit = () => ({
 type HabitState = {
     habitPreviews: HabitPreview[];
     currentHabit: Habit;
+    nextPage: number | null;
+    page: number
 
     loading: boolean;
     setLoading: (loading: boolean) => void;
@@ -42,7 +44,7 @@ type HabitState = {
     updateCurrentHabit: <K extends keyof Habit>(key: K, value: Habit[K]) => void;
     resetCurrentHabit: () => void;
 
-    fetchHabitPreviews: () => Promise<void>;
+    fetchHabitPreviews: (pageParam:number) => Promise<void>;
     fetchHabit: (noteId: string) => Promise<void>;
 
     handleCreateHabit: () => Promise<boolean>;
@@ -62,6 +64,8 @@ type HabitState = {
 
 export const useHabits = create<HabitState>()(
     immer((set, get) => ({
+        nextPage: null,
+        page: 1,
         habitPreviews: [],
         currentHabit: generateNewHabit(),
         loading: false,
@@ -120,13 +124,15 @@ export const useHabits = create<HabitState>()(
             set({ currentHabit: generateNewHabit() });
         },
 
-        fetchHabitPreviews: async () => {
+        fetchHabitPreviews: async (pageParam:number) => {
             const { setLoading } = get();
             setLoading(true);
-            const response = await habitsApi.getHabitPreviews();
+            const response = await habitsApi.getHabitPreviews(pageParam);
             if (response.success && response.data) {
                 set((state) => {
                     state.habitPreviews = response.data.data;
+                    state.page = response.page
+                    state.nextPage = response.nextPage;
                 });
             } else {
                 showToast('error', response.message);

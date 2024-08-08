@@ -7,9 +7,10 @@ import { useNavigate } from 'react-router-dom';
 import HabitCard from './HabitCard/HabitCard';
 import { MdRepeat } from "react-icons/md";
 import TitleComponent from '../../../components/TitleComponent/TitleComponent';
+import PaginationSelector from '../../../components/Pagination/PaginationSelector';
 
 function Habits() {
-    const {habitPreviews, resetCurrentHabit, setSection, fetchHabitPreviews} = useHabits();  
+    const {habitPreviews, resetCurrentHabit, setSection, fetchHabitPreviews, nextPage, page} = useHabits();  
     const navigate = useNavigate(); 
     const handleAddHabitClick = () => {
         resetCurrentHabit();
@@ -24,7 +25,7 @@ function Habits() {
         const fetchIfNeeded = () => {
           // Check if never fetched or if 5 minutes have passed since the last fetch
           if (!lastFetchTime || new Date().getTime() - lastFetchTime.getTime() > 300000) {
-            fetchHabitPreviews();
+            fetchHabitPreviews(page);
             setLastFetchTime(new Date());
           }
         };
@@ -48,10 +49,13 @@ function Habits() {
            Add Habit
         </Button>
       </div>
-      <div className='flex flex-col gap-3'>
+      <div className='flex flex-col flex-grow gap-3'>
         {habitPreviews.map((habit)=> (<div key={habit.habitid}>
           <HabitCard habit={habit}/>
         </div>))}
+      </div>
+      <div className="p-1 pt-2">
+        <PaginationSelector fetchingFunction={fetchHabitPreviews} nextPage={nextPage} />
       </div>
   </>
   )

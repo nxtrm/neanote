@@ -3,6 +3,7 @@ import { showToast } from "../../components/Toast";
 import a from './api';
 import { HabitCreateResponse, HabitPreviewResponse, HabitResponse } from "./types/habitTypes";
 import axios from "axios";
+import { nextTick } from "process";
 
 const habitsApi = {
     create: async (title, tags, content, reminder) => {
@@ -14,10 +15,10 @@ const habitsApi = {
         }
     },
 
-    getHabitPreviews: async () => {
+    getHabitPreviews: async (page) => {
         try {
-            const response = await a.get<HabitPreviewResponse>('/api/habits/previews');
-            return { success: true, data: response.data };
+            const response = await a.get<HabitPreviewResponse>('/api/habits/previews', { params: {pageParam: page}});
+            return { success: true, data: response.data, page: response.data.pagination.page, nextPage: response.data.pagination.next_page}; //add missing pagination data
         } catch (error) {
             return { success: false, data: null, message: axios.isAxiosError(error) ? error.response?.data?.message || 'An error occurred while fetching habit previews' : 'An unexpected error occurred' };
         }

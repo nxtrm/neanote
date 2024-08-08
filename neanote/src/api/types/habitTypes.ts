@@ -41,6 +41,12 @@ export interface HabitResponse {
 export interface HabitPreviewResponse {
     message: string
     data: HabitPreview[];
+    pagination: {
+        total: number;
+        per_page: number;
+        page: number;
+        next_page: number;
+    }
 }
 
 export interface ReminderTime {

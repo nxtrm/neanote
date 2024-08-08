@@ -124,7 +124,22 @@ def habit_routes(app,conn):
     def get_habit_previews():
         try:
             userId = str(g.userId)  # Convert UUID to string if g.userId is a UUID
+            
+            # Pagination
+            page = int(request.args.get('pageParam', 1))  # Default to page 1
+            per_page = int(request.args.get('per_page', 10))  # Default to 10 items per page
+            offset = (page - 1) * per_page
+
             with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
+                # Fetch the total count of habits for pagination metadata
+                cur.execute("""
+                    SELECT COUNT(DISTINCT n.id) AS total
+                    FROM Notes n
+                    JOIN Habits h ON n.id = h.note_id
+                    WHERE n.user_id = %s AND n.type = %s AND n.archived = FALSE
+                """, (userId, "habit"))
+                total = cur.fetchone()['total']
+
                 query = '''
                     SELECT 
                         n.id AS note_id, 
@@ -143,9 +158,11 @@ def habit_routes(app,conn):
                     LEFT JOIN Tags t ON nt.tag_id = t.id 
                     WHERE n.user_id = %s AND n.type = %s AND n.archived = FALSE
                     GROUP BY n.id, h.id
+                    ORDER BY n.created_at DESC
+                    LIMIT %s OFFSET %s
                 '''
                 
-                cur.execute(query, (userId, "habit"))
+                cur.execute(query, (userId, "habit", per_page, offset))
                 rows = cur.fetchall()
                 habits = {}
                 for row in rows:
@@ -173,8 +190,19 @@ def habit_routes(app,conn):
                         })
 
                 habits_list = list(habits.values())
+                nextPage = page + 1 if (offset + per_page) < total else None
+                
                 conn.commit()
-                return jsonify({'message': 'Habit previews fetched successfully', 'data': habits_list}), 200
+                return jsonify({
+                    'message': 'Habit previews fetched successfully',
+                    'data': habits_list,
+                    'pagination': {
+                        'total': total,
+                        'page': page,
+                        'per_page': per_page,
+                        'next_page': nextPage
+                    }
+                }), 200
         except Exception as e:
             conn.rollback()
             print(f"An error occurred: {e}")  

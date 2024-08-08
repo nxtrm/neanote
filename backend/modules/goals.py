@@ -15,7 +15,7 @@ def goal_routes(app, conn):
     @token_required
     def create_goal():
         try:
-            userId = g.userId
+            userId = str(g.userId)  # Convert userId to string if it is a UUID
 
             goal_schema = GoalSchema()
             data = goal_schema.load(request.get_json())
@@ -26,7 +26,7 @@ def goal_routes(app, conn):
             milestones = data['milestones']
             due_date = data.get('due_date')
 
-            cur = conn.cursor()
+            cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
             cur.execute(
                 """
@@ -102,19 +102,19 @@ def goal_routes(app, conn):
     @token_required
     def get_goal_previews():
         try:
-            userId = g.userId
+            userId = str(g.userId)  # Convert userId to string if it is a UUID
             # Pagination
             page = int(request.args.get('page', 1))  # Default to page 1
-            per_page = int(request.args.get('per_page', 10))  # Default to 10 items per page
+            per_page = int(request.args.get('per_page', 1))  # Default to 10 items per page
             offset = (page - 1) * per_page
 
-            cur = conn.cursor(cursor_factory = psycopg2.extras.DictCursor)
+            cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
             # Fetch the total count of goals for pagination metadata
             cur.execute(""" 
                 SELECT COUNT(DISTINCT n.id) AS total
                 FROM Notes n
-                WHERE n.user_id = %s AND n.type = 'goal'
+                WHERE n.user_id = %s AND n.type = 'goal' AND n.archived = FALSE
             """, (userId,))
             total = cur.fetchone()['total']
 
@@ -142,7 +142,9 @@ def goal_routes(app, conn):
                 LIMIT %s OFFSET %s
             """
 
-            cur.execute(query, (userId, per_page, offset))
+            cur.execute(query, (userId, per_page
+                                , offset
+                                ))
             rows = cur.fetchall()
 
             goals = {}
