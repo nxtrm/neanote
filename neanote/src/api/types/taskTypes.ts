@@ -36,6 +36,11 @@ export interface Task {
 
   export interface TaskPreviewResponse {
     tasks: Task[];
-    nextPage: number;
+    pagination : {
+      nextPage: number | null;
+      perPage: number;
+      total: number;
+      page: number;
+    };
     message: string;
   }

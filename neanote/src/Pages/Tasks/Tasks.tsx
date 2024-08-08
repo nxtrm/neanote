@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { FaTasks } from "react-icons/fa";
 import { FaPlus } from 'react-icons/fa6';
 import { useNavigate } from 'react-router-dom';
@@ -9,12 +9,28 @@ import TitleComponent from '../../../components/TitleComponent/TitleComponent';
 import { useTasks } from './useTasks';
 
 const Tasks: React.FC = () => {
-  const { tasks, setSection, fetchTaskPreviews, resetCurrentTask, nextPage,  } = useTasks();
+  const { tasks, setSection, fetchTaskPreviews, resetCurrentTask, nextPage, page } = useTasks();
   const navigate = useNavigate();
 
+  const [lastFetchTime, setLastFetchTime] = useState<Date | null>(null);
+
   useEffect(() => {
-    fetchTaskPreviews(1);
-  },[fetchTaskPreviews])
+      const fetchIfNeeded = () => {
+        // Check if never fetched or if 5 minutes have passed since the last fetch
+        if (!lastFetchTime || new Date().getTime() - lastFetchTime.getTime() > 300000) {
+          fetchTaskPreviews(page);
+          setLastFetchTime(new Date());
+        }
+      };
+  
+      fetchIfNeeded();
+  
+      // Set up a timer to refetch every 5 minutes
+      const intervalId = setInterval(fetchIfNeeded, 300000);
+  
+    // Clean up the interval on component unmount
+    return () => clearInterval(intervalId);
+  }, [fetchTaskPreviews, lastFetchTime]);
 
   const handleAddTaskClick = () => {
     resetCurrentTask();
@@ -39,7 +55,7 @@ const Tasks: React.FC = () => {
         ))}
       </div>
       <div className="p-1 pt-2">
-        <PaginationSelector fetchingFunction={fetchTaskPreviews} nextPage={nextPage} />
+        <PaginationSelector fetchingFunction={fetchTaskPreviews} nextPage={nextPage} page={page}/>
       </div>
     </>
   );

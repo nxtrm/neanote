@@ -30,7 +30,7 @@ const tasksApi = {
     getTaskPreviews: async (pageParam) => {
         try {
             let response = await a.get<TaskPreviewResponse>(`/api/tasks/previews`, { params: { pageParam } });
-            return { success: true, data: response.data.tasks, nextPage: response.data.nextPage };
+            return { success: true, data: response.data.tasks, nextPage: response.data.pagination.nextPage, page: response.data.pagination.page }; //perPage, total to be added
         } catch (error) {
             return { success: false, message: error.message || 'Failed to fetch task previews' };
         }

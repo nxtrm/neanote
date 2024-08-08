@@ -308,7 +308,13 @@ def task_routes(app, conn):
                 tasks_list = list(tasks.values())
                 nextPage = page + 1 if (offset + per_page) < total else None
                 
-                return jsonify({"tasks": tasks_list, 'nextPage': nextPage, 'message': "Tasks fetched successfully"}), 200
+                return jsonify({"tasks": tasks_list,
+                                'pagination': {
+                                    'total': total,
+                                    'page': page,
+                                    'perPage': per_page,
+                                    'nextPage': nextPage
+                                }}), 200
 
         except Exception as e:
             conn.rollback()

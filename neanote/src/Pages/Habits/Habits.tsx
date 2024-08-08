@@ -55,7 +55,7 @@ function Habits() {
         </div>))}
       </div>
       <div className="p-1 pt-2">
-        <PaginationSelector fetchingFunction={fetchHabitPreviews} nextPage={nextPage} />
+        <PaginationSelector fetchingFunction={fetchHabitPreviews} nextPage={nextPage} page={page}/>
       </div>
   </>
   )
