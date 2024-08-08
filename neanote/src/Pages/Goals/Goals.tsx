@@ -39,21 +39,19 @@ function Goals() {
 
   return (
     <>
-        <div className="px-1 py-1">
-            <div className="flex flex-row justify-between pb-2">
-              <TitleComponent><LuGoal size={'23px'}/> Goals</TitleComponent>
-              <Button size="sm" className="gap-2" onClick={handleAddGoalClick}>
-                  <FaPlus />
-                  Add Goal
-              </Button>
-            </div>
-            <div className="flex flex-col gap-3">
-                {goalPreviews.map((goal) => (
-                    <div key={goal.goalid} >
-                            <GoalCard goal={goal}/>
-                    </div>))}
-            </div>
-        </div>
+      <div className="flex flex-row justify-between pb-2">
+        <TitleComponent><LuGoal size={'23px'}/> Goals</TitleComponent>
+        <Button size="sm" className="gap-2" onClick={handleAddGoalClick}>
+            <FaPlus />
+            Add Goal
+        </Button>
+      </div>
+      <div className="flex flex-col gap-3">
+          {goalPreviews.map((goal) => (
+              <div key={goal.goalid} >
+                      <GoalCard goal={goal}/>
+              </div>))}
+      </div>
     </>
   )
 }

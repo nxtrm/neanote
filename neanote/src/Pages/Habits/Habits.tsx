@@ -41,21 +41,19 @@ function Habits() {
 
   return (
     <>      
-    <div className='px-1 py-1'>
-
-        <div className='flex flex-row justify-between pb-2'>
-            <TitleComponent><MdRepeat size={'20px'}/> Habits</TitleComponent>
-            <Button size='sm' className='gap-2' onClick={handleAddHabitClick}>
-              <FaPlus />  
-               Add Habit
-            </Button>
-          </div>
-          <div className='flex flex-col gap-3'>
-            {habitPreviews.map((habit)=> (<div key={habit.habitid}>
-              <HabitCard habit={habit}/>
-            </div>))}
-          </div>
-    </div></>
+      <div className='flex flex-row justify-between pb-2'>
+        <TitleComponent><MdRepeat size={'20px'}/> Habits</TitleComponent>
+        <Button size='sm' className='gap-2' onClick={handleAddHabitClick}>
+          <FaPlus />  
+           Add Habit
+        </Button>
+      </div>
+      <div className='flex flex-col gap-3'>
+        {habitPreviews.map((habit)=> (<div key={habit.habitid}>
+          <HabitCard habit={habit}/>
+        </div>))}
+      </div>
+  </>
   )
 }
 

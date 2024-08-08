@@ -71,7 +71,6 @@ function EditTasks() {
 
   return (
     <>
-      <div className="p-1">
         <div className="flex flex-row justify-between">
           <p className="pl-1 text-2xl font-bold">Edit Task</p>
           <div className="flex flex-row gap-2">
@@ -117,7 +116,6 @@ function EditTasks() {
             />
           </div>
         </div>
-      </div>
     </>
   );
 }

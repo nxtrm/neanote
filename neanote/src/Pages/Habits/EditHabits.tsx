@@ -78,7 +78,6 @@ function EditHabits() {
 
     return (
       <>
-        <div className='p-1'>
           {/* Navbar */}
           <div className='flex flex-row justify-between'>
             <p className='pl-1 text-2xl font-bold'>Edit Habit</p>
@@ -112,7 +111,6 @@ function EditHabits() {
                 handleDelete={handleDelete} //add this to all other forms
               />
             </div>
-        </div>
       </>
     ) 
   }

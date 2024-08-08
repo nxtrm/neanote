@@ -75,7 +75,6 @@ function CreateTask() {
   if (currentTask) {
   return (
     <>
-      <div className='p-1'>
         {/* Navbar */}
         <div className='flex flex-row justify-between'>
           <p className='pl-1 text-2xl font-bold'>Create Task</p>
@@ -117,7 +116,6 @@ function CreateTask() {
                 /> 
           
           </div>
-        </div>
       </>
   );
 }

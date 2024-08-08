@@ -34,25 +34,23 @@ function Tags() {
 
 
   let allTags = (
-    <div className='p-1'>
-        <div className='flex flex-row justify-between'>
-          <TitleComponent><FaTags size={'20px'}/> Tags</TitleComponent>
-            <Button size="icon" onClick={() => setSection("create")}>
-                <FaPlus />
-            </Button>
-        </div>
-        <div className='pt-2'>
-            <Separator />
-        </div>
-            {tags.map((tag, index) => (
-            <div key={index} className="py-2">
-                <TagCard tag={tag} />
-            </div>
-            ))}
-        </div>
+    <>
+      <div className='flex flex-row justify-between'>
+        <TitleComponent><FaTags size={'20px'}/> Tags</TitleComponent>
+          <Button size="icon" onClick={() => setSection("create")}>
+              <FaPlus />
+          </Button>
+      </div>
+
+      {tags.map((tag, index) => (
+      <div key={index} className="py-2">
+          <TagCard tag={tag} />
+      </div>
+      ))}
+    </>
 );
 const createTagForm = (
-  <div className="p-1">
+  <>
     {/* Navbar */}
     <div className='flex flex-row justify-between'>
 
@@ -98,7 +96,7 @@ const createTagForm = (
       {section === "edit" && <Button variant={'secondary'} onClick={handleDeleteTag}>Delete</Button>}
         </div>
     
-  </div>
+  </>
 );
 
 // ...

@@ -43,7 +43,6 @@ function CreateHabits() {
 
     return (
       <>
-          <div className='p-1'>
           {/* Navbar */}
           <div className='flex flex-row justify-between'>
             <p className='pl-1 text-2xl font-bold'>Create Habit</p>
@@ -70,7 +69,6 @@ function CreateHabits() {
               <Button disabled={!isValidationErrorsEmpty} onClick={handleSaveHabit}>Save</Button>
               </div>
             </div>
-          </div>
           
       </>
     ) 

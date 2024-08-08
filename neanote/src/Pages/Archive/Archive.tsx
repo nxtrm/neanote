@@ -14,16 +14,14 @@ function Archive() {
 
   return (
     <>
-        <div className="p-1">
-            <div className="flex flex-row gap-3 items-center pb-2">
-                <TitleComponent><FaArchive size={'20px'}/> Archive</TitleComponent>
-            </div> 
-            <div className='flex flex-col gap-2'>
-            { archive.map((note) => (
-                <NoteCard note={note}/>
-            ))}
-            <p className='pl-1 text-destructive text-sm ml-1'>Archived notes will be removed after 30 days if not in use</p>
-            </div>
+        <div className="flex flex-row gap-3 items-center pb-2">
+            <TitleComponent><FaArchive size={'20px'}/> Archive</TitleComponent>
+        </div> 
+        <div className='flex flex-col gap-2'>
+        { archive.map((note) => (
+            <NoteCard note={note}/>
+        ))}
+        <p className='pl-1 text-destructive text-sm ml-1'>Archived notes will be removed after 30 days if not in use</p>
         </div>
     </>
   )
