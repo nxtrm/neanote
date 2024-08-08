@@ -14,5 +14,10 @@ export interface ArchiveType {
 export interface ArchiveResponse {
     success:boolean
     data:ArchiveType[]
-    nextPage:number
+    pagination:{
+        page:number
+        perPage:number
+        total:number
+        nextPage:number | null
+    }
 }

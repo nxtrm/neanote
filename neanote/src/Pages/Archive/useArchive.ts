@@ -15,6 +15,7 @@ type ArchiveState = {
     handleRestore: (noteId:UUID) => Promise<void>
     fetchArchivedNotes: (pageParam:number) => void
     nextPage: number | null
+    page:number
 
     loading:boolean
 }
@@ -23,6 +24,7 @@ export const useArchive = create<ArchiveState>()(
     immer((set, get) => ({
         archive: [],
         nextPage:null,
+        page:1,
 
         loading:false,
 
@@ -31,7 +33,7 @@ export const useArchive = create<ArchiveState>()(
             try {
                 const response = await archiveApi.getAll(pageParam);
                 if (response.success) {
-                    set({ archive: response.data, nextPage: response.nextPage });
+                    set({ archive: response.data, nextPage: response.nextPage, page: response.page });
                 } else {
                     showToast('error', response.message);
                 }

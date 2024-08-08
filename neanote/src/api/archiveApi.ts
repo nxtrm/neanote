@@ -43,7 +43,8 @@ const archiveApi = {
             return {
                 success: true,
                 data: response.data.data,
-                nextPage: response.data.nextPage,
+                nextPage: response.data.pagination.nextPage,
+                page: response.data.pagination.page //total, perPage
             };
         } catch (error) {
             const message = axios.isAxiosError(error)

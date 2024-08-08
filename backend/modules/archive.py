@@ -61,6 +61,14 @@ def archive_routes(app,conn):
             offset = (page - 1) * per_page
 
             cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+
+            cur.execute("""
+                    SELECT COUNT(DISTINCT n.id) AS total
+                    FROM Notes n
+                    WHERE n.user_id = %s AND n.archived = TRUE
+                """, (userId,))
+            total = cur.fetchone()['total']
+            
             cur.execute(
                 """
                 SELECT n.id AS note_id, n.title, n.content, n.type, 
@@ -119,7 +127,13 @@ def archive_routes(app,conn):
             else:
                 next_page = None
 
-            return jsonify({'message': 'Archived notes retrieved successfully', 'data': notes, 'nextPage': next_page}), 200
+            return jsonify({'message': 'Archived notes retrieved successfully', 'data': notes, 
+                            'pagination': {
+                                    'total': total,
+                                    'page': page,
+                                    'perPage': per_page,
+                                    'nextPage': next_page
+                                }}), 200
         except Exception as e:
             conn.rollback()
             raise
