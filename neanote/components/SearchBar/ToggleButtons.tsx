@@ -1,5 +1,5 @@
-import React from 'react'
-import { Button } from '../@/ui/button'
+import React from 'react';
+import { Button } from '../@/ui/button';
 import { PiApproximateEqualsBold } from "react-icons/pi";
 import { MdFormatUnderlined } from "react-icons/md";
 import {
@@ -7,13 +7,16 @@ import {
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "../@/ui/tooltip"
+} from "../@/ui/tooltip";
 
-function ToggleButtons() {
-  const [activeMode, setActiveMode] = React.useState<'approximate' | 'exact' | null>(null);
+interface ToggleButtonsProps {
+  activeMode: 'approximate' | 'exact' ;
+  setActiveMode: (mode: 'approximate' | 'exact' ) => void;
+}
 
+function ToggleButtons({ activeMode, setActiveMode }: ToggleButtonsProps) {
   const handleToggle = (mode: 'approximate' | 'exact') => {
-    setActiveMode(activeMode === mode ? null : mode);
+    setActiveMode(mode);
   };
 
   return (
@@ -51,7 +54,7 @@ function ToggleButtons() {
         </Tooltip>
       </TooltipProvider>
     </div>
-  )
+  );
 }
 
-export default ToggleButtons
+export default ToggleButtons;
