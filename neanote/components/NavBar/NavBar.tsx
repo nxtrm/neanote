@@ -3,6 +3,7 @@ import ThemeSwitcher from './ThemeSwitcher/ThemeSwitcher';
 import LoginButton from './LoginButton/LoginButton';
 import Sidebar from '../Sidebar/Sidebar';
 import Title from '../Sidebar/Title';
+import SearchBar from '../SearchBar/SearchBar';
 
 function NavBar() {
 
@@ -15,6 +16,7 @@ function NavBar() {
             <Sidebar/>
             <Title font={"28px"}/>
           </div>
+            <SearchBar/>
           <div className='flex flex-row gap-2'>
             <ThemeSwitcher/>
             <LoginButton/>
