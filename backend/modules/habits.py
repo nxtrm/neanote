@@ -7,7 +7,7 @@ from formsValidation import HabitSchema
 from utils import calculate_gap, token_required, verify_habit_ownership
 
 
-def habit_routes(app,conn):
+def habit_routes(app,conn, model):
     #HABITS MODULE
     @app.route('/api/habits/create', methods=['POST'])
     @jwt_required()

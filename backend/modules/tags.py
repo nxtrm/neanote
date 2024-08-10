@@ -6,7 +6,7 @@ from formsValidation import TagSchema
 from utils import token_required, verify_tag_ownership
 import psycopg2.extras
 
-def tag_routes(app,conn):
+def tag_routes(app,conn, model):
 
     @app.route('/api/tags/create', methods=['POST'])
     @jwt_required()

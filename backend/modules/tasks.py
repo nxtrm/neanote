@@ -7,7 +7,9 @@ from formsValidation import  TaskSchema
 from utils import token_required, verify_subtask_ownership, verify_task_ownership
 import psycopg2
 
-def task_routes(app, conn):
+from word2vec import combine_strings_to_vector
+
+def task_routes(app, conn, model):
 
     #TASK MODULE
     @app.route('/api/tasks/create', methods=['POST'])
@@ -25,11 +27,13 @@ def task_routes(app, conn):
             subtasks = data['subtasks']
             due_date = data.get('due_date')
 
+            vector = combine_strings_to_vector([title, content] +  [subtask['description'] for subtask in subtasks], model) if subtasks else combine_strings_to_vector([title, content], model)
+
             cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
             # Insert into Notes table
             cur.execute(
-                "INSERT INTO Notes (user_id, title, content, type) VALUES (%s, %s, %s, %s) RETURNING id",
-                (userId, title, content, 'task')  
+                "INSERT INTO Notes (user_id, title, content, type, vector) VALUES (%s, %s, %s, %s, %s) RETURNING id",
+                (userId, title, content, 'task', vector)  
             )
             noteId = cur.fetchone()[0]
 
@@ -80,6 +84,8 @@ def task_routes(app, conn):
                 )
 
             conn.commit()
+
+
 
             return jsonify({
                 'message': 'Task created successfully',

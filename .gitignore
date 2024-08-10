@@ -1,5 +1,5 @@
 backend/config.py
 backend/todo
 backend/mysql-config.py
-backend/modules/__pycache__
-backend/data/alice.txt
+backend/modules/__pycache__/
+backend/data/

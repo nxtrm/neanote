@@ -7,7 +7,7 @@ from utils import token_required, verify_milestone_ownership, verify_goal_owners
 import psycopg2.extras
 
 
-def goal_routes(app, conn):
+def goal_routes(app, conn, model):
 
 #GOALS MODULE
     @app.route('/api/goals/create', methods=['POST'])

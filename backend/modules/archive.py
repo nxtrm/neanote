@@ -5,7 +5,7 @@ import psycopg2
 from utils import token_required
 
 
-def archive_routes(app,conn):
+def archive_routes(app,conn, model):
 
     @app.route('/api/notes/archive', methods=['PUT'])
     @jwt_required()

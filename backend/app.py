@@ -38,12 +38,12 @@ conn = psycopg2.connect(
 # Load or train the tokenization model when the Flask app starts
 model = load_or_train_model()
 
-task_routes(app, conn)
-habit_routes(app, conn)
-goal_routes(app,  conn)
-tag_routes(app, conn) 
+task_routes(app, conn, model)
+habit_routes(app, conn, model)
+goal_routes(app,  conn, model)
+tag_routes(app, conn, model) 
 user_routes(app, conn)
-archive_routes(app, conn)
+archive_routes(app, conn, model)
 
 @app.route('/api/search', methods=['GET'])
 @jwt_required()
