@@ -1,28 +1,31 @@
+import os
 from gensim.models import Word2Vec
 from nltk.tokenize import sent_tokenize, word_tokenize
 import numpy as np
 
-#  Reads ‘alice.txt’ file
-sample = open("H:/Code/Note/backend/data/alice.txt", "r", encoding="utf-8")
-s = sample.read()
- 
-# Replaces escape character with space
-f = s.replace("\n", " ")
- 
-data = []
- 
-# iterate through each sentence in the file
-for i in sent_tokenize(f):
-    temp = []
- 
-    # tokenize the sentence into words
-    for j in word_tokenize(i):
-        temp.append(j.lower())
- 
-    data.append(temp)
+MODEL_PATH = os.path.join('data', 'w2v.model')
 
-# Create CBOW or Skip Gram model
-model = Word2Vec(data, vector_size=100, window=5, sg=1) #Skip Gram
+def load_or_train_model():
+    if os.path.exists(MODEL_PATH):
+        print("Loading existing model...")
+        model = Word2Vec.load(MODEL_PATH)
+    else:
+        print("Training new model...")
+        # Reads and processes the text data
+        with open("H:/Code/Note/backend/data/alice.txt", "r", encoding="utf-8") as sample:
+            s = sample.read()
+        f = s.replace("\n", " ")
+        
+        data = [word_tokenize(sent.lower()) for sent in sent_tokenize(f)]
+        
+        # Train the Word2Vec model
+        model = Word2Vec(data, vector_size=100, window=5, sg=1)  # Skip Gram
+        
+        # Save the model for future use
+        model.save(MODEL_PATH)
+    
+    return model
+
 
 def combine_strings_to_vector(strings, model):
     """
@@ -48,9 +51,3 @@ def combine_strings_to_vector(strings, model):
     
     # Return the average vector
     return np.mean(all_word_vectors, axis=0)
-
-# Example usage:
-strings = ["Note title", "This is the content of the note.", "Another string if needed."]
-combined_vector = combine_strings_to_vector(strings, model)
-
-print("Combined Vector:", combined_vector)

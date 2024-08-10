@@ -11,6 +11,7 @@ from modules.goals import goal_routes
 from modules.tags import tag_routes
 from modules.users import user_routes
 from utils import token_required
+from word2vec import load_or_train_model
 
 
 app = Flask(__name__)
@@ -34,6 +35,8 @@ conn = psycopg2.connect(
 #     default_limits=["500 per day", "100 per hour"]  # Default rate limit for all routes
 # )
 
+# Load or train the tokenization model when the Flask app starts
+model = load_or_train_model()
 
 task_routes(app, conn)
 habit_routes(app, conn)
