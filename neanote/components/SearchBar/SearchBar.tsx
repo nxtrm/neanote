@@ -14,6 +14,7 @@ import { Label } from "../@/ui/label";
 import ToggleButtons from './ToggleButtons';
 import { ArchiveType } from '../../src/api/types/archiveTypes';
 import { searchApi } from '../../src/api/searchApi';
+import SearchCard from './Components/SearchCard';
 
 function SearchBar() {
     const [searchQuery, setSearchQuery] = useState<string>('');
@@ -21,6 +22,7 @@ function SearchBar() {
     const [results, setResults] = useState<ArchiveType[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
+    const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
 
     const handleSearch = async () => {
         setLoading(true);
@@ -38,15 +40,19 @@ function SearchBar() {
     };
 
     const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
-        if (event.key === 'Enter' && searchQuery.length>1) {
+        if (event.key === 'Enter' && searchQuery.length > 1) {
             handleSearch();
         }
     };
 
+    const handleCloseDialog = () => {
+        setIsDialogOpen(false);
+    };
+
     return (
-        <Dialog>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-                <Button className='rounded-xl px-5 w-[125px] gap-2'>
+                <Button className='rounded-xl px-5 w-[125px] gap-2' onClick={() => setIsDialogOpen(true)}>
                     <FaSearch className='justify-self-start' size={10} />
                     <Label>Search...</Label>
                 </Button>
@@ -64,9 +70,9 @@ function SearchBar() {
                 </div>
                 {loading && <p>Loading...</p>}
                 {error && <p>{error}</p>}
-                <div>
+                <div className='flex-col flex gap-2'>
                     {results && results.map(result => (
-                        <div key={result.noteid}>{result.title}</div>
+                        <SearchCard key={result.noteid} note={result} onCloseDialog={handleCloseDialog} />
                     ))}
                 </div>
             </DialogContent>

@@ -35,7 +35,7 @@ function EditTasks() {
     if (noteId) {
       fetchTask(noteId);
     }
-  }, [fetchTask]);
+  }, [fetchTask, localStorage.getItem('currentTaskId')]);
 
   useEffect(() => {
     setIsValidationErrorsEmpty(
