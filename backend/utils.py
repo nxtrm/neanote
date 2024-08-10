@@ -147,3 +147,4 @@ def verify_tag_ownership(user_id, tag_id, cur):
     if (len(result)<1) or (result['user_id'] != user_id):
         return False
     return True
+
