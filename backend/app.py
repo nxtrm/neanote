@@ -11,7 +11,7 @@ from modules.goals import goal_routes
 from modules.tags import tag_routes
 from modules.users import user_routes
 from utils import token_required
-from word2vec import load_or_train_model
+from word2vec import combine_strings_to_vector, load_or_train_model
 
 
 app = Flask(__name__)
@@ -55,7 +55,24 @@ def search():
         search_query = request.args.get('searchQuery')
         search_mode = request.args.get('searchMode')
 
-        if search_mode == "exact":
+        if search_mode == "approximate":
+            query_vector = combine_strings_to_vector([search_query], model)
+
+            cur.execute("""
+                SELECT n.id AS note_id, n.title, n.content, n.type, 
+                t.id AS tagid, 
+                t.name, 
+                t.color, 
+                cosine_similarity(n.vector, %s) as similarity 
+                FROM Notes n
+                LEFT JOIN NoteTags nt ON n.id = nt.note_id
+                LEFT JOIN Tags t ON nt.tag_id = t.id
+                WHERE n.user_id = %s AND n.archived = FALSE AND n.vector IS NOT NULL
+                ORDER BY similarity DESC
+                LIMIT 5;
+            """, (query_vector, userId,))
+            
+        else :
             cur.execute(
                 """
                 SELECT n.id AS note_id, n.title, n.content, n.type, 
@@ -65,56 +82,56 @@ def search():
                 FROM Notes n
                 LEFT JOIN NoteTags nt ON n.id = nt.note_id
                 LEFT JOIN Tags t ON nt.tag_id = t.id
-                WHERE n.user_id = %s 
+                WHERE n.user_id = %s AND n.archived = FALSE
                 AND (n.title ILIKE %s OR n.content ILIKE %s)""",
-                (userId, f"%{search_query}%", f"%{search_query}%")
-            )
-            rows = cur.fetchall()
+                (userId, f"%{search_query}%", f"%{search_query}%"))
+            
+        rows = cur.fetchall()    
 
-            notes_dict = {}
-            for row in rows:
-                note_id = row['note_id']
-                if note_id not in notes_dict:
-                    notes_dict[note_id] = {
-                        'noteid': note_id,
-                        'title': row['title'][:50] + '...' if len(row['title']) > 50 else row['title'],
-                        'content': row['content'][:100] + '...' if len(row['content']) > 100 else row['content'],
-                        'type': row['type'],
-                        'tags': []
-                    }
-                if row['tagid']:
-                    notes_dict[note_id]['tags'].append({
-                        'tagid': row['tagid'],
-                        'name': row['name'],
-                        'color': row['color']
-                    })
+        notes_dict = {}
+        for row in rows:
+            note_id = row['note_id']
+            if note_id not in notes_dict:
+                notes_dict[note_id] = {
+                    'noteid': note_id,
+                    'title': row['title'][:50] + '...' if len(row['title']) > 50 else row['title'],
+                    'content': row['content'][:100] + '...' if len(row['content']) > 100 else row['content'],
+                    'type': row['type'],
+                    'tags': []
+                }
+            if row['tagid']:
+                notes_dict[note_id]['tags'].append({
+                    'tagid': row['tagid'],
+                    'name': row['name'],
+                    'color': row['color']
+                })
 
-                # Fetch the secondary ID based on the type
-                for note in notes_dict.values():
-                    if note['type'] == 'task':
-                        cur.execute("SELECT id AS taskid FROM Tasks WHERE note_id = %s", (note['noteid'],))
-                        secondary_id = cur.fetchone()
-                        note['secondaryid'] = secondary_id['taskid'] if secondary_id else None
-                    elif note['type'] == 'habit':
-                        cur.execute("SELECT id AS habitid FROM Habits WHERE note_id = %s", (note['noteid'],))
-                        secondary_id = cur.fetchone()
-                        note['secondaryid'] = secondary_id['habitid'] if secondary_id else None
-                    elif note['type'] == 'goal':
-                        cur.execute("SELECT id AS goalid FROM Goals WHERE note_id = %s", (note['noteid'],))
-                        secondary_id = cur.fetchone()
-                        note['secondaryid'] = secondary_id['goalid'] if secondary_id else None
-                    # Add any other types here
+            # Fetch the secondary ID based on the type
+            for note in notes_dict.values():
+                if note['type'] == 'task':
+                    cur.execute("SELECT id AS taskid FROM Tasks WHERE note_id = %s", (note['noteid'],))
+                    secondary_id = cur.fetchone()
+                    note['secondaryid'] = secondary_id['taskid'] if secondary_id else None
+                elif note['type'] == 'habit':
+                    cur.execute("SELECT id AS habitid FROM Habits WHERE note_id = %s", (note['noteid'],))
+                    secondary_id = cur.fetchone()
+                    note['secondaryid'] = secondary_id['habitid'] if secondary_id else None
+                elif note['type'] == 'goal':
+                    cur.execute("SELECT id AS goalid FROM Goals WHERE note_id = %s", (note['noteid'],))
+                    secondary_id = cur.fetchone()
+                    note['secondaryid'] = secondary_id['goalid'] if secondary_id else None
+                # Add any other types here
 
-            notes = list(notes_dict.values())
+        notes = list(notes_dict.values())
 
-            return jsonify({'message': 'Archived notes retrieved successfully', 'data': notes, 
-                            # 'pagination': {
-                            #         'total': total,
-                            #         'page': page,
-                            #         'perPage': per_page,
-                            #         'nextPage': next_page
-                            #     }
-                            }), 200
+        return jsonify({'message': 'Archived notes retrieved successfully', 'data': notes, 
+                        # 'pagination': {
+                        #         'total': total,
+                        #         'page': page,
+                        #         'perPage': per_page,
+                        #         'nextPage': next_page
+                        #     }
+                        }), 200
     except Exception as e:
         conn.rollback()
         print(f"An error occurred: {e}") 

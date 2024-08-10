@@ -119,12 +119,14 @@ def task_routes(app, conn, model):
             with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
                 if not verify_task_ownership(userId, task_id, cur):
                     return jsonify({'message': 'You do not have permission to update this task'}), 403
+                
+                vector = combine_strings_to_vector([task['title'], task['content']] +  [subtask['description'] for subtask in task['subtasks']], model) if task['subtasks'] else combine_strings_to_vector([task['title'], task['content']], model)
 
                 cur.execute("""
                     UPDATE Notes
-                    SET title = %s, content = %s
+                    SET title = %s, content = %s, vector=%s
                     WHERE id = %s AND user_id = %s
-                """, (task['title'], task['content'], note_id, userId))
+                """, (task['title'], task['content'], vector, note_id,  userId))
 
                 cur.execute("""
                     UPDATE Tasks 

@@ -53,8 +53,8 @@ def combine_strings_to_vector(strings, model):
         all_word_vectors.extend(word_vectors)
     
     if len(all_word_vectors) == 0:
-        return [None] # Return None if no valid words found
-        # return np.zeros(model.vector_size).tolist()  # Return a zero vector if no valid words found
+        # return [None] # Return None if no valid words found
+        return np.zeros(model.vector_size).tolist()  # Return a zero vector if no valid words found
     
     # Return the average vector as a list
     return np.mean(all_word_vectors, axis=0).tolist()
