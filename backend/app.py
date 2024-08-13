@@ -2,10 +2,11 @@ from flask import Flask, g, jsonify, request
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager, jwt_required
 import jwt
-import psycopg2 
+import psycopg2
 from config import Config
 from modules.archive import archive_routes
 from modules.habits import habit_routes
+from modules.priorityQueue import TokenizationTaskManager
 from modules.tasks import task_routes
 from modules.goals import goal_routes
 from modules.tags import tag_routes
@@ -29,7 +30,7 @@ conn = psycopg2.connect(
 
 )
 
-# limiter = Limiter( 
+# limiter = Limiter(
 #     get_remote_address,
 #     app=app,
 #     default_limits=["500 per day", "100 per hour"]  # Default rate limit for all routes
@@ -37,13 +38,14 @@ conn = psycopg2.connect(
 
 # Load or train the tokenization model when the Flask app starts
 model = load_or_train_model()
+tokenization_manager = TokenizationTaskManager(Config,model)
 
-task_routes(app, conn, model)
-habit_routes(app, conn, model)
-goal_routes(app,  conn, model)
-tag_routes(app, conn, model) 
+task_routes(app, conn, tokenization_manager)
+habit_routes(app, conn, tokenization_manager)
+goal_routes(app,  conn, tokenization_manager)
+tag_routes(app, conn, tokenization_manager)
 user_routes(app, conn)
-archive_routes(app, conn, model)
+archive_routes(app, conn, tokenization_manager)
 
 @app.route('/api/search', methods=['GET'])
 @jwt_required()
@@ -56,14 +58,14 @@ def search():
         search_mode = request.args.get('searchMode')
 
         if search_mode == "approximate":
-            query_vector = combine_strings_to_vector([search_query], model)
+            query_vector = combine_strings_to_vector([search_query], model, False)
 
             cur.execute("""
-                SELECT n.id AS note_id, n.title, n.content, n.type, 
-                t.id AS tagid, 
-                t.name, 
-                t.color, 
-                cosine_similarity(n.vector, %s) as similarity 
+                SELECT n.id AS note_id, n.title, n.content, n.type,
+                t.id AS tagid,
+                t.name,
+                t.color,
+                cosine_similarity(n.vector, %s) as similarity
                 FROM Notes n
                 LEFT JOIN NoteTags nt ON n.id = nt.note_id
                 LEFT JOIN Tags t ON nt.tag_id = t.id
@@ -71,13 +73,13 @@ def search():
                 ORDER BY similarity DESC
                 LIMIT 5;
             """, (query_vector, userId,))
-            
+
         else :
             cur.execute(
                 """
-                SELECT n.id AS note_id, n.title, n.content, n.type, 
-                t.id AS tagid, 
-                t.name, 
+                SELECT n.id AS note_id, n.title, n.content, n.type,
+                t.id AS tagid,
+                t.name,
                 t.color
                 FROM Notes n
                 LEFT JOIN NoteTags nt ON n.id = nt.note_id
@@ -85,8 +87,8 @@ def search():
                 WHERE n.user_id = %s AND n.archived = FALSE
                 AND (n.title ILIKE %s OR n.content ILIKE %s)""",
                 (userId, f"%{search_query}%", f"%{search_query}%"))
-            
-        rows = cur.fetchall()    
+
+        rows = cur.fetchall()
 
         notes_dict = {}
         for row in rows:
@@ -124,7 +126,7 @@ def search():
 
         notes = list(notes_dict.values())
 
-        return jsonify({'message': 'Archived notes retrieved successfully', 'data': notes, 
+        return jsonify({'message': 'Archived notes retrieved successfully', 'data': notes,
                         # 'pagination': {
                         #         'total': total,
                         #         'page': page,
@@ -134,10 +136,10 @@ def search():
                         }), 200
     except Exception as e:
         conn.rollback()
-        print(f"An error occurred: {e}") 
+        print(f"An error occurred: {e}")
         return jsonify({'message': 'An error occurred', 'error': str(e)}), 500
     finally:
-        cur.close() 
+        cur.close()
 
 
 

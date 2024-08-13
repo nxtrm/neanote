@@ -3,13 +3,13 @@ from datetime import datetime
 from flask import Blueprint, g, jsonify, request
 from flask_jwt_extended import jwt_required
 from MySQLdb.cursors import DictCursor
-from formsValidation import  TaskSchema
+from formsValidation import TaskSchema
 from utils import token_required, verify_subtask_ownership, verify_task_ownership
 import psycopg2
 
 from word2vec import combine_strings_to_vector
 
-def task_routes(app, conn, model):
+def task_routes(app, conn, tokenization_manager):
 
     #TASK MODULE
     @app.route('/api/tasks/create', methods=['POST'])
@@ -27,13 +27,12 @@ def task_routes(app, conn, model):
             subtasks = data['subtasks']
             due_date = data.get('due_date')
 
-            vector = combine_strings_to_vector([title, content] +  [subtask['description'] for subtask in subtasks], model) if subtasks else combine_strings_to_vector([title, content], model)
 
             cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
             # Insert into Notes table
             cur.execute(
-                "INSERT INTO Notes (user_id, title, content, type, vector) VALUES (%s, %s, %s, %s, %s) RETURNING id",
-                (userId, title, content, 'task', vector)  
+                "INSERT INTO Notes (user_id, title, content, type) VALUES (%s, %s, %s, %s) RETURNING id",
+                (userId, title, content, 'task')
             )
             noteId = cur.fetchone()[0]
 
@@ -44,7 +43,7 @@ def task_routes(app, conn, model):
                 """,
                 (noteId, False, due_date)
             )
-        
+
             taskId = cur.fetchone()[0]
 
             new_subtasks = None
@@ -83,26 +82,31 @@ def task_routes(app, conn, model):
                     tag_tuples
                 )
 
+            text = [title, content] + [subtask['description'] for subtask in subtasks] if subtasks else [title, content]
+            priority = sum(len(string) for string in text)
+            tokenization_manager.add_note(
+            text=text,
+            priority=priority,
+            note_id=noteId
+            )
             conn.commit()
-
-
 
             return jsonify({
                 'message': 'Task created successfully',
                 'data': {
                     'noteId': noteId,
                     'taskId': taskId,
-                    'subtasks': new_subtasks  
+                    'subtasks': new_subtasks
                 }
             }), 200
-        
+
         except Exception as error:
             conn.rollback()
             print('Error during transaction', error)
             raise
         finally:
             cur.close()
-        
+
     @app.route('/api/tasks/update', methods=['PUT'])
     @jwt_required()
     @token_required
@@ -114,50 +118,58 @@ def task_routes(app, conn, model):
 
             note_id = str(task['noteid'])  # Convert note_id to string
             task_id = str(task['taskid'])  # Convert task_id to string
+            title = task['title']
+            content = task['content']
             due_date = task.get('due_date')
 
             with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
                 if not verify_task_ownership(userId, task_id, cur):
                     return jsonify({'message': 'You do not have permission to update this task'}), 403
-                
-                vector = combine_strings_to_vector([task['title'], task['content']] +  [subtask['description'] for subtask in task['subtasks']], model) if task['subtasks'] else combine_strings_to_vector([task['title'], task['content']], model)
 
                 cur.execute("""
                     UPDATE Notes
-                    SET title = %s, content = %s, vector=%s
+                    SET title = %s, content = %s
                     WHERE id = %s AND user_id = %s
-                """, (task['title'], task['content'], vector, note_id,  userId))
+                """, (title, content, note_id,  userId))
 
                 cur.execute("""
-                    UPDATE Tasks 
-                    SET due_date = %s 
+                    UPDATE Tasks
+                    SET due_date = %s
                     WHERE id = %s
                 """, (due_date, task_id))
 
                 cur.execute("DELETE FROM Subtasks WHERE task_id = %s", (task_id,))
                 for subtask in task.get('subtasks', []):
                     cur.execute("""
-                        INSERT INTO Subtasks (task_id, description, completed, st_index) 
+                        INSERT INTO Subtasks (task_id, description, completed, st_index)
                         VALUES (%s, %s, %s, %s)
                     """, (task_id, subtask['description'], subtask['completed'], subtask['index']))
 
                 cur.execute("DELETE FROM NoteTags WHERE note_id = %s", (note_id,))
                 for tag in task.get('tags', []):
                     cur.execute("""
-                        INSERT INTO NoteTags (note_id, tag_id) 
+                        INSERT INTO NoteTags (note_id, tag_id)
                         VALUES (%s, %s)
                     """, (note_id, str(tag)))
 
+                text = [title, content] + [subtask['description'] for subtask in task.get('subtasks')] if task.get('subtasks') else [title, content]
+                priority = sum(len(string) for string in text)
+                tokenization_manager.add_note(
+                text=text,
+                note_id=note_id,
+                priority=priority,
+                )
                 conn.commit()
+
                 return jsonify({'message': 'Task updated successfully', 'data': None}), 200
         except Exception as e:
             conn.rollback()
             print(f"An error occurred: {e}")
             raise
-        finally:        
+        finally:
             if 'cur' in locals():  # Check if 'cur' is defined
                 cur.close()
-        
+
     @app.route('/api/tasks/delete', methods=['PUT'])
     @jwt_required()
     @token_required
@@ -183,7 +195,7 @@ def task_routes(app, conn, model):
         finally:
             cur.close()
 
-        
+
     @app.route('/api/tasks/toggle', methods=['PUT'])
     @jwt_required()
     @token_required
@@ -200,9 +212,9 @@ def task_routes(app, conn, model):
 
                 if not subtaskId:
                     toggle_task_sql = """
-                        UPDATE Tasks 
+                        UPDATE Tasks
                         SET completed = NOT completed,
-                            completion_timestamp = CASE 
+                            completion_timestamp = CASE
                                 WHEN completed THEN NULL  -- If the task is being uncompleted, set timestamp to NULL
                                 ELSE CURRENT_TIMESTAMP    -- If the task is being completed, set timestamp to current date and time
                             END
@@ -212,7 +224,7 @@ def task_routes(app, conn, model):
 
                 if subtaskId and verify_subtask_ownership(userId, subtaskId, cur):
                     toggle_subtask_sql = """
-                        UPDATE Subtasks 
+                        UPDATE Subtasks
                         SET completed = NOT completed
                         WHERE id = %s AND task_id = %s
                     """
@@ -228,12 +240,12 @@ def task_routes(app, conn, model):
 
         finally:
             cur.close()
-            
-            
+
+
     @app.route('/api/tasks/previews', methods=['GET'])
     @jwt_required()
     @token_required
-    def get_task_previews(): 
+    def get_task_previews():
         try:
             userId = g.userId
             # Pagination
@@ -251,20 +263,20 @@ def task_routes(app, conn, model):
                 total = cur.fetchone()['total']
 
                 cur.execute("""
-                    SELECT 
-                        n.id AS note_id, 
-                        n.title AS title, 
-                        n.content AS content, 
-                        n.type AS type, 
-                        t.id AS task_id, 
-                        t.completed AS task_completed, 
-                        t.due_date AS task_due_date, 
-                        st.id AS subtaskid, 
-                        st.description AS subtask_description, 
+                    SELECT
+                        n.id AS note_id,
+                        n.title AS title,
+                        n.content AS content,
+                        n.type AS type,
+                        t.id AS task_id,
+                        t.completed AS task_completed,
+                        t.due_date AS task_due_date,
+                        st.id AS subtaskid,
+                        st.description AS subtask_description,
                         st.completed AS subtask_completed,
-                        st.st_index AS subtask_index, 
-                        tg.id AS tagid, 
-                        tg.name AS tag_name, 
+                        st.st_index AS subtask_index,
+                        tg.id AS tagid,
+                        tg.name AS tag_name,
                         tg.color AS tag_color
                     FROM Notes n
                     LEFT JOIN Tasks t ON n.id = t.note_id
@@ -277,7 +289,7 @@ def task_routes(app, conn, model):
                 """, (userId, per_page
                       , offset
                       ))
-                
+
                 rows = cur.fetchall()
                 tasks = {}
                 for row in rows:
@@ -315,7 +327,7 @@ def task_routes(app, conn, model):
 
                 tasks_list = list(tasks.values())
                 nextPage = page + 1 if (offset + per_page) < total else None
-                
+
                 return jsonify({"tasks": tasks_list,
                                 'pagination': {
                                     'total': total,
@@ -326,12 +338,12 @@ def task_routes(app, conn, model):
 
         except Exception as e:
             conn.rollback()
-            print(f"An error occurred: {e}") 
+            print(f"An error occurred: {e}")
             return jsonify({'message': 'An error occurred', 'error': str(e)}), 500
 
         finally:
             cur.close()
-            
+
     @app.route('/api/task', methods=['GET'])
     @jwt_required()
     @token_required
@@ -341,22 +353,22 @@ def task_routes(app, conn, model):
             noteid = request.args.get('noteid')
 
             with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
-                cur.execute(""" 
-                    SELECT 
-                        n.id AS note_id, 
-                        n.title AS note_title, 
-                        n.content AS note_content, 
-                        n.created_at AS task_created_at, 
-                        n.type AS note_type, 
-                        t.id AS task_id, 
-                        t.completed AS task_completed, 
-                        t.due_date AS task_due_date, 
-                        st.id AS subtask_id, 
-                        st.description AS subtask_description, 
-                        st.completed AS subtask_completed, 
+                cur.execute("""
+                    SELECT
+                        n.id AS note_id,
+                        n.title AS note_title,
+                        n.content AS note_content,
+                        n.created_at AS task_created_at,
+                        n.type AS note_type,
+                        t.id AS task_id,
+                        t.completed AS task_completed,
+                        t.due_date AS task_due_date,
+                        st.id AS subtask_id,
+                        st.description AS subtask_description,
+                        st.completed AS subtask_completed,
                         st.st_index AS subtask_index,
-                        tg.id AS tagid, 
-                        tg.name AS tag_name, 
+                        tg.id AS tagid,
+                        tg.name AS tag_name,
                         tg.color AS tag_color
                     FROM Notes n
                     LEFT JOIN Tasks t ON n.id = t.note_id

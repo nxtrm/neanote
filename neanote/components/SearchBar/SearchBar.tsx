@@ -24,6 +24,11 @@ function SearchBar() {
     const [error, setError] = useState<string | null>(null);
     const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
 
+    useEffect(() => {
+        if (searchQuery.length < 2 || !isDialogOpen )
+            setResults([]);
+        },[searchQuery, isDialogOpen]);
+
     const handleSearch = async () => {
         setLoading(true);
         setError(null);
@@ -42,11 +47,16 @@ function SearchBar() {
     const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
         if (event.key === 'Enter' && searchQuery.length > 1) {
             handleSearch();
-        }
+        } 
     };
+    const handleOpenDialog = () => {
+        setIsDialogOpen(true);
+        setResults([]);
+    }
 
     const handleCloseDialog = () => {
         setIsDialogOpen(false);
+        setResults([]);
     };
 
     return (
