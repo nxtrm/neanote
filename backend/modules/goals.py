@@ -73,7 +73,7 @@ def goal_routes(app, conn, tokenization_manager):
                 new_milestones = cur.fetchall()
 
             if tags:
-                tag_tuples = [(noteId, tagId) for tagId in tags]
+                tag_tuples = [(noteId, str(tagId)) for tagId in tags]
                 cur.executemany(
                     """
                     INSERT INTO NoteTags (note_id, tag_id)
@@ -95,8 +95,8 @@ def goal_routes(app, conn, tokenization_manager):
             return jsonify({
                 'message': 'Goal created successfully',
                 'data': {
-                    'noteId': noteId,
-                    'goalId': goalId,
+                    'noteid': noteId,
+                    'goalid': goalId,
                     'milestones': new_milestones
                 }
             }), 200
@@ -113,7 +113,7 @@ def goal_routes(app, conn, tokenization_manager):
             userId = str(g.userId)  # Convert userId to string if it is a UUID
             # Pagination
             page = int(request.args.get('page', 1))  # Default to page 1
-            per_page = int(request.args.get('per_page', 1))  # Default to 10 items per page
+            per_page = int(request.args.get('per_page', 5))  # Default to 5 items per page
             offset = (page - 1) * per_page
 
             cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
@@ -268,11 +268,7 @@ def goal_routes(app, conn, tokenization_manager):
                     milestone_ids.add(row['milestone_id'])
 
                 if row['tagid'] is not None and row['tagid'] not in tag_ids:
-                    tag = {
-                        'tagid': row['tagid'],
-                        'name': row['tag_name'],
-                        'color': row['tag_color']
-                    }
+                    tag = row['tagid']
                     goal['tags'].append(tag)
                     tag_ids.add(row['tagid'])
 
@@ -321,65 +317,71 @@ def goal_routes(app, conn, tokenization_manager):
     @token_required
     def update_goal():
         try:
-            userId = str(g.userId)  # Convert UUID to string if g.userId is a UUID
+            user_id = str(g.userId)
 
             goal_schema = GoalSchema()
             data = goal_schema.load(request.get_json())
 
             note_id = str(data['noteid'])  # Convert UUID to string
-            goal_id = str(data['goalid'])  # Convert UUID to string
+            goal_id = str(data['goalid'])
+            title = data['title']
+            content = data['content']
             due_date = data.get('due_date')
+            tags = data['tags']
+            milestones = data['milestones']
 
             with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
 
-                if not verify_goal_ownership(userId, goal_id, cur):
-                    return jsonify({'message': 'You do not have permission to update this goal'}), 403
+                # if not verify_goal_ownership(user_id, goal_id, cur):
+                #     return jsonify({'message': 'You do not have permission to update this goal'}), 403
 
                 cur.execute("""
                     UPDATE Notes
                     SET title = %s, content = %s
                     WHERE id = %s AND user_id = %s
-                """, (data['title'], data['content'], str(note_id), str(userId)))
+                """, (title, content, note_id, user_id))
 
                 cur.execute("""
-                        UPDATE Goals
-                        SET due_date = %s
-                        WHERE note_id = %s
-                    """, (due_date, note_id))
+                    UPDATE Goals
+                    SET due_date = %s
+                    WHERE note_id = %s
+                """, (due_date, note_id))
 
-                cur.execute("DELETE FROM NoteTags WHERE note_id = %s", (str(note_id),))
-
-                for tag_id in data['tags']:
+                cur.execute("DELETE FROM NoteTags WHERE note_id = %s", (note_id,))
+                for tag_id in tags:
                     cur.execute("""
                         INSERT INTO NoteTags (note_id, tag_id)
                         VALUES (%s, %s)
                     """, (note_id, str(tag_id)))  # Convert UUID to string if tag_id is a UUID
 
+                for milestone in milestones:  # would not work if new milestone is resaved
+                    milestone_id = milestone.get('milestoneid')
+                    description = milestone['description']
+                    completed = milestone['completed']
+                    index = milestone['index']
 
-                for milestone in data['milestones']: #would not work if new milestone is resaved
-                    if milestone.get('milestoneid'):
+                    if milestone_id:
                         cur.execute("""
                             UPDATE Milestones
                             SET description = %s, completed = %s, ms_index = %s
                             WHERE id = %s
-                        """, (milestone['description'], milestone['completed'], milestone['index'], str(milestone['milestoneid'])))
-
+                        """, (description, completed, index, str(milestone_id)))
                     else:
                         cur.execute("""
                             INSERT INTO Milestones (goal_id, description, completed, ms_index)
                             VALUES (%s, %s, %s, %s)
                             RETURNING id
-                        """, (goal_id, milestone['description'], milestone['completed'], milestone['index']))
-                        new_milestone_id = cur.fetchone()[0]
+                        """, (goal_id, description, completed, index))
                         conn.commit()
 
-                text = [data['title'], data['content']] + [milestone['description'] for milestone in data['milestones']] if data['milestones'] else [data['title'], data['content']]
+                text = [title, content] + [milestone['description'] for milestone in milestones] if milestones else [title, content]
                 priority = sum(len(string) for string in text)
                 tokenization_manager.add_note(
-                text=text,
-                note_id=note_id,
-                priority=priority,
+                    text=text,
+                    note_id=note_id,
+                    priority=priority,
                 )
+
                 return jsonify({'message': 'Goal updated successfully'}), 200
 
         except Exception as e:

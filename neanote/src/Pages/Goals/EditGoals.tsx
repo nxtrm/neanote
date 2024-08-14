@@ -32,7 +32,7 @@ function EditGoals() {
         }
       }
       }, []);
-  
+
   const [isValidationErrorsEmpty, setIsValidationErrorsEmpty] = useState(true);
 
   useEffect(() => {
@@ -45,8 +45,8 @@ function EditGoals() {
     await archive(currentGoal?.noteid);
     navigate('/goals');
   }
-            
-  
+
+
  const calculateProgress = () => {
       const sortedMilestones = [...currentGoal.milestones].sort((a, b) => a.index - b.index);
       const completedMilestones = sortedMilestones.filter(milestone => milestone.completed).length;
@@ -77,7 +77,7 @@ function EditGoals() {
       await handleDeleteGoal(currentGoal?.goalid, currentGoal?.noteid)
       navigate('/goals');
     }
-    
+
   if (loading) return <EditGoalsSkeleton/>
 
   return (
@@ -104,14 +104,14 @@ function EditGoals() {
                     <FaPlus /> Add Milestone
                 </Button>
               <div className='gap-2 flex flex-row'>
-              <FormButtons 
-                pendingChanges={pendingChanges} 
+              <FormButtons
+                pendingChanges={pendingChanges}
                 isValidationErrorsEmpty={isValidationErrorsEmpty}
                 loading={loading}
-                hasDelete 
-                handleSave={handleSave} 
-                handleArchive={handleArchive} 
-                handleDelete={handleDelete} 
+                hasDelete
+                handleSave={handleSave}
+                handleArchive={handleArchive}
+                handleDelete={handleDelete}
               />
               </div>
         </div>

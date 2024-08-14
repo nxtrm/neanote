@@ -9,7 +9,7 @@ export interface Goal {
     content :string
     due_date: Date | undefined   
     milestones: Milestone[];
-    tags: Tag[];
+    tags: UUID[] | Tag[];
 }
 
 export interface Milestone {
@@ -19,6 +19,10 @@ export interface Milestone {
     completed: boolean;
     index: number;
     isNew?: boolean;
+}
+
+export interface GoalwithIds extends Goal {
+    tags:UUID[]
 }
 
 export interface GoalsPreview {
@@ -34,7 +38,7 @@ export interface GoalsPreview {
 
 export interface GoalResponse {
     success:boolean
-    goal: Goal;
+    goal: GoalwithIds;
     message: string;
 }
 

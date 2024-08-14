@@ -66,33 +66,33 @@ export const useGoals = create<GoalState>()(
         validationErrors:{},
         pendingChanges: false,
         section: "all goals",
-        
+
         loading: false,
         setLoading: (loading) => set({loading}),
-        
+
         setSection: (section) => set({section}),
         setPendingChanges: (value) => set({pendingChanges: value}),
-        
+
         page:1,
-        nextPage:null,  
-        
+        nextPage:null,
+
         resetCurrentGoal: () => {
           set(() => ({
             currentGoal: generateNewCurrentGoal()
           }));
         },
-              
+
         currentGoal: generateNewCurrentGoal(),
-              
+
         handleCreateGoal: async () => {
             const { currentGoal } = get();
             const { selectedTagIds } = useTags.getState();
             if (get().validateGoal()) {
-              
+
               const {title, content, due_date, milestones} = currentGoal;
-              
+
               const response = await goalsApi.create(title, selectedTagIds, content, due_date, milestones);
-      
+
               if (response && response.success) {
                 set((state) => {
                   state.goalPreviews.push({
@@ -120,7 +120,7 @@ export const useGoals = create<GoalState>()(
         handleUpdateGoal: async () => {
             const { currentGoal, resetCurrentGoal } = get();
             const { tags, selectedTagIds } = useTags.getState();
-      
+
             if (get().validateGoal()) {
               const { goalid, noteid, title, content, due_date, milestones } = currentGoal;
 
@@ -133,7 +133,7 @@ export const useGoals = create<GoalState>()(
                 }
                 return rest;
               });
-          
+
               const updatedGoal = {
                 goalid,
                 noteid,
@@ -143,14 +143,14 @@ export const useGoals = create<GoalState>()(
                 due_date,
                 milestones: preparedMilestones,
               };
-      
+
               const previousGoals = get().goalPreviews;
-      
+
               // optimistic update
               set((state) => {
                   state.goalPreviews = state.goalPreviews.map((goal) => (goal.goalid === goalid ? {goalid, noteid, title, tags, due_date, milestones, content} : goal));
                 });
-      
+
               const response = await goalsApi.update(updatedGoal);
               if (!response || !response.success) {
                 // revert update
@@ -158,13 +158,13 @@ export const useGoals = create<GoalState>()(
               } else {
                 set({pendingChanges: false })
               }
-      
+
             } else {
               showToast('error', 'Validation failed');
             }
 
           },
-        
+
         validateGoal: () => {
             const { currentGoal } = get();
             const result = GoalSchema.safeParse(currentGoal);
@@ -183,16 +183,16 @@ export const useGoals = create<GoalState>()(
               return true;
             }
         },
-          
 
-        handleAddMilestone: () => 
+
+        handleAddMilestone: () =>
               set((state) => {
                 if (state.currentGoal) {
                   const milestones = state.currentGoal.milestones;
-                  milestones.splice(milestones.length - 1, 0, { 
-                      milestoneid: uuidv4(), 
-                      description: '', 
-                      completed: false, 
+                  milestones.splice(milestones.length - 1, 0, {
+                      milestoneid: uuidv4(),
+                      description: '',
+                      completed: false,
                       index: milestones.length,
                       isNew: true,
                   });
@@ -204,10 +204,10 @@ export const useGoals = create<GoalState>()(
               useGoals.getState().setLoading(true);
               const response = await goalsApi.getGoalPreviews(pageParam);
               if (response && response.data) {
-                
+
                 const previewsWithFormattedDates = response.data.map(preview => ({
                   ...preview,
-                  due_date: preview.due_date ? new Date(preview.due_date) : undefined, 
+                  due_date: preview.due_date ? new Date(preview.due_date) : undefined,
                 }));
                 set({ goalPreviews: previewsWithFormattedDates, nextPage: response.nextPage, page: response.page });
               } else{
@@ -217,6 +217,7 @@ export const useGoals = create<GoalState>()(
             },
 
         fetchGoal: async(noteId:string) => {
+          const {setSelectedTagIds} = useTags.getState();
           try{
               useGoals.getState().setLoading(true);
               const response = await goalsApi.getGoal(noteId);
@@ -228,8 +229,8 @@ export const useGoals = create<GoalState>()(
                 };
                 set((state) => {
                   state.currentGoal = goalWithFormattedDate;
-
                 });
+                setSelectedTagIds(response.data.tags);
               } else {
                 showToast('error', response.message);
               }
@@ -237,7 +238,7 @@ export const useGoals = create<GoalState>()(
               set({ loading: false });
             }
           },
-        
+
         handleRemoveMilestone: (milestoneid) => {
               set((state) => {
 
@@ -248,13 +249,13 @@ export const useGoals = create<GoalState>()(
                   }
               })
           },
-        
+
         handleMilestoneCompletion: async (goalid, milestoneid) => {
               const toggleMilestoneCompletion = (goalid, milestoneid) => {
                 set((state) => {
                   state.goalPreviews = state.goalPreviews.map((goal) => {
                     if (goal.goalid === goalid) {
-                      const newMilestones = goal.milestones.map((milestone) => 
+                      const newMilestones = goal.milestones.map((milestone) =>
                         milestone.milestoneid === milestoneid ? { ...milestone, completed: !milestone.completed } : milestone
                       );
                       return { ...goal, milestones: newMilestones };
@@ -262,22 +263,22 @@ export const useGoals = create<GoalState>()(
                     return goal;
                   });
 
-                  state.currentGoal = {...state.currentGoal, milestones:  state.currentGoal.milestones.map((milestone) => 
+                  state.currentGoal = {...state.currentGoal, milestones:  state.currentGoal.milestones.map((milestone) =>
                     milestone.milestoneid === milestoneid ? { ...milestone, completed: !milestone.completed } : milestone
                 )
                 }
               })}
-            
+
               // Toggle completion before API call
               toggleMilestoneCompletion(goalid, milestoneid);
-            
+
               const response = await goalsApi.completeMilestone(goalid, milestoneid);
               if (!response || !response.success) {
                 // Revert completion if API call fails
                 toggleMilestoneCompletion(goalid, milestoneid);
               }
             },
-        
+
         archive: async (noteId: UUID) => {
           const response = await utilsApi.archive(noteId);
           if (response && response.success) {
@@ -301,7 +302,7 @@ export const useGoals = create<GoalState>()(
               get().validateGoal();
             },
 
-        
+
         handleDeleteGoal: async (goalid, noteid) => {
               const previousGoals = get().goalPreviews;
               set((state) => {

@@ -25,14 +25,18 @@ export interface Task {
   };
 
   export interface TaskResponse {
-    task: Task;
+    task: TaskwithIds;
     message: string
+  }
+
+  export interface TaskwithIds extends Task {
+    tags:UUID[]
   }
 
   export interface TaskCreateResponse {
     message: string
     data: {taskid: UUID, noteid: UUID, milestones: Subtask[]};
-}
+  }
 
   export interface TaskPreviewResponse {
     tasks: Task[];
@@ -43,4 +47,4 @@ export interface Task {
       page: number;
     };
     message: string;
-  }
+    }
