@@ -7,7 +7,7 @@ from utils import token_required, verify_milestone_ownership, verify_goal_owners
 import psycopg2.extras
 
 
-def goal_routes(app, conn, model):
+def goal_routes(app, conn, tokenization_manager):
 
 #GOALS MODULE
     @app.route('/api/goals/create', methods=['POST'])
@@ -84,12 +84,20 @@ def goal_routes(app, conn, model):
 
             conn.commit()
 
+            text = [title, content] + [milestone['description'] for milestone in milestones] if milestones else [title, content]
+            priority = sum(len(string) for string in text)
+            tokenization_manager.add_note(
+            text=text,
+            note_id=noteId,
+            priority=priority,
+            )
+
             return jsonify({
                 'message': 'Goal created successfully',
                 'data': {
                     'noteId': noteId,
                     'goalId': goalId,
-                    'milestones': new_milestones  
+                    'milestones': new_milestones
                 }
             }), 200
 
@@ -111,26 +119,26 @@ def goal_routes(app, conn, model):
             cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
             # Fetch the total count of goals for pagination metadata
-            cur.execute(""" 
+            cur.execute("""
                 SELECT COUNT(DISTINCT n.id) AS total
                 FROM Notes n
                 WHERE n.user_id = %s AND n.type = 'goal' AND n.archived = FALSE
             """, (userId,))
             total = cur.fetchone()['total']
 
-            query = """ 
-                SELECT 
-                    n.id AS note_id, 
-                    n.title AS title, 
-                    n.content AS content, 
-                    g.id AS goal_id, 
+            query = """
+                SELECT
+                    n.id AS note_id,
+                    n.title AS title,
+                    n.content AS content,
+                    g.id AS goal_id,
                     g.due_date AS due_date,
-                    m.id AS milestone_id, 
-                    m.description AS description, 
-                    m.completed AS completed, 
+                    m.id AS milestone_id,
+                    m.description AS description,
+                    m.completed AS completed,
                     m.ms_index AS ms_index,
-                    tg.id AS tagid, 
-                    tg.name AS tag_name, 
+                    tg.id AS tagid,
+                    tg.name AS tag_name,
                     tg.color AS tag_color
                 FROM Notes n
                 LEFT JOIN Goals g ON n.id = g.note_id
@@ -183,17 +191,17 @@ def goal_routes(app, conn, model):
             conn.commit()
             nextPage = page + 1 if (offset + per_page) < total else None
 
-            return jsonify({"goals": goals_list, 
+            return jsonify({"goals": goals_list,
                             'pagination': {
                                     'total': total,
                                     'page': page,
                                     'perPage': per_page,
                                     'nextPage': nextPage
-                                }, 
+                                },
                             'message': "Goals fetched successfully"}), 200
         except Exception as e:
             conn.rollback()
-            print(f"An error occurred: {e}")  
+            print(f"An error occurred: {e}")
             raise
         finally:
             cur.close()
@@ -205,22 +213,22 @@ def goal_routes(app, conn, model):
         try:
             userId = g.userId
             noteid = request.args.get('noteId')
-            
+
             cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
-            query = """ 
-                SELECT 
-                    n.id AS note_id, 
-                    n.title AS title, 
-                    n.content AS content, 
-                    g.id AS goal_id, 
+            query = """
+                SELECT
+                    n.id AS note_id,
+                    n.title AS title,
+                    n.content AS content,
+                    g.id AS goal_id,
                     g.due_date AS due_date,
-                    m.id AS milestone_id, 
-                    m.description AS description, 
-                    m.completed AS completed, 
+                    m.id AS milestone_id,
+                    m.description AS description,
+                    m.completed AS completed,
                     m.ms_index AS ms_index,
-                    tg.id AS tagid, 
-                    tg.name AS tag_name, 
+                    tg.id AS tagid,
+                    tg.name AS tag_name,
                     tg.color AS tag_color
                 FROM Notes n
                 LEFT JOIN Goals g ON n.id = g.note_id
@@ -283,7 +291,7 @@ def goal_routes(app, conn, model):
 
     @app.route('/api/goals/milestone/complete', methods=['PUT'])
     @jwt_required()
-    @token_required   
+    @token_required
     def complete_milestone():
         try:
             userId = g.userId
@@ -295,7 +303,7 @@ def goal_routes(app, conn, model):
                     return jsonify({'message': 'You do not have permission to update this milestone'}), 403
 
                 cur.execute("""
-                    UPDATE Milestones 
+                    UPDATE Milestones
                     SET completed = NOT completed
                     WHERE id = %s
                 """, (milestone_id,))
@@ -334,8 +342,8 @@ def goal_routes(app, conn, model):
                 """, (data['title'], data['content'], str(note_id), str(userId)))
 
                 cur.execute("""
-                        UPDATE Goals 
-                        SET due_date = %s 
+                        UPDATE Goals
+                        SET due_date = %s
                         WHERE note_id = %s
                     """, (due_date, note_id))
 
@@ -343,11 +351,11 @@ def goal_routes(app, conn, model):
 
                 for tag_id in data['tags']:
                     cur.execute("""
-                        INSERT INTO NoteTags (note_id, tag_id) 
+                        INSERT INTO NoteTags (note_id, tag_id)
                         VALUES (%s, %s)
                     """, (note_id, str(tag_id)))  # Convert UUID to string if tag_id is a UUID
 
-                
+
                 for milestone in data['milestones']: #would not work if new milestone is resaved
                     if milestone.get('milestoneid'):
                         cur.execute("""
@@ -364,7 +372,14 @@ def goal_routes(app, conn, model):
                         """, (goal_id, milestone['description'], milestone['completed'], milestone['index']))
                         new_milestone_id = cur.fetchone()[0]
                         conn.commit()
-                
+
+                text = [data['title'], data['content']] + [milestone['description'] for milestone in data['milestones']] if data['milestones'] else [data['title'], data['content']]
+                priority = sum(len(string) for string in text)
+                tokenization_manager.add_note(
+                text=text,
+                note_id=note_id,
+                priority=priority,
+                )
                 return jsonify({'message': 'Goal updated successfully'}), 200
 
         except Exception as e:
@@ -399,7 +414,9 @@ def goal_routes(app, conn, model):
                 cur.execute("DELETE FROM Goals WHERE id = %s", (goal_id,))
                 cur.execute("DELETE FROM NoteTags WHERE note_id = %s", (note_id,))
                 cur.execute("DELETE FROM Notes WHERE id = %s", (note_id,))
+                conn.commit()
 
+            tokenization_manager.delete_note_by_id(note_id)
             return jsonify({'message': 'Goal deleted successfully'}), 200
         except Exception as e:
             # Log the exception e

@@ -28,7 +28,7 @@ class TokenizationTaskManager:
         self.running = True
         self.worker_thread = threading.Thread(target=self.process_tasks, daemon=True)
         self.worker_thread.start()
-    
+
     def connect_db(self):
         conn = psycopg2.connect(
             host=self.db_config.host,
@@ -39,13 +39,22 @@ class TokenizationTaskManager:
         )
         return conn
     
+    def delete_note_by_id(self, note_id: str):
+        with self.lock:
+            self.task_queue = [note for note in self.task_queue if note.note_id != note_id]
+            heapq.heapify(self.task_queue)
+
     def add_note(self, text: List[str], note_id:str, priority: int = 10, callback: Callable[[Any], None] = None):
         with self.lock:
+            self.task_queue = [note for note in self.task_queue if note.note_id != note_id]
+            heapq.heapify(self.task_queue)
+
             note = TokenizationTask(priority, note_id, text, callback , self.task_counter)
             heapq.heappush(self.task_queue, note)
+            print(self.task_queue)
             self.task_counter += 1
             self.new_task_event.set()
-    
+
     def process_tasks(self):
         # Establish a separate database connection for this thread
         conn = self.connect_db()
@@ -70,14 +79,14 @@ class TokenizationTaskManager:
             # Sleep briefly to avoid a tight loop
             time.sleep(0.1)
         conn.close()
-    
+
     def tokenize_text(self, text: List[str], model):
         # Utilize the model to tokenize text
         if not isinstance(text, list) or not all(isinstance(item, str) for item in text):
             raise ValueError("text must be a list of strings")
         vector = combine_strings_to_vector(text, model, True)
         return vector
-    
+
     def default_callback(self, vector, note, conn, ):
         # Default callback if no other callback is provided
         try :

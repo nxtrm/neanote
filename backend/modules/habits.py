@@ -7,7 +7,7 @@ from formsValidation import HabitSchema
 from utils import calculate_gap, token_required, verify_habit_ownership
 
 
-def habit_routes(app,conn, model):
+def habit_routes(app,conn, tokenization_manager):
     #HABITS MODULE
     @app.route('/api/habits/create', methods=['POST'])
     @jwt_required()
@@ -20,9 +20,8 @@ def habit_routes(app,conn, model):
             title = data['title']
             content = data['content']
             tags = data.get('tags', [])
-            milestones = data.get('milestones', [])
             reminder = data.get('reminder', {})
-            
+
             with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
                 cur.execute(
                     """
@@ -32,7 +31,7 @@ def habit_routes(app,conn, model):
                     (userId, title, content, 'habit')
                 )
                 noteId = cur.fetchone()[0]
-                
+
                 cur.execute(
                     """
                     INSERT INTO Habits (note_id, reminder_time, repetition, streak)
@@ -41,8 +40,8 @@ def habit_routes(app,conn, model):
                     (noteId, reminder['reminder_time'],  reminder['repetition'], 0)
                 )
                 habitId = cur.fetchone()[0]
-            
-                
+
+
                 if tags:
                     tag_tuples = [(noteId, str(tagId)) for tagId in tags]
                     cur.executemany(
@@ -52,9 +51,17 @@ def habit_routes(app,conn, model):
                         """,
                         tag_tuples
                     )
-                
+
                 conn.commit()
-                
+
+                text = [title, content]
+                priority = sum(len(string) for string in text)
+                tokenization_manager.add_note(
+                text=text,
+                priority=priority,
+                note_id=noteId
+                )
+
                 return jsonify({
                     'message': 'Habit created successfully',
                     'data': {
@@ -62,13 +69,13 @@ def habit_routes(app,conn, model):
                         'habitId': habitId,
                     }
                 }), 200
-        
+
         except Exception as e:
             conn.rollback()
             print(f"An error occurred: {e}")
             raise
 
-    @app.route('/api/habits/update', methods=['PUT'])  
+    @app.route('/api/habits/update', methods=['PUT'])
     @jwt_required()
     @token_required
     def update_habit():
@@ -111,20 +118,27 @@ def habit_routes(app,conn, model):
                     )
 
                 conn.commit()
+                text = [data['title'], data['content']]
+                priority = sum(len(string) for string in text)
+                tokenization_manager.add_note(
+                text=text,
+                priority=priority,
+                note_id=note_id
+                )
                 return jsonify({'message': 'Habit updated successfully'}), 200
 
         except Exception as e:
             conn.rollback()
             print(f"An error occurred: {e}")
             raise
-    
+
     @app.route('/api/habits/previews', methods=['GET'])
     @jwt_required()
     @token_required
     def get_habit_previews():
         try:
             userId = str(g.userId)  # Convert UUID to string if g.userId is a UUID
-            
+
             # Pagination
             page = int(request.args.get('pageParam', 1))  # Default to page 1
             per_page = int(request.args.get('per_page', 10))  # Default to 10 items per page
@@ -141,27 +155,27 @@ def habit_routes(app,conn, model):
                 total = cur.fetchone()['total']
 
                 query = '''
-                    SELECT 
-                        n.id AS note_id, 
-                        n.title, 
-                        n.content, 
-                        h.id AS habit_id, 
-                        h.streak, 
-                        STRING_AGG(DISTINCT t.id::text, ',') AS tagids, 
-                        STRING_AGG(DISTINCT t.name, ',') AS names, 
-                        STRING_AGG(DISTINCT t.color, ',') AS colors, 
-                        BOOL_OR(hc.completion_date = CURRENT_DATE) AS completed 
-                    FROM Notes n 
-                    JOIN Habits h ON n.id = h.note_id 
+                    SELECT
+                        n.id AS note_id,
+                        n.title,
+                        n.content,
+                        h.id AS habit_id,
+                        h.streak,
+                        STRING_AGG(DISTINCT t.id::text, ',') AS tagids,
+                        STRING_AGG(DISTINCT t.name, ',') AS names,
+                        STRING_AGG(DISTINCT t.color, ',') AS colors,
+                        BOOL_OR(hc.completion_date = CURRENT_DATE) AS completed
+                    FROM Notes n
+                    JOIN Habits h ON n.id = h.note_id
                     LEFT JOIN HabitCompletion hc ON h.id = hc.habit_id AND hc.completion_date = CURRENT_DATE
-                    LEFT JOIN NoteTags nt ON n.id = nt.note_id 
-                    LEFT JOIN Tags t ON nt.tag_id = t.id 
+                    LEFT JOIN NoteTags nt ON n.id = nt.note_id
+                    LEFT JOIN Tags t ON nt.tag_id = t.id
                     WHERE n.user_id = %s AND n.type = %s AND n.archived = FALSE
                     GROUP BY n.id, h.id
                     ORDER BY n.created_at DESC
                     LIMIT %s OFFSET %s
                 '''
-                
+
                 cur.execute(query, (userId, "habit", per_page, offset))
                 rows = cur.fetchall()
                 habits = {}
@@ -191,7 +205,7 @@ def habit_routes(app,conn, model):
 
                 habits_list = list(habits.values())
                 nextPage = page + 1 if (offset + per_page) < total else None
-                
+
                 conn.commit()
                 return jsonify({
                     'message': 'Habit previews fetched successfully',
@@ -205,9 +219,9 @@ def habit_routes(app,conn, model):
                 }), 200
         except Exception as e:
             conn.rollback()
-            print(f"An error occurred: {e}")  
+            print(f"An error occurred: {e}")
             raise
-                
+
 
     @app.route('/api/habit', methods=['GET'])
     @jwt_required()
@@ -221,26 +235,26 @@ def habit_routes(app,conn, model):
             with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
                 cur.execute(
                     '''
-                    SELECT 
-                        n.id AS note_id, 
-                        n.title, 
-                        n.content, 
-                        h.id AS habit_id, 
-                        h.reminder_time, 
-                        h.repetition, 
+                    SELECT
+                        n.id AS note_id,
+                        n.title,
+                        n.content,
+                        h.id AS habit_id,
+                        h.reminder_time,
+                        h.repetition,
                         h.streak,
-                        COALESCE(BOOL_OR(hc.completion_date = CURRENT_DATE),FALSE) AS completed_today, 
-                        t.id AS tagid, 
-                        t.name, 
+                        COALESCE(BOOL_OR(hc.completion_date = CURRENT_DATE),FALSE) AS completed_today,
+                        t.id AS tagid,
+                        t.name,
                         t.color,
-                        ln.id AS linked_note_id, 
-                        ln.title AS linked_note_title, 
+                        ln.id AS linked_note_id,
+                        ln.title AS linked_note_title,
                         ln.content AS linked_note_content,
-                        lt.id AS linked_task_id, 
-                        lt.completed AS linked_task_completed, 
+                        lt.id AS linked_task_id,
+                        lt.completed AS linked_task_completed,
                         lt.due_date AS linked_task_due_date,
-                        lst.id AS linked_subtask_id, 
-                        lst.description AS linked_subtask_description, 
+                        lst.id AS linked_subtask_id,
+                        lst.description AS linked_subtask_description,
                         lst.completed AS linked_subtask_completed
                     FROM Notes n
                     JOIN Habits h ON n.id = h.note_id
@@ -320,7 +334,7 @@ def habit_routes(app,conn, model):
             if cur:
                 cur.close()
 
-    
+
     @app.route('/api/habits/delete', methods=['DELETE'])
     @jwt_required()
     @token_required
@@ -342,6 +356,8 @@ def habit_routes(app,conn, model):
                 cur.execute("DELETE FROM Notes WHERE id = %s", (note_id,))
 
                 conn.commit()
+
+                tokenization_manager.delete_note_by_id(note_id)
                 return jsonify({'message': 'Habit deleted successfully'}), 200
         except Exception as e:
             if conn:
@@ -350,7 +366,7 @@ def habit_routes(app,conn, model):
         finally:
             if cur:
                 cur.close()
-    
+
 
     @app.route('/api/habits/complete', methods=['PUT'])
     @jwt_required()
@@ -366,10 +382,10 @@ def habit_routes(app,conn, model):
                     return jsonify({'message': 'You do not have permission to update this habit'}), 403
 
                 cur.execute("""
-                    SELECT repetition, MAX(completion_date) AS last_completion_date 
-                    FROM HabitCompletion 
-                    JOIN Habits ON Habits.id = HabitCompletion.habit_id 
-                    WHERE habit_id = %s 
+                    SELECT repetition, MAX(completion_date) AS last_completion_date
+                    FROM HabitCompletion
+                    JOIN Habits ON Habits.id = HabitCompletion.habit_id
+                    WHERE habit_id = %s
                     GROUP BY repetition
                 """, (habit_id,))
                 habit_info = cur.fetchone()

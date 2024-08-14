@@ -186,6 +186,8 @@ def task_routes(app, conn, tokenization_manager):
             cur.execute("DELETE FROM Subtasks WHERE task_id = %s", (taskId,))
             cur.execute("DELETE FROM Tasks WHERE note_id = %s", (noteId,))
             cur.execute("DELETE FROM Notes WHERE id = %s", (noteId,))
+
+            tokenization_manager.delete_note_by_id(noteId)
             conn.commit()
             cur.close()
             return jsonify({'message': 'Task deleted successfully', 'data': None}), 200
