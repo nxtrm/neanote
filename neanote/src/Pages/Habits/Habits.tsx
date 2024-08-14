@@ -10,15 +10,15 @@ import TitleComponent from '../../../components/TitleComponent/TitleComponent';
 import PaginationSelector from '../../../components/Pagination/PaginationSelector';
 
 function Habits() {
-    const {habitPreviews, resetCurrentHabit, setSection, fetchHabitPreviews, nextPage, page} = useHabits();  
-    const navigate = useNavigate(); 
+    const {habitPreviews, resetCurrentHabit, setSection, fetchHabitPreviews, nextPage, page} = useHabits();
+    const navigate = useNavigate();
     const handleAddHabitClick = () => {
         resetCurrentHabit();
         setSection('create');
         navigate('/habits/create')
       };
 
-    
+
     const [lastFetchTime, setLastFetchTime] = useState<Date | null>(null);
 
     useEffect(() => {
@@ -29,23 +29,23 @@ function Habits() {
             setLastFetchTime(new Date());
           }
         };
-    
+
         fetchIfNeeded();
-    
+
         // Set up a timer to refetch every 5 minutes
         const intervalId = setInterval(fetchIfNeeded, 300000);
-    
+
       // Clean up the interval on component unmount
       return () => clearInterval(intervalId);
     }, [fetchHabitPreviews, lastFetchTime]);
-    
+
 
   return (
-    <>      
+    <>
       <div className='flex flex-row justify-between pb-2'>
         <TitleComponent><MdRepeat size={'20px'}/> Habits</TitleComponent>
         <Button size='sm' className='gap-2' onClick={handleAddHabitClick}>
-          <FaPlus />  
+          <FaPlus />
            Add Habit
         </Button>
       </div>

@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import tasksApi from '../../api/tasksApi';
-import { Task, TaskResponse } from '../../api/types/taskTypes';
+import { Task,  TaskResponse } from '../../api/types/taskTypes';
 import { useTags } from '../Tags/useTags';
 import { v4 as uuidv4 } from 'uuid';
 import { UUID } from 'crypto';
@@ -157,6 +157,7 @@ export const useTasks = create<TaskState>()(
             set((state) => {
               state.currentTask = { ...response.data, due_date: dueDate };
             });
+            if (response.data.tags)
             setSelectedTagIds(response.data.tags);
           } else {
             showToast('error', response.message);

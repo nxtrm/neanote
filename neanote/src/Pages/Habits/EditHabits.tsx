@@ -2,8 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { MdCancel } from 'react-icons/md';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../../../components/@/ui/button';
-import DeleteDialog from '../../../components/DeleteDialog/DeleteDialog';
-import PageContainer from '../../../components/PageContainer/PageContainer';
+import FormButtons from '../../../components/FormButtons/FormButtons';
 import TaskCard from '../../../components/TaskCard/TaskCard';
 import { useTags } from '../Tags/useTags';
 import EditHabitsSkeleton from './EditHabitsSkeleton';
@@ -11,7 +10,6 @@ import Inputs from './FormComponents/Inputs';
 import LinkTasks from './LinkTasks/LinkTasks';
 import TimeSelector from './TimeSelector/TimeSelector';
 import { useHabits } from './useHabits';
-import FormButtons from '../../../components/FormButtons/FormButtons';
 
 function EditHabits() {
   const {currentHabit, archive, pendingChanges, validationErrors, handleUpdateHabit, loading, fetchHabit, resetCurrentHabit, handleDeleteHabit} = useHabits();
@@ -23,7 +21,7 @@ function EditHabits() {
     if (noteId && currentHabit.isNew) {
       fetchHabit(noteId);
       if (currentHabit && currentHabit.tags) {
-        const mappedTagIds = currentHabit.tags.map(tag => tag.tagid);
+        const mappedTagIds = currentHabit.tags.map(tag => tag);
         useTags.setState({
           selectedTagIds: mappedTagIds,
         });
@@ -51,7 +49,7 @@ function EditHabits() {
       resetCurrentHabit()
       navigate('/habits');
     };
-  
+
   const handleArchive = async () => {
       await archive(currentHabit?.noteid);
       navigate('/habits');
@@ -90,29 +88,29 @@ function EditHabits() {
             </div>
           </div>
           <Inputs withChechbox/>
-          {(currentHabit.linked_tasks.length > 0) && 
+          {(currentHabit.linked_tasks.length > 0) &&
           <div className='flex pt-3 flex-col gap-2'>
              {currentHabit.linked_tasks.map((task) => {
               return (
                 <TaskCard key={task.taskid} task={task} />
               )
-              
+
             })}
           </div>}
             <div className=' flex mt-3 justify-between'>
               <LinkTasks linked_tasks={currentHabit.linked_tasks ? currentHabit.linked_tasks : []}/>
-              <FormButtons 
-                pendingChanges={pendingChanges} 
+              <FormButtons
+                pendingChanges={pendingChanges}
                 isValidationErrorsEmpty={isValidationErrorsEmpty}
                 loading={loading}
-                hasDelete 
-                handleSave={handleSave} 
-                handleArchive={handleArchive} 
+                hasDelete
+                handleSave={handleSave}
+                handleArchive={handleArchive}
                 handleDelete={handleDelete} //add this to all other forms
               />
             </div>
       </>
-    ) 
+    )
   }
 
 

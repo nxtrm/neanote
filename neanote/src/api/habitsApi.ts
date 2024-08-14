@@ -1,7 +1,7 @@
 import { UUID } from "crypto";
 import { showToast } from "../../components/Toast";
 import a from './api';
-import { HabitCreateResponse, HabitPreviewResponse, HabitResponse } from "./types/habitTypes";
+import { Habit, HabitCreateResponse, HabitPreviewResponse, HabitResponse } from "./types/habitTypes";
 import axios from "axios";
 import { nextTick } from "process";
 
@@ -33,9 +33,9 @@ const habitsApi = {
         }
     },
 
-    update: async (habitUpdates: {}) => {
+    update: async (updatedHabit: Habit) => {
         try {
-            const response = await a.put('/api/habits/update', habitUpdates);
+            const response = await a.put('/api/habits/update', updatedHabit);
             return { success: response.status === 200, message: response.status === 200 ? 'Habit has been updated successfully' : 'There was an error updating the habit' };
         } catch (error) {
             return { success: false, message: axios.isAxiosError(error) ? error.response?.data?.message || 'An error occurred while updating the habit' : 'An unexpected error occurred' };

@@ -111,7 +111,7 @@ def habit_routes(app,conn, tokenization_manager):
 
                 cur.execute("DELETE FROM NoteTags WHERE note_id = %s", (note_id,))
                 if 'tags' in data:
-                    tag_tuples = [(note_id, str(tag['tagid'])) for tag in data['tags']]
+                    tag_tuples = [(note_id, str(tag)) for tag in data['tags']]
                     cur.executemany(
                         "INSERT INTO NoteTags (note_id, tag_id) VALUES (%s, %s)",
                         tag_tuples

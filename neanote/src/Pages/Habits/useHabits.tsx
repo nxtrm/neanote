@@ -165,9 +165,10 @@ export const useHabits = create<HabitState>()(
                         state.habitPreviews.push({
                             ...currentHabit,
                             habitid: response.data.habitid,
-                            noteid: response.data.noteid
-                        });
+                            noteid: response.data.noteid,
+                        })
                     });
+                    setLoading(false);
                     showToast('success', response.message);
                     return true
                 } else {
@@ -180,23 +181,31 @@ export const useHabits = create<HabitState>()(
         return false
         },
 
+
         handleUpdateHabit: async () => {
-            const { currentHabit, setLoading } = get();
-            setLoading(true);
-            const response = await habitsApi.update(currentHabit);
-            if (response.success) {
+            const { currentHabit} = get();
+            const { selectedTagIds } = useTags.getState();
+            try {
+              if (get().validateHabit()) {
+                const updatedHabit = { ...currentHabit, tags: selectedTagIds };
+                const response = await habitsApi.update(updatedHabit);
+      
+              if (response && response.success) {
                 set((state) => {
-                    const index = state.habitPreviews.findIndex(habit => habit.noteid === currentHabit.noteid);
-                    if (index !== -1) {
-                        state.habitPreviews[index] = { ...currentHabit };
-                    }
+                  state.habitPreviews = state.habitPreviews.map((habit) => (habit.habitid === currentHabit.habitid ? currentHabit : habit));
+                  state.pendingChanges = false;
+                  state.loading = false;
                 });
-                showToast('success', response.message);
-            } else {
+              } else {
                 showToast('error', response.message);
+              }
+              } else {
+                showToast('error', 'Validation failed');
+              }
+    
+            } finally {
             }
-            setLoading(false);
-        },
+          },
 
         handleDeleteHabit: async (habitid: UUID, noteid: UUID) => {
             const { setLoading } = get();

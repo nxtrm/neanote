@@ -10,7 +10,7 @@ export interface Habit {
     content:string
     reminder: ReminderTime;
     streak: number;
-    tags: Tag[];
+    tags: UUID[];
     linked_tasks : Task[]
     completed_today: boolean;
 
@@ -25,7 +25,7 @@ export interface HabitPreview {
     content: string;
     streak: number;
     completed_today: boolean;
-    tags: Tag[];
+    tags: UUID[];
 }
 
 export interface HabitCreateResponse {
