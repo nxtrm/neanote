@@ -4,6 +4,7 @@ from dateutil.relativedelta import relativedelta
 from email.utils import parsedate_to_datetime
 from functools import wraps
 import jwt
+import psycopg2
 from config import Config
 from flask import jsonify, request, g
 
@@ -124,6 +125,46 @@ def verify_milestone_ownership(user_id, milestone_id, cur):
         return False
     return True
 
+def remove_overdue_archived_notes(conn):
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    deleted_notes = 0
+    cur.execute("""
+        SELECT id, type FROM Notes
+        WHERE archived = TRUE AND updated_at < NOW() - INTERVAL '1 month'
+    """)
+    notes_to_remove = cur.fetchall()
+    for note in notes_to_remove:
+        if note['type'] == 'task':
+            cur.execute("""
+                DELETE FROM Subtasks WHERE task_id IN (
+                    SELECT id FROM Tasks WHERE note_id = %s
+                )"""), (note['id'],)
+            cur.execute("""
+                DELETE FROM Tasks WHERE note_id = %s
+            """, (note['id'],))
+        elif note['type'] == 'habit':
+            cur.execute("""
+                DELETE FROM HabitsTasks WHERE habit_id IN (
+                        SELECT id FROM Habits WHERE note_id = %s
+                )""",(note['id'],))
+            cur.execute("""
+                DELETE FROM Habits WHERE note_id = %s
+            """, (note['id'],))
+        elif note['type'] == 'goal':
+            cur.execute("""
+                DELETE FROM Milestones WHERE goal_id IN (
+                    SELECT id FROM Goals WHERE note_id = %s
+                )
+            """, (note['id'],))
+            cur.execute("""
+                DELETE FROM Goals WHERE note_id = %s
+            """, (note['id'],))
+        cur.execute(""" DELETE FROM NoteTags WHERE note_id = %s """, (note['id'],))
+        cur.execute("""
+            DELETE FROM Notes WHERE id = %s
+        """, (note['id'],))
+        deleted_notes += 1
+    print(f"Number of removed notes: {deleted_notes}")
 
 def verify_subtask_ownership(user_id, subtask_id, cur):
     cur.execute("""
