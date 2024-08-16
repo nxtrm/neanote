@@ -406,11 +406,6 @@ def task_routes(app, conn, tokenization_manager):
                     if row['tagid'] is not None:
                         task['tags'].append(
                             row['tagid']
-                            # {
-                            # 'tagid': row['tagid'],
-                            # 'name': row['tag_name'],
-                            # 'color': row['tag_color']
-                            # }
                         )
 
                 return jsonify({"task": task, 'message': "Task fetched successfully"}), 200
