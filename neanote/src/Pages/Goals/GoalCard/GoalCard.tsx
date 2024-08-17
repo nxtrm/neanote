@@ -12,50 +12,32 @@ import './GoalCard.css';
 import { Label } from '../../../../components/@/ui/label';
 import CheckBox from "../../../../components/CheckBox/CheckBox";
 import { UUID } from 'crypto';
+import { useScreenSize } from '../../../DisplayContext';
 
 
-function GoalCard({ goal }: { goal: Goal }) { 
+function GoalCard({ goal }: { goal: Goal }) {
     const {
         setSection,
         loading,
         handleMilestoneCompletion
       } = useGoals()
-  
+
       const navigate = useNavigate()
-  
+
       function handleEditClick(noteId : UUID) {
         setSection('edit goal');
         localStorage.setItem('currentGoalId', noteId);
         navigate('/goals/edit');
     }
-  
-    const [screenSize, setScreenSize] = useState('large'); 
-  
-    useEffect(() => {
-        const handleResize = () => {
-          if (window.innerWidth < 650) {
-            setScreenSize('small');
-          } else if (window.innerWidth >= 650 && window.innerWidth < 1024) {
-            setScreenSize('medium');
-          } else {
-            setScreenSize('large');
-          }
-        };
-        handleResize();
-    
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
-      }, []);
+    const {isDateCollapsed, isTagCompressed} = useScreenSize()
 
-    useEffect(() => {    
+    useEffect(() => {
         const progress = calculateProgress();
 
         var next_milestone =  goal.milestones
                 .filter(milestone => !milestone.completed)
                 .sort((a, b) => a.index - b.index)[0]},[goal.milestones]) //recalculate progressbars on milestone change
-    
-    const isDateCollapsed = screenSize === 'small';
-    const isTagCompressed = screenSize !== 'large';
+
 
     const calculateProgress = () => {
         const sortedMilestones = [...goal.milestones].sort((a, b) => a.index - b.index);
@@ -68,11 +50,11 @@ function GoalCard({ goal }: { goal: Goal }) {
     var next_milestone =  goal.milestones
             .filter(milestone => !milestone.completed)
             .sort((a, b) => a.index - b.index)[0]
-        
+
     if (loading) {
           return <SkeletonCard />;
         }
-        
+
     return (
             <div className='p-3 w-full rounded-xl border-[2px]'>
                 <div className='flex flex-row items-center gap-3 justify-between'>
@@ -105,5 +87,5 @@ function GoalCard({ goal }: { goal: Goal }) {
             </div>
         );
     }
-    
+
     export default GoalCard;

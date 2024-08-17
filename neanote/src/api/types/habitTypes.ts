@@ -25,8 +25,7 @@ export interface HabitPreview {
     content: string;
     streak: number;
     completed_today: boolean;
-    tags: UUID[];
-}
+    tags: UUID[];}
 
 export interface HabitCreateResponse {
     message: string

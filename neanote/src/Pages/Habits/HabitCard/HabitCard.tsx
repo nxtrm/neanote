@@ -9,10 +9,12 @@ import TagLabel from '../../../../components/TagLabel/TagLabel'
 import './HabitCard.css'
 import StreakLabel from './StreakLabel'
 import { Skeleton } from '../../../../components/@/ui/skeleton'
+import { useScreenSize } from '../../../DisplayContext'
 
 function HabitCard({habit}: {habit: HabitPreview}) {
     const {fetchHabit,loading, setSection, toggleCompletedToday} = useHabits();
     const navigate = useNavigate()
+    const {isTagCompressed} = useScreenSize()
 
     function handleEditClick(noteId) {
         setSection('edit');
@@ -23,29 +25,7 @@ function HabitCard({habit}: {habit: HabitPreview}) {
     function handleSetCompleted() {
       toggleCompletedToday(habit.habitid);
     }
-  
-    const [screenSize, setScreenSize] = useState('large'); // Default to large
 
-    useEffect(() => {
-      const handleResize = () => {
-        if (window.innerWidth < 650) {
-          setScreenSize('small');
-        } else if (window.innerWidth >= 650 && window.innerWidth < 1024) {
-          setScreenSize('medium');
-        } else {
-          setScreenSize('large');
-        }
-      };
-  
-      // Set initial size
-      handleResize();
-  
-      window.addEventListener('resize', handleResize);
-      return () => window.removeEventListener('resize', handleResize);
-    }, []);
-  
-    const isTagCompressed = screenSize !== 'large';
-  
   if (loading) {
     return <Skeleton className="p-3 w-full h-[100px] rounded-xl"/>
   }
@@ -56,7 +36,7 @@ function HabitCard({habit}: {habit: HabitPreview}) {
         <div className='flex flex-row items-center gap-3'>
           <CheckBox checked={habit.completed_today} disabled={habit.completed_today} onChange={handleSetCompleted} />
           <h3 className='habit-title'>{habit.title}</h3>
-        </div>                                                       
+        </div>
         <div className='flex flex-row items-center gap-1'>
           <StreakLabel streak={habit.streak} completed_today={habit.completed_today} />
           {habit.tags.map((tag, index) => (
