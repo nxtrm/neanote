@@ -189,23 +189,22 @@ export const useTasks = create<TaskState>()(
         const { currentTask } = get();
         const { selectedTagIds } = useTags.getState();
         if (get().validateTask()) {
-            const response = await tasksApi.create(currentTask.title, selectedTagIds, currentTask.content, currentTask.subtasks, currentTask.due_date);
-            if (response && response.success) {
-              set((state) => {
-                state.tasks.push({ ...currentTask, taskid: response.data.taskid, noteid: response.data.noteid });
-                state.section = 'all tasks';
-                state.pendingChanges = false;
-              });
-              showToast('success', 'Task created successfully');
-              return true
-            } else {
-              showToast('error', response.message);
-            }
+          const response = await tasksApi.create(currentTask.title, selectedTagIds, currentTask.content, currentTask.subtasks, currentTask.due_date);
+          if (response.data && response.success) {
+            set((state) => {
+              state.tasks.push({ ...currentTask, taskid: response.data.taskid, noteid: response.data.noteid });
+              state.pendingChanges = false;
+            });
+            localStorage.setItem('currentTaskId', response.data.noteid.toString());
+            showToast('success', 'Task created successfully');
+            return true;
           } else {
-            showToast('error', 'Validation failed');
+            showToast('error', response.message);
+          }
+        } else {
+          showToast('error', 'Validation failed');
         }
-      return false
-
+        return false;
       },
   
       handleEditTask: async () => {

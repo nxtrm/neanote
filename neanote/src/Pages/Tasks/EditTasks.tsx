@@ -32,6 +32,7 @@ function EditTasks() {
 
   useEffect(() => {
     const noteId = localStorage.getItem('currentTaskId');
+    console.log("Edit notes", noteId)
     if (noteId) {
       fetchTask(noteId);
     }

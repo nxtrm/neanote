@@ -95,6 +95,7 @@ export const useGoals = create<GoalState>()(
 
               if (response && response.success) {
                 set((state) => {
+                  state.currentGoal = { ...currentGoal, goalid: response.data.goalid, noteid: response.data.noteid };
                   state.goalPreviews.push({
                     goalid : response.data.goalid,
                     noteid : response.data.noteid,

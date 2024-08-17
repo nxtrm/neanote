@@ -37,6 +37,7 @@ function CreateHabits() {
 
   const handleSaveHabit = async () => {
       if(await handleCreateHabit()) {
+        localStorage.setItem('currentHabitId', currentHabit.noteid.toString());
         navigate('/habits/edit');
       };
   }
@@ -60,7 +61,7 @@ function CreateHabits() {
                 return (
                     <TaskCard key={task.taskid} task={task} />
                 )
-                
+
             })}
           </div>: null}
             <div className='pt-3 flex justify-between'>
@@ -69,9 +70,9 @@ function CreateHabits() {
               <Button disabled={!isValidationErrorsEmpty} onClick={handleSaveHabit}>Save</Button>
               </div>
             </div>
-          
+
       </>
-    ) 
+    )
   }
 
 

@@ -39,10 +39,11 @@ function CreateGoal() {
 
     const handleSave = async () => {
         if (await handleCreateGoal()) {
+          localStorage.setItem('currentGoalId', currentGoal.noteid.toString());
           navigate('/goals/edit');
         };
     }
-    
+  
   if (loading) return <EditGoalsSkeleton/>
 
   if (!currentGoal) return null

@@ -30,6 +30,9 @@ def habit_routes(app,conn, tokenization_manager):
                     """,
                     (userId, title, content, 'habit')
                 )
+
+                # Commit the transaction to ensure the insert is finalized
+                conn.commit()
                 noteId = cur.fetchone()[0]
 
                 cur.execute(
@@ -65,8 +68,8 @@ def habit_routes(app,conn, tokenization_manager):
                 return jsonify({
                     'message': 'Habit created successfully',
                     'data': {
-                        'noteId': noteId,
-                        'habitId': habitId,
+                        'noteid': noteId,
+                        'habitid': habitId,
                     }
                 }), 200
 

@@ -162,6 +162,7 @@ export const useHabits = create<HabitState>()(
                 const response = await habitsApi.create(currentHabit.title, currentHabit.tags, currentHabit.content, currentHabit.reminder);
                 if (response.success && response.data) {
                     set((state) => {
+                        state.currentHabit = { ...currentHabit, habitid: response.data.habitid, noteid: response.data.noteid };
                         state.habitPreviews.push({
                             ...currentHabit,
                             habitid: response.data.habitid,

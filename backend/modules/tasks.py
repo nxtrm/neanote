@@ -34,6 +34,8 @@ def task_routes(app, conn, tokenization_manager):
                 "INSERT INTO Notes (user_id, title, content, type) VALUES (%s, %s, %s, %s) RETURNING id",
                 (userId, title, content, 'task')
             )
+            # Commit the transaction to ensure the insert is finalized
+            conn.commit()
             noteId = cur.fetchone()[0]
 
             cur.execute(
@@ -94,8 +96,8 @@ def task_routes(app, conn, tokenization_manager):
             return jsonify({
                 'message': 'Task created successfully',
                 'data': {
-                    'noteId': noteId,
-                    'taskId': taskId,
+                    'noteid': noteId,
+                    'taskid': taskId,
                     'subtasks': new_subtasks
                 }
             }), 200

@@ -35,6 +35,9 @@ def goal_routes(app, conn, tokenization_manager):
                 """,
                 (userId, title, content, 'goal')
             )
+
+            # Commit the transaction to ensure the insert is finalized
+            conn.commit()
             noteId = cur.fetchone()[0]
 
             cur.execute(

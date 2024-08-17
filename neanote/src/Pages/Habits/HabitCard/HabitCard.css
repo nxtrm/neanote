@@ -4,7 +4,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    max-width: 250px; /* Default max-width for larger displays */
+    max-width: 50vw; /* Default max-width for larger displays */
     flex-grow: 1;
 }
 
@@ -12,24 +12,6 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    max-width: 1000px; /* Default max-width for larger displays */
+    max-width: 90vw; /* Default max-width for larger displays */
     flex-grow: 1;
-}
-
-@media (max-width: 650px) {
-    .habit-title {
-        max-width: 150px; /* Max-width for small displays */
-    }
-    .habit-content {
-        max-width: 300px; 
-    }
-}
-
-@media (max-width: 1200px) {
-    .habit-title {
-        max-width: 300px; /* Max-width for small displays */
-    }
-    .habit-content {
-        max-width: 600px; 
-    }
 }

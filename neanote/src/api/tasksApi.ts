@@ -1,12 +1,12 @@
 import { UUID } from "crypto";
 import { showToast } from "../../components/Toast";
 import a from './api'
-import { TaskPreviewResponse, TaskResponse } from "./types/taskTypes";
+import { TaskCreateResponse, TaskPreviewResponse, TaskResponse } from "./types/taskTypes";
 
 const tasksApi = {
     create: async (title, tags, content, subtasks, due_date) => {
         try {
-            let response = await a.post(`/api/tasks/create`, {
+            let response = await a.post<TaskCreateResponse>(`/api/tasks/create`, {
                 title,
                 tags,
                 content,
@@ -18,7 +18,7 @@ const tasksApi = {
             });
 
             if (response.status === 200) {
-                return { success: true, data: response.data };
+                return { success: true, data: response.data.data };
             } else {
                 return { success: false, message: 'There was an error creating the task' };
             }

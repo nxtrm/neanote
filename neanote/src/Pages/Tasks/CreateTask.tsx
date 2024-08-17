@@ -54,23 +54,9 @@ function CreateTask() {
   const handleSave = async () => {
     if (await handleSaveTask()) {
       navigate('/tasks/edit');
-    };
-  }
-
-  const handleDelete = async () => {
-    await handleDeleteTask(currentTask.taskid, currentTask.noteid)
-    navigate('/tasks');
-  }
-
-  const toggleCompleted = () => {
-    if (currentTask) {
-      toggleTaskCompleted(currentTask.taskid);
     }
+  };
 
-    };
-  if (!currentTask) {
-    return null
-  }
 
   if (currentTask) {
   return (
