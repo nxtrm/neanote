@@ -85,38 +85,37 @@ export const useGoals = create<GoalState>()(
         currentGoal: generateNewCurrentGoal(),
 
         handleCreateGoal: async () => {
-            const { currentGoal } = get();
-            const { selectedTagIds } = useTags.getState();
-            if (get().validateGoal()) {
-
-              const {title, content, due_date, milestones} = currentGoal;
-
-              const response = await goalsApi.create(title, selectedTagIds, content, due_date, milestones);
-
-              if (response && response.success) {
-                set((state) => {
-                  state.currentGoal = { ...currentGoal, goalid: response.data.goalid, noteid: response.data.noteid };
-                  state.goalPreviews.push({
-                    goalid : response.data.goalid,
-                    noteid : response.data.noteid,
-                    title,
-                    content,
-                    due_date,
-                    milestones : response.data.milestones,
-                    tags: [],
-                  });
-                  state.section = 'edit goal';
+          const { currentGoal } = get();
+          const { selectedTagIds } = useTags.getState();
+          if (get().validateGoal()) {
+            const { title, content, due_date, milestones } = currentGoal;
+            const response = await goalsApi.create(title, selectedTagIds, content, due_date, milestones);
+        
+            if (response.data && response.success) {
+              set((state) => {
+                state.currentGoal = { ...currentGoal, goalid: response.data.goalid, noteid: response.data.noteid };
+                state.goalPreviews.push({
+                  goalid: response.data.goalid,
+                  noteid: response.data.noteid,
+                  title,
+                  content,
+                  due_date,
+                  milestones: response.data.milestones,
+                  tags: [],
                 });
-                showToast('success', 'Goal created successfully');
-                return true
-              } else {
-                showToast('error', response.message);
-              }
+                state.section = 'edit goal';
+              });
+              localStorage.setItem('currentGoalId', response.data.noteid.toString());
+              showToast('success', 'Goal created successfully');
+              return true;
             } else {
-              showToast('error', 'Validation failed');
+              showToast('error', response.message);
             }
-            return false
-          },
+          } else {
+            showToast('error', 'Validation failed');
+          }
+          return false;
+        },
 
         handleUpdateGoal: async () => {
             const { currentGoal, resetCurrentGoal } = get();

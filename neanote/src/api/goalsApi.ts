@@ -1,13 +1,13 @@
 import axios from "axios";
 import { showToast } from "../../components/Toast";
 import a from "./api";
-import {  GoalResponse, GoalsPreview } from "./types/goalTypes";
+import {  GoalCreateResponse, GoalResponse, GoalsPreview } from "./types/goalTypes";
 import { UUID } from "crypto";
 
 const goalsApi = {
     create: async (title, selectedTagIds, content, due_date, milestones) => {
         try {
-            let response = await a.post(`/api/goals/create`, {
+            let response = await a.post<GoalCreateResponse>(`/api/goals/create`, {
                 title,
                 tags: selectedTagIds,
                 content,
@@ -19,7 +19,7 @@ const goalsApi = {
             });
 
             if (response.status === 200) { 
-                return { success: true, data: response.data };
+                return { success: true, data: response.data.data };
             } else {
                 return { success: false, message: 'An error occurred while creating the goal' };
             }

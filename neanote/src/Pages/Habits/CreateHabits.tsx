@@ -37,7 +37,6 @@ function CreateHabits() {
 
   const handleSaveHabit = async () => {
       if(await handleCreateHabit()) {
-        localStorage.setItem('currentHabitId', currentHabit.noteid.toString());
         navigate('/habits/edit');
       };
   }

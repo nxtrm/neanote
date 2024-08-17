@@ -170,6 +170,7 @@ export const useHabits = create<HabitState>()(
                         })
                     });
                     setLoading(false);
+                    localStorage.setItem('currentHabitId', response.data.noteid.toString());
                     showToast('success', response.message);
                     return true
                 } else {
