@@ -12,6 +12,7 @@ import DateLabel from '../DateLabel/DateLabel';
 import SkeletonCard from './SkeletonCard';
 import SubTaskCard from './SubTaskCard';
 import './TaskCard.css';
+import { useScreenSize } from '../../src/DisplayContext';
 
 
 function TaskCard({ task }: { task: Task }) {
@@ -26,37 +27,12 @@ function TaskCard({ task }: { task: Task }) {
     };
     const navigate = useNavigate()
 
+    var {isDateCollapsed, isTagCompressed} = useScreenSize()
+
     function handleEditClick(noteId) {
       setSection('edit');
       localStorage.setItem('currentTaskId', noteId.toString());
       navigate('/tasks/edit');
-  }
-
-    const [screenSize, setScreenSize] = useState('large'); // Default to large
-
-    useEffect(() => {
-      const handleResize = () => {
-        if (window.innerWidth < 650) {
-          setScreenSize('small');
-        } else if (window.innerWidth >= 650 && window.innerWidth < 1024) {
-          setScreenSize('medium');
-        } else {
-          setScreenSize('large');
-        }
-      };
-
-      // Set initial size
-      handleResize();
-
-      window.addEventListener('resize', handleResize);
-      return () => window.removeEventListener('resize', handleResize);
-    }, []);
-
-    // Determine collapsed and compressed states based on screenSize
-    const isDateCollapsed = screenSize === 'small';
-    const isTagCompressed = screenSize !== 'large';
-
-
 
       if (loading) {
         return <SkeletonCard />;
@@ -91,6 +67,6 @@ function TaskCard({ task }: { task: Task }) {
         ))}
       </div>
     );
-  }
+  }}
 
   export default TaskCard;

@@ -252,7 +252,7 @@ def task_routes(app, conn, tokenization_manager):
             userId = g.userId
             # Pagination
             page = int(request.args.get('pageParam', 1))  # Default to page 1
-            per_page = int(request.args.get('per_page', 10))  # Default to 10 items per page
+            per_page = int(request.args.get('per_page', 5))  # Default to 10 items per page
             offset = (page - 1) * per_page
 
             with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
@@ -286,7 +286,7 @@ def task_routes(app, conn, tokenization_manager):
                     LEFT JOIN NoteTags nt ON n.id = nt.note_id
                     LEFT JOIN Tags tg ON nt.tag_id = tg.id
                     WHERE n.user_id = %s AND n.type = 'task' AND n.archived = FALSE
-                    ORDER BY n.created_at DESC
+                    ORDER BY n.updated_at DESC
                     LIMIT %s OFFSET %s
                 """, (userId, per_page
                       , offset
@@ -300,8 +300,8 @@ def task_routes(app, conn, tokenization_manager):
                         tasks[note_id] = {
                             'noteid': row['note_id'],
                             'taskid': row['task_id'],
-                            'title': row['title'][:50] + '...' if len(row['title']) > 50 else row['title'],
-                            'content': row['content'][:100] + '...' if len(row['content']) > 100 else row['content'],
+                            'title': row['title'][:100] + '...' if len(row['title']) > 100 else row['title'],
+                            'content': row['content'][:200] + '...' if len(row['content']) > 200 else row['content'],
                             'completed': row['task_completed'],
                             'due_date': row['task_due_date'],
                             'subtasks': [],
@@ -313,7 +313,7 @@ def task_routes(app, conn, tokenization_manager):
                         if not is_subtask_present:
                             tasks[note_id]['subtasks'].append({
                                 'subtaskid': row['subtaskid'],
-                                'description': row['subtask_description'][:100] + '...' if len(row['subtask_description']) > 100 else row['subtask_description'],
+                                'description': row['subtask_description'][:200] + '...' if len(row['subtask_description']) > 200 else row['subtask_description'],
                                 'index': row['subtask_index'],
                                 'completed': row['subtask_completed']
                             })

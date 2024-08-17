@@ -287,7 +287,7 @@ def register_routes(app, mysql, jwt):
 
             # Pagination
             page = int(request.args.get('page', 1))  # Default to page 1
-            per_page = int(request.args.get('per_page', 10))  # Default to 10 items per page
+            per_page = int(request.args.get('per_page', 5))  # Default to 10 items per page
             offset = (page - 1) * per_page
 
             cur = mysql.connection.cursor(cursorclass=DictCursor)
@@ -869,7 +869,7 @@ def register_routes(app, mysql, jwt):
         try:
             # Pagination
             page = int(request.args.get('page', 1))  # Default to page 1
-            per_page = int(request.args.get('per_page', 10))  # Default to 10 items per page
+            per_page = int(request.args.get('per_page', 5))  # Default to 10 items per page
             offset = (page - 1) * per_page
 
             cur = mysql.connection.cursor(cursorclass=DictCursor)
