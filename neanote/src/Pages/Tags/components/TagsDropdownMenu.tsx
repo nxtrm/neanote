@@ -2,6 +2,7 @@ import * as React from "react";
 import {
   Dialog,
   DialogContent,
+  DialogHeader,
   DialogTrigger,
 } from "../../../../components/@/ui/dialog";
 import { Button } from "../../../../components/@/ui/button";
@@ -26,16 +27,21 @@ function TagsDropdownMenu({onChange}:Props) {
       <DialogTrigger asChild>
         <Button variant="secondary">Tags</Button>
       </DialogTrigger>
-      <DialogContent className="mx-auto max-w-sm py-10">
+      <DialogContent className="mx-auto max-w-sm ">
+        <DialogHeader className="px-2 pt-2 text-xl font-bold">
+            Tags
+        </DialogHeader>
+        <div className="grid grid-flow-col gap-2 justify-start">
         {tags.map((tag, index) => (
           <TagLabel
-            key={index}
-            tagId={tag.tagid}
-            title={tag.name}
-            color={tag.color}
-            onChange={onChange}
+          key={index}
+          tagId={tag.tagid}
+          title={tag.name}
+          color={tag.color}
+          onChange={onChange}
           />
         ))}
+        </div>
       </DialogContent>
     </Dialog>
   );

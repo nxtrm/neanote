@@ -33,11 +33,11 @@ def tag_routes(app,conn, model):
             if conn:
                 conn.rollback()
             print('Error during transaction', error)
-            return jsonify({'message': 'Failed to create tag'}), 500 
+            return jsonify({'message': 'Failed to create tag'}), 500
         finally:
             if cur:
                 cur.close()
-        
+
     @app.route('/api/tags/', methods=['GET'])
     @jwt_required()
     @token_required
@@ -57,7 +57,7 @@ def tag_routes(app,conn, model):
         except Exception as e:
             # It's good practice to log the exception e
             return jsonify({'message': 'Failed to fetch tags'}), 500
-        
+
     @app.route('/api/tags/<int:note_id>', methods=['GET'])
     @jwt_required()
     @token_required
@@ -93,7 +93,7 @@ def tag_routes(app,conn, model):
             tag_id = data['tagid']
             if verify_tag_ownership(userId, tag_id, cur) is False:
                 return jsonify({'message': 'You do not have permission to update this tag'}), 403
-            
+
             cur.execute (
                 "INSERT INTO NoteTags (note_id, tag_id) VALUES (%s, %s)", (note_id, tag_id),
             )
@@ -104,33 +104,35 @@ def tag_routes(app,conn, model):
             conn.rollback()
             cur.close()
             raise
-        
+
     @app.route('/api/tags/edit', methods=['PUT'])
     @jwt_required()
     @token_required
     def editTag():
+        cur = None
         try:
             tag_schema = TagSchema()
             userId = g.userId
             data = tag_schema.load(request.get_json())
-            tag_id = data['tagid']
+            tag_id = str(data['tagid'])
             name = data['name']
             color = data['color']
-            cur = conn.cursor(cursorclass=psycopg2.extras.DictCursor)
+            cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
             if verify_tag_ownership(userId, tag_id, cur) is False:
                 return jsonify({'message': 'You do not have permission to update this tag'}), 403
-            
-            cur.execute (
+
+            cur.execute(
                 "UPDATE Tags SET name = %s, color = %s WHERE id = %s", (name, color, tag_id),
             )
             conn.commit()
-            cur.close()
             return jsonify({'message': 'Tag updated successfully', 'data': None}), 200
         except Exception as e:
-            conn.rollback()
-            raise
+            if cur is not None:
+                conn.rollback()
+            return jsonify({'message': 'An error occurred', 'error': str(e)}), 500
         finally:
-            cur.close()
+            if cur is not None:
+                cur.close()
 
     @app.route('/api/tags/delete', methods=['PUT'])
     @jwt_required()
@@ -138,19 +140,19 @@ def tag_routes(app,conn, model):
     def deleteTag():
         try:
             userId = g.userId
-            
+
             cur = conn.cursor()
             data = request.get_json()
             tag_id = data['tagid']
 
             if not verify_tag_ownership(userId, tag_id, cur):
                 return jsonify({'message': 'You do not have permission to update this tag'}), 403
-            
+
             # Perform deletion operations
             cur.execute("DELETE FROM Tags WHERE id = %s AND user_id = %s", (tag_id, userId))
             cur.execute("DELETE FROM NoteTags WHERE tag_id = %s", (tag_id,))
             conn.commit()
-            
+
             return jsonify({'message': 'Tag deleted successfully', 'data': None}), 200
         except Exception as e:
             conn.rollback()
@@ -160,4 +162,3 @@ def tag_routes(app,conn, model):
 
 
 
-            

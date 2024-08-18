@@ -28,12 +28,14 @@ function TagLabel({ color, title, tagId, onChange }: Props) {
   return (
     <Button
       variant="ghost"
-      className="justify-left flex gap-2 border-2 rounded-md p-2 flex-row items-center"
+      className="justify-left  flex gap-2 border-2 rounded-md p-2 flex-row items-center"
       onClick={handleClick}
     >
       {checked ? <IoIosCheckbox /> : <MdOutlineCheckBoxOutlineBlank />}
-      <div style={{ backgroundColor: color, width: "15px", height: "15px", borderRadius: "50%" }}></div>
-      {title}
+      <div style={{ backgroundColor: color, width: "15px", height: "15px", borderRadius: "50%" }}/>
+      <div className='max-w-[100px] overflow-hidden overflow-ellipsis'>
+        {title}
+      </div>
     </Button>
   );
 }

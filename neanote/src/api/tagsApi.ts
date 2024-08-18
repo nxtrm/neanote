@@ -77,7 +77,7 @@ const tagsApi = {
 
     edit : async (tagid: UUID, name: string, color: string) => {
         try {
-            let response = await a.post(`/api/tags/edit`, {
+            let response = await a.put(`/api/tags/edit`, {
                 tagid,
                 name,
                 color
