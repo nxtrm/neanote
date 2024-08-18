@@ -32,6 +32,7 @@ export const useTags = create<TagState>((set, get) => ({
     setSection: (section) => set({ section }),
     setTagTitle: (title) => set({ tagTitle: title }),
     setColor: (color) => set({ color }),
+
     fetchTags: async () => {
         const fetchedTags = await tagsApi.getAll();
         if (fetchedTags) {
@@ -39,11 +40,19 @@ export const useTags = create<TagState>((set, get) => ({
         }
     },
     handleSaveTag: async () => {
-        const { tagTitle, color } = get();
-        await tagsApi.create(tagTitle, color);
-        await get().fetchTags();
-        set({ tagTitle: '', color: '#000000' });
-        set({ section: 'all tags' });
+        const { tagTitle, color,tags } = get();
+        const response = await tagsApi.create(tagTitle, color);
+        if (response && response.success) {
+            set({tagTitle: '', color: '#000000', section: 'all tags' });
+            set((state) => {
+                state.tags.push({
+                    tagid: response.tagid,
+                    name: tagTitle,
+                    color: color
+                });
+                return state;
+            })
+        }
     },
 
     setSelectedTagIds: (tagIds) => set({ selectedTagIds: [...tagIds] }),
@@ -51,21 +60,24 @@ export const useTags = create<TagState>((set, get) => ({
     setCurrentTagId: (tagId) => set({ currentTagId: tagId }),
 
     handleDeleteTag: async () => {
-        const { currentTagId } = get();
+        const { currentTagId,tags } = get();
         if (currentTagId === undefined) return;
-        if (await tagsApi.delete(currentTagId)) {
-            await get().fetchTags();
-            set({ section: 'all tags' });
+        const response = await tagsApi.delete(currentTagId);
+        if (response  && response.success) {
+            set({tags:tags.filter(tag => tag.tagid != currentTagId ) , section: 'all tags' });
         }
     },
 
     handleEditTag: async () => {
-        const { currentTagId, tagTitle, color } = get();
+        const { currentTagId, tagTitle, color,tags } = get();
         if (currentTagId === undefined) return;
-        if (await tagsApi.edit(currentTagId, tagTitle, color)) {
-            await get().fetchTags();
-            set({ tagTitle: '', color: '#000000' });
-            set({ section: 'all tags' });
+        const response = await tagsApi.edit(currentTagId, tagTitle, color);
+        if (response.success) {
+            set({
+                tags: tags.map(tag => tag.tagid == currentTagId ? { ...tag, name: tagTitle, color } : tag),
+                tagTitle: '', color: '#000000',
+                section: 'all tags'
+            });
         }
     },
 }));

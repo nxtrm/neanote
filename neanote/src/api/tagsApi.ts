@@ -1,23 +1,24 @@
 import { UUID } from "crypto";
 import { showToast } from "../../components/Toast";
 import a from "./api";
-import { TagResponse } from "./types/tagTypes";
+import { TagCreateResponse, TagResponse } from "./types/tagTypes";
 
 const tagsApi = {
     create : async (name: string, color:string) => {
         try {
-            let response = await a.post<TagResponse>(`/api/tags/create`, {
+            let response = await a.post<TagCreateResponse>(`/api/tags/create`, {
                 name,
                 color
-            });
-
+            })
+            let success = false
             if (response.status === 200) {
                 showToast('s', 'Tag has been created successfully');
+                success = true;
             } else {
                 showToast('e', 'There was an error creating the tag')
             }
 
-            return response.data;
+            return {success: success, tagid: response.data.data.id};
         } catch (error) {
             showToast('e', error);
             return false;
@@ -61,14 +62,14 @@ const tagsApi = {
     delete : async (tagid: UUID) => {
         try {
             let response = await a.put(`/api/tags/delete`, {tagid})
-
+            let success = false
             if (response.status === 200) {
                 showToast('s', 'Tag has been deleted successfully');
-                return true;
+                success = true;
             } else {
                 showToast('e', 'There was an error deleting the tag')
-                return false;
             }
+            return {success: success};
         } catch (error) {
             showToast('e', error);
             return false;

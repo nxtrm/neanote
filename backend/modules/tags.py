@@ -55,7 +55,6 @@ def tag_routes(app,conn, model):
 
             return jsonify({'message': 'Tags fetched successfully', 'data': tags}), 200
         except Exception as e:
-            # It's good practice to log the exception e
             return jsonify({'message': 'Failed to fetch tags'}), 500
 
     @app.route('/api/tags/<int:note_id>', methods=['GET'])

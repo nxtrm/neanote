@@ -10,3 +10,10 @@ export interface Tag {
     data: Tag[] | undefined;
     message: string;
   }
+
+  export interface TagCreateResponse {
+    data: {
+      id: UUID
+    };
+    message: string;
+  }
