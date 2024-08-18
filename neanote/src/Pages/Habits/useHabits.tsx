@@ -142,12 +142,14 @@ export const useHabits = create<HabitState>()(
 
         fetchHabit: async (noteId: string) => {
             const { setLoading } = get();
+            const {setSelectedTagIds} = useTags.getState();
             setLoading(true);
             const response = await habitsApi.getHabit(noteId);
             if (response.success && response.data) {
                 set((state) => {
                     state.currentHabit = response.data.data;
                 });
+                setSelectedTagIds(response.data.data.tags);
             } else {
                 showToast('error', response.message);
             }

@@ -293,13 +293,10 @@ def habit_routes(app,conn, tokenization_manager):
                             'linked_tasks': []
                         }
 
-                    if row['tagid']:
-                        if not any(tag['tagid'] == row['tagid'] for tag in habit['tags']):
-                            habit['tags'].append({
-                                'tagid': row['tagid'],
-                                'name': row['name'],
-                                'color': row['color']
-                            })
+                    if row['tagid'] is not None:
+                        habit['tags'].append(
+                            row['tagid']
+                        )
 
                     if row['linked_task_id']:
                         linked_task = next((task for task in habit['linked_tasks'] if task['taskid'] == row['linked_task_id']), None)

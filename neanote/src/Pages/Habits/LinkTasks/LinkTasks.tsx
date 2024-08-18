@@ -11,6 +11,7 @@ import CheckBox from '../../../../components/CheckBox/CheckBox';
 import { Task } from '../../../api/types/taskTypes';
 import { useTasks } from '../../Tasks/useTasks';
 import { useHabits } from '../useHabits';
+import PaginationSelector from '../../../../components/Pagination/PaginationSelector';
 
   interface Props {
     linked_tasks: Task[]
@@ -18,7 +19,7 @@ import { useHabits } from '../useHabits';
   }
 
 function LinkTasks({linked_tasks}: Props) {
-  const {tasks, fetchTaskPreviews, nextPage} = useTasks()
+  const {tasks, fetchTaskPreviews, nextPage, page} = useTasks()
   const {toggleLinkTask} = useHabits()
   const [ currentPage, setCurrentPage ] = React.useState(1);
 
@@ -27,20 +28,6 @@ function LinkTasks({linked_tasks}: Props) {
             fetchTaskPreviews(1)
           }
   },[tasks, fetchTaskPreviews])
-
-  const fetchNextPage = () => {
-    if (nextPage) {
-      fetchTaskPreviews(nextPage)
-      setCurrentPage(currentPage + 1)
-    }
-  }
-
-  const fetchPreviousPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage(currentPage - 1)
-      fetchTaskPreviews(currentPage)
-    }
-  }
 
   return (
     <Dialog>
@@ -62,9 +49,7 @@ function LinkTasks({linked_tasks}: Props) {
                 )
             })}
             <div className='flex flex-row items-center gap-2'>
-              <Button variant={"secondary"} disabled={currentPage > 1} onClick={fetchPreviousPage}>Previous</Button>
-                {currentPage}
-              <Button variant={"secondary"} disabled={nextPage?true:false} onClick={fetchNextPage}>Next</Button>
+              <PaginationSelector fetchingFunction={fetchTaskPreviews} nextPage={nextPage} page={page}/>
             </div>
         </div>
       </DialogContent>
