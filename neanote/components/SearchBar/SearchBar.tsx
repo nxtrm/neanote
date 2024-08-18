@@ -1,20 +1,19 @@
 import React, { useEffect, useState } from 'react';
-import PaginationSelector from '../Pagination/PaginationSelector'
 import { FaSearch } from "react-icons/fa";
+import { searchApi } from '../../src/api/searchApi';
+import { ArchiveType } from '../../src/api/types/archiveTypes';
+import { useScreenSize } from '../../src/DisplayContext';
 import { Button } from "../@/ui/button";
 import {
     Dialog,
     DialogContent,
-    DialogClose,
-    DialogHeader,
     DialogTrigger
 } from "../@/ui/dialog";
 import { Input } from "../@/ui/input";
 import { Label } from "../@/ui/label";
-import ToggleButtons from './ToggleButtons';
-import { ArchiveType } from '../../src/api/types/archiveTypes';
-import { searchApi, SearchResponse } from '../../src/api/searchApi';
+import PaginationSelector from '../Pagination/PaginationSelector';
 import SearchCard from './Components/SearchCard';
+import ToggleButtons from './ToggleButtons';
 
 function SearchBar() {
     const [searchQuery, setSearchQuery] = useState<string>('');
@@ -24,6 +23,8 @@ function SearchBar() {
     const [error, setError] = useState<string | null>(null);
     const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
     const [pagination, setPagination] = useState<{ nextPage: number | null; page: number; } | undefined>(undefined);
+
+    const {screenSize} = useScreenSize()
 
     useEffect(() => {
         if (searchQuery.length < 2 || !isDialogOpen )
@@ -64,12 +65,12 @@ function SearchBar() {
     return (
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-                <Button className='rounded-xl px-5 w-[125px] gap-2' onClick={() => setIsDialogOpen(true)}>
+                <Button size={screenSize == 'small' ? 'icon' : 'default'} className={`rounded-xl ${screenSize == 'small' ? 'w-[65px]' : ''} px-5 gap-2`} onClick={() => setIsDialogOpen(true)}>
                     <FaSearch className='justify-self-start' size={10} />
-                    <Label>Search...</Label>
+                    {screenSize != 'small' && <Label>Search...</Label>}
                 </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px] items-center">
+            <DialogContent className="max-w-[500px] h-fit items-center">
                 <div className="flex w-full items-center space-x-2">
                     <Input
                         type="string"
@@ -82,12 +83,16 @@ function SearchBar() {
                 </div>
                 {loading && <p>Loading...</p>}
                 {error && <p>{error}</p>}
-                <div className='flex-col flex gap-2'>
-                    {results && results.map(result => (
-                        <SearchCard key={result.noteid} note={result} onCloseDialog={handleCloseDialog} />
-                    ))}
-                </div>
-                {pagination && <PaginationSelector page={pagination?.page} nextPage={pagination?.nextPage} fetchingFunction={handleSearch}/>}
+                {results.length>0 && 
+                <>
+                    <div className='flex-col flex gap-2'>
+                        {results.map(result => (
+                            <SearchCard key={result.noteid} note={result} onCloseDialog={handleCloseDialog} />
+                            ))}
+                    </div>
+                    {(pagination && results) && <PaginationSelector page={pagination?.page} nextPage={pagination?.nextPage} fetchingFunction={handleSearch}/>}
+                </>
+                }
             </DialogContent>
         </Dialog>
     );

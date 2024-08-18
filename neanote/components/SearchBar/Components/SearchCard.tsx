@@ -6,6 +6,7 @@ import TagLabel from "../../TagLabel/TagLabel.tsx"
 import React from "react";
 import { Button } from "../../@/ui/button";
 import { useNavigate } from "react-router-dom";
+import './SearchCard.css';
 
 function SearchCard({ note, onCloseDialog }: { note: ArchiveType, onCloseDialog: () => void }) {
     const navigate = useNavigate();
@@ -17,14 +18,14 @@ function SearchCard({ note, onCloseDialog }: { note: ArchiveType, onCloseDialog:
     }
 
     return (
-        <div className='p-3 w-full rounded-xl border-[2px]'>
+        <div className='p-3 w-full  rounded-xl border-[2px]'>
             <div className='flex flex-row justify-between '>
                 <div className='flex flex-row items-center gap-2'>
                     {note.type === 'task' && <FaTasks size={'20px'} />}
                     {note.type === 'habit' && <MdRepeat size={'20px'} />}
                     {note.type === 'goal' && <LuGoal size={'22px'} />}
                     {/* add other types here */}
-                    <h3 className="task-title">{note.title}</h3>
+                    <h3 className="note-title">{note.title}</h3>
                 </div>
                 <div className='flex flex-row items-center gap-2'>
                     {note.tags.map((tag, index) => (
@@ -35,7 +36,7 @@ function SearchCard({ note, onCloseDialog }: { note: ArchiveType, onCloseDialog:
                     </Button>
                 </div>
             </div>
-            {note.content && <p className="text-md pl-1 pt-2">{note.content}</p>}
+            {note.content && <p className="text-md max-w-[400px] overflow-hidden overflow-ellipsis pl-1 pt-2">{note.content}</p>}
         </div>
     );
 }

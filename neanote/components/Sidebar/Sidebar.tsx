@@ -12,11 +12,16 @@ import {
 } from "../@/ui/drawer";
 import Title from "./Title";
 import { modules } from './modules';
+import { useScreenSize } from '../../src/DisplayContext';
+import SearchBar from '../SearchBar/SearchBar';
+import ThemeSwitcher from '../NavBar/ThemeSwitcher/ThemeSwitcher';
+import LoginButton from '../NavBar/LoginButton/LoginButton';
 
 function Sidebar() {
   const [open, setOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate()
+  const {screenSize} = useScreenSize();
 
   const handleLinkClick = (link) => {
     setOpen(false);
@@ -35,7 +40,13 @@ function Sidebar() {
           </div>
         </DrawerHeader>
           <div className="flex rounded-xl w-full h-full flex-col border-[2px] p-2">
-            <div className="flex flex-col gap-4 pt-5">
+            <div className="flex flex-col gap-4 ">
+              {screenSize === 'small' && (
+                <div className='flex justify-between gap-2'>
+                  <SearchBar/>
+                  <ThemeSwitcher/>
+                  <LoginButton/>
+               </div>)}
               <div>Calendar</div>
                 {modules.map((module) => (
                 <Button

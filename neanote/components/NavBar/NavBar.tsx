@@ -4,9 +4,10 @@ import LoginButton from './LoginButton/LoginButton';
 import Sidebar from '../Sidebar/Sidebar';
 import Title from '../Sidebar/Title';
 import SearchBar from '../SearchBar/SearchBar';
+import { useScreenSize } from '../../src/DisplayContext';
 
 function NavBar() {
-
+    const {screenSize} = useScreenSize()
     return (
 
         <div className='p-2 rounded-xl flex flex-row justify-between items-center 
@@ -16,11 +17,13 @@ function NavBar() {
             <Sidebar/>
             <Title font={"28px"}/>
           </div>
-            <SearchBar/>
-          <div className='flex flex-row gap-2'>
-            <ThemeSwitcher/>
-            <LoginButton/>
-          </div>
+          <SearchBar/>
+          {screenSize != 'small' &&
+            <div className='flex flex-row gap-2'>
+              <ThemeSwitcher/>
+              <LoginButton/>
+            </div>
+          }
         </div>
       )
   
