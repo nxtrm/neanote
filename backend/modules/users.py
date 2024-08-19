@@ -20,7 +20,7 @@ def user_routes(app, conn):
             cur.execute("SELECT * FROM users WHERE username = %s", (username,))
             user = cur.fetchone()
 
-            if user and bcrypt.checkpw(password.encode('utf-8'), user['password'].encode('utf-8')):
+            if user and bcrypt.checkpw(password.encode('utf-8'), user[3].encode('utf-8')):  # Assuming password is the 4th column
                 userId = str(user[0])
                 access_token = create_access_token(identity=userId, expires_delta=timedelta(days=1))
 
