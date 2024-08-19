@@ -41,6 +41,9 @@ function Inputs({withChechbox}:{withChechbox?: boolean}) {
         {validationErrors['content'] && (
             <Label htmlFor='content' className='text-destructive'>{validationErrors['content']}</Label>
         )}
+        {validationErrors['reminder'] && (
+        <Label htmlFor='reminder' className='text-destructive'> {validationErrors['reminder']}</Label>
+      )}
     </div>
 
   )

@@ -76,8 +76,8 @@ export const HabitSchema = z.object({
   // tags: z.array(z.string().uuid()), //tag ids
   content: z.string().max(1000, "Content cannot exceed 1000 characters"),
   reminder: z.object({
-    reminder_time: z.string(),
-    repetition: z.string(),
+    reminder_time: z.string().min(4, "Reminder time is required"),
+    repetition: z.string().min(1, "Repetition is required"),
   }),
   streak: z.number(),
   completed_today: z.boolean(),

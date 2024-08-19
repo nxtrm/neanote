@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+import bcrypt
 from flask import Blueprint, g, jsonify, request
 from flask_jwt_extended import create_access_token, jwt_required
 from marshmallow import ValidationError
@@ -8,17 +9,17 @@ from utils import token_required, verify_tag_ownership
 def user_routes(app, conn):
     @app.route('/api/login', methods=['POST'])
     def login():
-        try: #implement password hashing later
+        try:
             login_schema = LoginSchema()
-
             data = login_schema.load(request.json)
             username = data['username']
             password = data['password']
 
-            cur =  conn.cursor()
-            cur.execute("SELECT * FROM users WHERE username = %s AND password = %s", (username, password))
+            cur = conn.cursor()
+            cur.execute("SELECT * FROM users WHERE username = %s", (username,))
             user = cur.fetchone()
-            if user:
+
+            if user and bcrypt.checkpw(password.encode('utf-8'), user['password'].encode('utf-8')):
                 userId = str(user[0])
                 access_token = create_access_token(identity=userId, expires_delta=timedelta(days=1))
 
@@ -30,8 +31,8 @@ def user_routes(app, conn):
         except ValidationError as err:
             return jsonify(err.messages), 400
         except Exception as error:
-             conn.rollback()
-             raise
+            conn.rollback()
+            raise
         finally:
             cur.close()
 
@@ -44,19 +45,20 @@ def user_routes(app, conn):
             username = result['username']
             email = result['email']
             password = result['password']
-            
 
-            cur =  conn.cursor()
+            # Hash the password
+            hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
 
+            cur = conn.cursor()
             cur.execute("SELECT * FROM users WHERE username = %s OR email = %s", (username, email))
             existing_user = cur.fetchone()
 
-
             if existing_user:
                 return jsonify({'message': 'User with this username or email already exists'}), 400
-            cur.execute("INSERT INTO users ( username, email, password) VALUES ( %s, %s, %s) RETURNING id", ( username, email, password))
-            userId = cur.fetchone()[0]
 
+            cur.execute("INSERT INTO users (username, email, password) VALUES (%s, %s, %s) RETURNING id", 
+                        (username, email, hashed_password))
+            userId = cur.fetchone()[0]
 
             try:
                 access_token = create_access_token(identity=userId)
@@ -69,12 +71,11 @@ def user_routes(app, conn):
 
             response = jsonify({'message': 'User created successfully', 'userId': userId})
             response.set_cookie('token', access_token)
-            
             return response
         except ValidationError as err:
             return jsonify(err.messages), 400
         except Exception as error:
-             conn.rollback()
-             raise
+            conn.rollback()
+            raise
         finally:
             cur.close()
