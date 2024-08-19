@@ -53,6 +53,23 @@ const users = {
             return false;
         }
     },
+
+    updateUser: async (body) => {
+        try {
+            let response = await a.put(`/api/user`, body);
+
+            if (response.status === 200) {
+                showToast('s', 'User data has been updated successfully');
+            } else {
+                showToast('e', `There was an error updating the user: ${response.data.message}`)
+            }
+
+            return response.data;
+        } catch (error) {
+            showToast('e', error);
+            return false;
+        }
+    },
 }
 
 export default users

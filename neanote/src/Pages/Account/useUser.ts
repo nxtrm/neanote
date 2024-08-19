@@ -67,8 +67,21 @@ export const useUser = create<Userstate>()(
         get().validateUser();
       },
   
-      handleSave: async () => {},
-  
+      handleSave: async () => {
+        const { currentUser, validateUser }= get()
+        if(validateUser()) {
+            set((state) => {
+                state.loading = true;
+            });
+            const response = await users.updateUser(currentUser);
+            if (response) {
+                set((state) => {
+                state.loading = false;
+                state.pendingChanges = false;
+                });
+            }
+        }
+        },
       getUser: async () => {
         const response = await users.getUser();
         if (response) {

@@ -85,7 +85,7 @@ def user_routes(app, conn):
     @jwt_required()
     @token_required
     def get_user():
-        try: 
+        try:
             userId = g.userId
 
             with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
@@ -99,5 +99,26 @@ def user_routes(app, conn):
                     'preferences': data['preferences']
                 }
                 return jsonify({'data': user, 'message': 'User data retrieved successfully'}), 200
+        except Exception as e:
+            raise
+    
+    @app.route('/api/user', methods=['PUT'])
+    @jwt_required()
+    @token_required
+    def update_user():
+        try:
+            userId = g.userId
+            # user_schema = UserSchema()
+            # data = user_schema.load(request.json)
+            data = request.get_json()
+
+            with conn.cursor() as cur:
+                cur.execute(
+                    """UPDATE users SET username = %s, email = %s WHERE id = %s""",
+                    (data['username'], data['email'], userId)
+                )
+                conn.commit()
+                return jsonify({'message': 'User data updated successfully'}), 200
+
         except Exception as e:
             raise
