@@ -50,6 +50,18 @@ export const TaskSchema = z.object({
     completed: z.boolean(),
 });
 
+export const UserSettingsSchema = z.object({
+    username: z.string().min(4, {
+    message: "Username must be at least 4 characters.",
+      }),
+    password: z.string().regex(
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
+        "Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character."
+    ).optional(),
+    email: z.string().email({
+    message: "Invalid email address.",
+    }),
+})
 
 export const GoalSchema = z.object({
     goalid: z.string().uuid(),

@@ -89,10 +89,15 @@ def user_routes(app, conn):
             userId = g.userId
 
             with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
-                cur.execure(
+                cur.execute(
                     """SELECT username, email, preferences FROM users WHERE id = %s""", (userId,)
                 )
-                user = cur.fetchone()
+                data = cur.fetchone()
+                user = {
+                    'username': data['username'],
+                    'email': data['email'],
+                    'preferences': data['preferences']
+                }
                 return jsonify({'data': user, 'message': 'User data retrieved successfully'}), 200
         except Exception as e:
             raise
