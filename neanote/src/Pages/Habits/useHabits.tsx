@@ -157,7 +157,7 @@ export const useHabits = create<HabitState>()(
         },
 
         handleCreateHabit: async () => {
-            const { currentHabit, validationErrors, setLoading } = get();
+            const { currentHabit, setLoading } = get();
             setLoading(true);
             get().validateHabit()
             if (get().validateHabit()) {

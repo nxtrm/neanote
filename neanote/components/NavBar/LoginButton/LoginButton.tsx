@@ -1,10 +1,8 @@
-import React, { useEffect } from 'react'
-import { FaRegUser } from "react-icons/fa";
-import { LuLogIn } from "react-icons/lu";
-import { useUser } from '../../providers/useUser';
-import {Link, useNavigate} from 'react-router-dom'
-import { Button } from '../../@/ui/button';
 import Cookies from 'js-cookie';
+import React from 'react';
+import { FaRegUser } from "react-icons/fa";
+import { useNavigate } from 'react-router-dom';
+import { Button } from '../../@/ui/button';
 
 function LoginButton() {
 

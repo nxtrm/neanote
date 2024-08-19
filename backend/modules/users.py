@@ -3,6 +3,7 @@ import bcrypt
 from flask import Blueprint, g, jsonify, request
 from flask_jwt_extended import create_access_token, jwt_required
 from marshmallow import ValidationError
+import psycopg2
 from formsValidation import LoginSchema, TagSchema, UserSchema
 from utils import token_required, verify_tag_ownership
 
@@ -79,3 +80,19 @@ def user_routes(app, conn):
             raise
         finally:
             cur.close()
+
+    @app.route('/api/user', methods=['GET'])
+    @jwt_required()
+    @token_required
+    def get_user():
+        try: 
+            userId = g.userId
+
+            with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
+                cur.execure(
+                    """SELECT username, email, preferences FROM users WHERE id = %s""", (userId,)
+                )
+                user = cur.fetchone()
+                return jsonify({'data': user, 'message': 'User data retrieved successfully'}), 200
+        except Exception as e:
+            raise
