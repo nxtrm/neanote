@@ -7,7 +7,7 @@ from utils import token_required, verify_milestone_ownership, verify_goal_owners
 import psycopg2.extras
 
 
-def goal_routes(app, conn, tokenization_manager):
+def goal_routes(app, conn, tokenization_manager,recents_manager):
 
 #GOALS MODULE
     @app.route('/api/goals/create', methods=['POST'])
@@ -277,7 +277,7 @@ def goal_routes(app, conn, tokenization_manager):
 
 
             conn.commit()
-
+            recents_manager.add_note_for_user(userId, noteid)
             return jsonify({"goal": goal, 'message': "Goal fetched successfully"}), 200
 
         except Exception as e:

@@ -71,13 +71,3 @@ class RecentNotesManager:
             return notes
         return []
 
-# Example usage
-manager = RecentNotesManager()
-manager.add_note_for_user('user1', 'note1')
-manager.add_note_for_user('user1', 'note2')
-manager.add_note_for_user('user1', 'note3')
-manager.add_note_for_user('user1', 'note4')
-manager.add_note_for_user('user1', 'note5')
-manager.add_note_for_user('user1', 'note6')  # This will remove 'note1' from the list
-
-print(manager.get_recent_notes_for_user('user1'))  # Output: ['note6', 'note5', 'note4', 'note3', 'note2']

@@ -9,7 +9,7 @@ import psycopg2
 
 from word2vec import combine_strings_to_vector
 
-def task_routes(app, conn, tokenization_manager):
+def task_routes(app, conn, tokenization_manager,recents_manager):
 
     #TASK MODULE
     @app.route('/api/tasks/create', methods=['POST'])
@@ -409,7 +409,7 @@ def task_routes(app, conn, tokenization_manager):
                         task['tags'].append(
                             row['tagid']
                         )
-
+                recents_manager.add_note_for_user(userId, noteid)
                 return jsonify({"task": task, 'message': "Task fetched successfully"}), 200
 
         except Exception as e:

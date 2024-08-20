@@ -7,7 +7,7 @@ from formsValidation import HabitSchema
 from utils import calculate_gap, token_required, verify_habit_ownership
 
 
-def habit_routes(app,conn, tokenization_manager):
+def habit_routes(app,conn, tokenization_manager, recents_manager):
     #HABITS MODULE
     @app.route('/api/habits/create', methods=['POST'])
     @jwt_required()
@@ -321,6 +321,7 @@ def habit_routes(app,conn, tokenization_manager):
                                 })
 
                 conn.commit()
+                recents_manager.add_note_for_user(userId, noteid)
                 if habit:
                     return jsonify({'message': 'Habit fetched successfully', 'data': habit}), 200
                 else:
