@@ -19,7 +19,7 @@ interface Userstate {
 
     loading: boolean;
     handleUpdateDetails: () => void;
-    handleChangePassword: (password: string, newpassword:string) => void
+    handleChangePassword: (password: string, newpassword:string, setOpen: (boolean)=>void) => void
 }
 
 export const useUser = create<Userstate>()(
@@ -67,14 +67,19 @@ export const useUser = create<Userstate>()(
             state.validationErrors = errors;
           });
           return false;
-        } else {
+        } else if (password === newpassword) {
+          set((state) => {
+            state.validationErrors = { newpassword: "New password must be different from the old password" };
+          });
+          return false;
+        }
+        else {
           set((state) => {
             state.validationErrors = {};
           });
           return true;
         }
       },
-  
       updateCurrentUser: <K extends keyof UserSettings>(key: K, value: UserSettings[K]) => {
         set((state) => {
           if (state.currentUser) {
@@ -102,10 +107,14 @@ export const useUser = create<Userstate>()(
             }
         }
       },
-      handleChangePassword: async (password:string, newpassword: string) => {
+      handleChangePassword: async (password:string, newpassword: string, setOpen: (boolean)=> void) => {
         const { validatePassword } = get();
         if (validatePassword(password, newpassword)) {
           const response = await users.changePassword(password, newpassword);
+          if (response && response.success) {
+            setOpen(false)
+            //close dialog
+          }
         }
       },
 

@@ -33,13 +33,13 @@ export function PasswordDrawerDialog() {
       return (
           <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
-          <TriggerButton/>
+          <Button variant="destructive" className="w-fit">Change Password</Button>
         </DialogTrigger>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Change Password</DialogTitle>
           </DialogHeader>
-          <ProfileForm />
+          <ProfileForm setOpen={setOpen}/>
         </DialogContent>
       </Dialog>
     )
@@ -48,13 +48,13 @@ export function PasswordDrawerDialog() {
 return (
     <Drawer open={open} onOpenChange={setOpen}>
       <DrawerTrigger asChild>
-        <TriggerButton/>
+        <Button variant="outline">Change Password</Button>
       </DrawerTrigger>
       <DrawerContent>
         <DrawerHeader className="text-left">
           <DrawerTitle>Change Password</DrawerTitle>
         </DrawerHeader>
-        <ProfileForm className="px-4" />
+        <ProfileForm setOpen={setOpen} className="px-4" />
         <DrawerFooter className="pt-2">
           <DrawerClose asChild>
             <Button variant="outline">Cancel</Button>
@@ -71,7 +71,7 @@ function TriggerButton() {
     )
 }
 
-function ProfileForm({ className }: React.ComponentProps<"form">) {
+function ProfileForm({ className, setOpen }: React.ComponentProps<"form"> & { setOpen: React.Dispatch<React.SetStateAction<boolean>> }) {
     const {handleChangePassword, validationErrors} = useUser()
     const [form, setForm] = React.useState({
         password: "",
@@ -80,19 +80,21 @@ function ProfileForm({ className }: React.ComponentProps<"form">) {
 
     const handleSubmit = (event: React.FormEvent) => {
         event.preventDefault()
-        handleChangePassword(form.password, form.newPassword)
+        handleChangePassword(form.password, form.newPassword, setOpen)
     }
 
     return (
     <form className={cn("grid items-start gap-4", className)} onSubmit={handleSubmit}>
       <div className="grid gap-2">
         <Label htmlFor="password">Current password</Label>
-        <Input value={form.password} onChange={e=>setForm({...form, password: e.target.value})} id="password" />
+        <Input
+        type="password"
+        value={form.password} onChange={e=>setForm({...form, password: e.target.value})} id="password" />
         {validationErrors.password && <p className="text-sm text-destructive">{validationErrors.password}</p>}
       </div>
       <div className="grid gap-2">
         <Label htmlFor="new password">New password</Label>
-        <Input value={form.newPassword} onChange={e=>setForm({...form, newPassword: e.target.value})} id="confirm password" />
+        <Input value={form.newPassword} type="password" onChange={e=>setForm({...form, newPassword: e.target.value})} id="confirm password" />
         {validationErrors.newpassword && <p className="text-sm text-destructive">{validationErrors.newpassword}</p>}
       </div>
       <Button type="submit">Save</Button>

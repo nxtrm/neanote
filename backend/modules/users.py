@@ -122,3 +122,37 @@ def user_routes(app, conn):
 
         except Exception as e:
             raise
+    
+    @app.route('/api/user/password', methods=['PUT'])
+    @jwt_required()
+    @token_required
+    def update_password():
+        try:
+            userId = g.userId
+            data = request.get_json()
+            password = data['password']
+            new_password = data['newpassword']
+
+            with conn.cursor() as cur:
+                cur.execute(
+                    '''SELECT password FROM users WHERE id = %s''',
+                    (userId,)
+                )
+                user = cur.fetchone()
+                if not user:
+                    return jsonify({'message': 'Invalid user credentials'}), 401
+                elif bcrypt.checkpw(password.encode('utf-8'), user[0].encode('utf-8')):
+                    if password == new_password:
+                        return jsonify({'message': 'New password cannot be the same as the old password'}), 400
+
+                    hashed_newpassword = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+                    cur.execute(
+                        """UPDATE users SET password = %s WHERE id = %s""",
+                        (hashed_newpassword, userId)
+                    )
+                    conn.commit()
+                    return jsonify({'message': 'Password updated successfully'}), 200
+                else:
+                    return jsonify({'message': 'Invalid user credentials'}), 401
+        except Exception as e:
+            raise

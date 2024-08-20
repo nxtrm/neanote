@@ -72,15 +72,17 @@ const users = {
     },
     changePassword: async (password, newpassword) => {
         try {
-            let response = await a.put(`/api/user`,{ password, newpassword });
+            let response = await a.put(`/api/user/password`,{ password, newpassword });
+            let success = false
 
             if (response.status === 200) {
                 showToast('s', 'Password has been updated successfully');
+                success = true
             } else {
                 showToast('e', `There was an error updating the password: ${response.data.message}`)
             }
 
-            return response.data;
+            return {data:response.data, success:success};
         } catch (error) {
             showToast('e', error);
             return false;
