@@ -1,5 +1,5 @@
 import React from 'react'
-import { ArchiveType } from '../../../api/types/archiveTypes'
+import { UniversalType } from '../../../api/types/ArchiveTypes'
 import { FaTasks } from 'react-icons/fa'
 import { MdRepeat } from 'react-icons/md'
 import { LuGoal } from 'react-icons/lu'
@@ -11,7 +11,7 @@ import { useArchive } from '../useArchive'
 import TagLabel from '../../../../components/TagLabel/TagLabel'
 
 
-function NoteCard({note}:{note:ArchiveType}) {
+function NoteCard({note}:{note:UniversalType}) {
   const {handleDelete, handleRestore} = useArchive(); 
 
   const onDelete = async () => {

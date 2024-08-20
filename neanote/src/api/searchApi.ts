@@ -1,9 +1,9 @@
 import { showToast } from "../../components/Toast";
 import a from "./api";
-import { ArchiveType } from "./types/archiveTypes";
+import { UniversalType } from "./types/ArchiveTypes";
 
 export interface SearchResponse {
-    data: ArchiveType[];
+    data: UniversalType[];
     pagination : {
       nextPage: number | null;
       perPage: number;

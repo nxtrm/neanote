@@ -2,12 +2,12 @@
 import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
 import { recentsApi } from "../../api/recentsApi";
-import { ArchiveType } from "../../api/types/archiveTypes";
+import { UniversalType } from "../../api/types/ArchiveTypes";
 import { showToast } from "../../../components/Toast";
 
 interface Dashboardstate {
     getRecents: () => void;
-    recents : ArchiveType[]
+    recents : UniversalType[]
 
     loading:boolean
 

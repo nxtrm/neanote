@@ -1,9 +1,9 @@
 import { get } from "http";
-import { ArchiveType } from "./types/archiveTypes";
+import { UniversalType } from "./types/ArchiveTypes";
 import a from "./api";
 
 interface RecentsResponse {
-    data: ArchiveType[];
+    data: UniversalType[];
     message: string;
 }
 

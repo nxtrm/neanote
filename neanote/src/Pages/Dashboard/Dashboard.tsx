@@ -4,12 +4,21 @@ import TitleComponent from '../../../components/TitleComponent/TitleComponent'
 import { FaHistory } from "react-icons/fa";
 import { useDashboard } from './useDashboard';
 import { Label } from '../../../components/@/ui/label';
+import UniversalCard from '../../../components/Universal/UniversalCard';
+import { useNavigate } from "react-router-dom";
+
 function Dashboard() {
   const {recents, getRecents, loading} = useDashboard()
+  const navigate = useNavigate();
 
     useEffect(() => {
       getRecents();
   },[getRecents]) 
+
+  function handleEditClick(noteId, type) {
+    localStorage.setItem(`current${type.charAt(0).toUpperCase() + type.slice(1)}Id`, noteId.toString());
+    navigate(`/${type + 's'}/edit`);
+}
   
   return (
     <>
@@ -24,10 +33,7 @@ function Dashboard() {
             <>
                 <div className='flex-col flex gap-2'>
                     {recents.map((item, index) => (
-                        <div key={index} className='flex flex-row gap-2 items-center'>
-                            <p>{item.title}</p>
-                            <p>{item.type}</p>
-                        </div>
+                        <UniversalCard key={index} note={item} handleEditClick={()=>handleEditClick(item.noteid, item.type)} />
                     ))}
                 </div>
             </>

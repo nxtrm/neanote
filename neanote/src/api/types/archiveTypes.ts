@@ -1,7 +1,7 @@
 import { UUID } from "crypto";
 import { Tag } from "./tagTypes";
 
-export interface ArchiveType {
+export interface UniversalType {
     noteid: UUID
     secondaryid: UUID
 
@@ -13,7 +13,7 @@ export interface ArchiveType {
 
 export interface ArchiveResponse {
     success:boolean
-    data:ArchiveType[]
+    data:UniversalType[]
     pagination:{
         page:number
         perPage:number

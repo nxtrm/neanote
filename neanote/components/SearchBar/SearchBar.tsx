@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { FaSearch } from "react-icons/fa";
 import { searchApi } from '../../src/api/searchApi';
-import { ArchiveType } from '../../src/api/types/archiveTypes';
+import { UniversalType } from '../../src/api/types/ArchiveTypes';
 import { useScreenSize } from '../../src/DisplayContext';
 import { Button } from "../@/ui/button";
 import {
@@ -18,7 +18,7 @@ import ToggleButtons from './ToggleButtons';
 function SearchBar() {
     const [searchQuery, setSearchQuery] = useState<string>('');
     const [activeMode, setActiveMode] = useState<'approximate' | 'exact'>('exact');
-    const [results, setResults] = useState<ArchiveType[]>([]);
+    const [results, setResults] = useState<UniversalType[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
     const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);

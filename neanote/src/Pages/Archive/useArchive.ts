@@ -1,6 +1,6 @@
 import { create } from "zustand"
 import { immer } from "zustand/middleware/immer"
-import { ArchiveType } from "../../api/types/archiveTypes"
+import { UniversalType } from "../../api/types/ArchiveTypes"
 import archiveApi from "../../api/archiveApi"
 import { showToast } from "../../../components/Toast"
 import { UUID } from "crypto"
@@ -9,7 +9,7 @@ import tasksApi from "../../api/tasksApi"
 import goalsApi from "../../api/goalsApi"
 
 type ArchiveState = {
-    archive: ArchiveType[]
+    archive: UniversalType[]
 
     handleDelete: (noteType:string,noteId:UUID,secondaryId:UUID) => Promise<void>
     handleRestore: (noteId:UUID) => Promise<void>

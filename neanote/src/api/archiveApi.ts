@@ -3,7 +3,7 @@ import a from "./api";
 import axios from "axios";
 import { showToast } from "../../components/Toast";
 import { get } from "http";
-import { ArchiveResponse } from "./types/archiveTypes";
+import { ArchiveResponse } from "./types/ArchiveTypes";
 
 const archiveApi = {
 
