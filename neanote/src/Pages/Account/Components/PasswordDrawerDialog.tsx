@@ -33,7 +33,7 @@ export function PasswordDrawerDialog() {
       return (
           <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
-          <Button variant="destructive" className="w-fit">Change</Button>
+          <TriggerButton/>
         </DialogTrigger>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
@@ -48,7 +48,7 @@ export function PasswordDrawerDialog() {
 return (
     <Drawer open={open} onOpenChange={setOpen}>
       <DrawerTrigger asChild>
-        <Button variant="outline">Change</Button>
+        <TriggerButton/>
       </DrawerTrigger>
       <DrawerContent>
         <DrawerHeader className="text-left">
@@ -63,6 +63,12 @@ return (
       </DrawerContent>
     </Drawer>
   )
+}
+
+function TriggerButton() {
+    return (
+        <Button variant="destructive" className="w-fit">Change Password</Button>
+    )
 }
 
 function ProfileForm({ className }: React.ComponentProps<"form">) {

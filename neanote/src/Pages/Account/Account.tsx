@@ -30,7 +30,7 @@ function Account() {
         </div>
 
         <div className='flex flex-col gap-3'>
-          <div className='bg-secondary p-2 rounded-xl flex flex-col gap-2'>
+          <div className='bg-secondary p-3 rounded-xl flex flex-col gap-2'>
 
             <h2 className='font-bold text-xl'>Details</h2>
               <Separator/>
@@ -53,20 +53,15 @@ function Account() {
               <FaSave /> {loading ? 'Saving...' : 'Save'}
               </Button>
           </div>
-          <div className='bg-secondary p-2 rounded-xl flex flex-col gap-2'>
+          <div className='bg-secondary p-3 rounded-xl flex flex-col gap-2'>
             <h2 className='font-bold text-xl'>Preferences</h2>
               <Separator/>
           </div>
-          <div className='bg-destructive-background p-2 rounded-xl flex flex-col gap-2'>
+          <div className='border-[2px]  border-destructive p-3 rounded-xl flex flex-col gap-2'>
             <h2 className='font-bold text-xl'>Security</h2>
               <Separator/>
-
-              <Label htmlFor="password">Password: </Label>
               <PasswordDrawerDialog/>
 
-            <Button className='gap-2 w-fit' disabled={!pendingChanges || !isValidationErrorsEmpty} >
-              <FaSave /> {loading ? 'Saving...' : 'Save'}
-              </Button>
           </div>
         </div>
       </>
