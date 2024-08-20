@@ -6,7 +6,7 @@ from utils import process_universal_notes, token_required
 from word2vec import combine_strings_to_vector
 
 
-def search_routes(app, conn, model):
+def universal_routes(app, conn, model, recents_manager):
     @app.route('/api/search', methods=['GET'])
     @jwt_required()
     @token_required
@@ -69,7 +69,8 @@ def search_routes(app, conn, model):
             total = cur.fetchone()[0]
             next_page = page + 1 if offset + per_page < total else None
 
-            notes=process_universal_notes(rows,cur)
+            if rows:
+                notes=process_universal_notes(rows,cur)
 
             return jsonify({'message': 'Notes retrieved successfully', 'data': notes,
                             'pagination': {
@@ -85,3 +86,35 @@ def search_routes(app, conn, model):
             return jsonify({'message': 'An error occurred', 'error': str(e)}), 500
         finally:
             cur.close()
+
+    @app.route('/api/recents', methods=['GET'])
+    @jwt_required()
+    @token_required
+    def get_recents():
+        try:
+            userId=g.userId
+            noteIds = recents_manager.get_recent_notes_for_user(userId)
+            cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+
+            notes = []
+            for note_id in noteIds:
+                cur.execute("""
+                    SELECT n.id AS note_id, n.title, n.content, n.type,
+                        t.id AS tagid,
+                        t.name,
+                        t.color
+                    FROM Notes n
+                        LEFT JOIN NoteTags nt ON n.id = nt.note_id
+                        LEFT JOIN Tags t ON nt.tag_id = t.id
+                    WHERE n.user_id = %s AND n.id = %s;
+                """, (userId, note_id))
+
+                row = cur.fetchone()
+                if row:
+                    note = process_universal_notes([row], cur)[0]
+                    notes.append(note)
+
+            return jsonify({'message': 'Recent notes retrieved successfully', 'data': notes}), 200
+        except Exception as e:
+            conn.rollback()
+            raise

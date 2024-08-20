@@ -84,7 +84,8 @@ def archive_routes(app,conn, model):
                 (userId, per_page + 1, offset)  # Fetch one more note than the limit
             )
             rows = cur.fetchall()
-            notes = process_universal_notes(rows,cur)
+            if rows:
+                notes = process_universal_notes(rows,cur)
 
             # Determine if there is a next page
             if len(notes) > per_page:

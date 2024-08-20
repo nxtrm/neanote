@@ -8,7 +8,7 @@ from modules.archive import archive_routes
 from modules.habits import habit_routes
 from modules.priorityQueue import TokenizationTaskManager
 from modules.recentsListHash import RecentNotesManager
-from modules.search import search_routes
+from modules.universal import universal_routes
 from modules.tasks import task_routes
 from modules.goals import goal_routes
 from modules.tags import tag_routes
@@ -50,7 +50,8 @@ tag_routes(app, conn, tokenization_manager)
 user_routes(app, conn)
 archive_routes(app, conn, tokenization_manager)
 
-search_routes(app, conn, model)
+#small routes that do not require a separate file
+universal_routes(app, conn, model, recents_manager)
 
 #Centralized error handler
 @app.errorhandler(Exception)

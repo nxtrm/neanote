@@ -1,6 +1,5 @@
 import { UUID } from "crypto";
-import { showToast } from "../../components/Toast";
-import a from './api'
+import a from './api';
 import { TaskCreateResponse, TaskPreviewResponse, TaskResponse } from "./types/taskTypes";
 
 const tasksApi = {
