@@ -23,6 +23,7 @@ import {
 import { Input } from "../../../../components/@/ui/input"
 import { Label } from "../../../../components/@/ui/label"
 import { useScreenSize } from "../../../DisplayContext"
+import { useUser } from "../useUser"
 
 export function PasswordDrawerDialog() {
   const [open, setOpen] = React.useState(false)
@@ -65,16 +66,28 @@ return (
 }
 
 function ProfileForm({ className }: React.ComponentProps<"form">) {
-    const [visible, setVisible] = React.useState(false)
+    const {handleChangePassword, validationErrors} = useUser()
+    const [form, setForm] = React.useState({
+        password: "",
+        newPassword: '',
+    })
+
+    const handleSubmit = (event: React.FormEvent) => {
+        event.preventDefault()
+        handleChangePassword(form.password, form.newPassword)
+    }
+
     return (
-        <form className={cn("grid items-start gap-4", className)}>
+    <form className={cn("grid items-start gap-4", className)} onSubmit={handleSubmit}>
       <div className="grid gap-2">
-        <Label htmlFor="password">Password</Label>
-        <Input id="password" />
+        <Label htmlFor="password">Current password</Label>
+        <Input value={form.password} onChange={e=>setForm({...form, password: e.target.value})} id="password" />
+        {validationErrors.password && <p className="text-sm text-destructive">{validationErrors.password}</p>}
       </div>
       <div className="grid gap-2">
-        <Label htmlFor="confirm password">Confirm password</Label>
-        <Input id="confirm password" />
+        <Label htmlFor="new password">New password</Label>
+        <Input value={form.newPassword} onChange={e=>setForm({...form, newPassword: e.target.value})} id="confirm password" />
+        {validationErrors.newpassword && <p className="text-sm text-destructive">{validationErrors.newpassword}</p>}
       </div>
       <Button type="submit">Save</Button>
     </form>

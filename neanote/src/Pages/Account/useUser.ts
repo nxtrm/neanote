@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
 import { UserSettings } from "../../api/types/userTypes";
 import users from "../../api/users";
-import { UserSettingsSchema } from "../../formValidation";
+import { PasswordSchema, UserSettingsSchema } from "../../formValidation";
 
 interface Userstate {
     user: UserSettings | undefined;
@@ -15,9 +15,11 @@ interface Userstate {
 
     validationErrors: Record<string, string | undefined>;
     validateUser: () => boolean;
+    validatePassword: (password: string, newpassword: string) => boolean;
 
     loading: boolean;
     handleUpdateDetails: () => void;
+    handleChangePassword: (password: string, newpassword:string) => void
 }
 
 export const useUser = create<Userstate>()(
@@ -39,6 +41,24 @@ export const useUser = create<Userstate>()(
       validateUser: () => {
         const { currentUser } = get();
         const result = UserSettingsSchema.safeParse(currentUser);
+        if (!result.success) {
+          set((state) => {
+            const errors = Object.fromEntries(
+              Object.entries(result.error.flatten().fieldErrors).map(([key, value]) => [key, value.join(", ")])
+            );
+            state.validationErrors = errors;
+          });
+          return false;
+        } else {
+          set((state) => {
+            state.validationErrors = {};
+          });
+          return true;
+        }
+      },
+
+      validatePassword: (password: string, newpassword: string) => {
+        const result = PasswordSchema.safeParse({ password, newpassword });
         if (!result.success) {
           set((state) => {
             const errors = Object.fromEntries(
@@ -82,6 +102,14 @@ export const useUser = create<Userstate>()(
             }
         }
       },
+      handleChangePassword: async (password:string, newpassword: string) => {
+        const { validatePassword } = get();
+        if (validatePassword(password, newpassword)) {
+          const response = await users.changePassword(password, newpassword);
+        }
+      },
+
+
       getUser: async () => {
         const response = await users.getUser();
         if (response) {
