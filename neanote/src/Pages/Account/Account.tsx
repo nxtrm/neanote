@@ -56,6 +56,7 @@ function Account() {
           <div className='bg-secondary p-3 rounded-xl flex flex-col gap-2'>
             <h2 className='font-bold text-xl'>Preferences</h2>
               <Separator/>
+              #theme switch
           </div>
           <div className='border-[2px]  border-destructive p-3 rounded-xl flex flex-col gap-2'>
             <h2 className='font-bold text-xl'>Security</h2>

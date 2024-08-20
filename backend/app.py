@@ -7,6 +7,7 @@ from config import Config
 from modules.archive import archive_routes
 from modules.habits import habit_routes
 from modules.priorityQueue import TokenizationTaskManager
+from modules.recentsListHash import RecentNotesManager
 from modules.search import search_routes
 from modules.tasks import task_routes
 from modules.goals import goal_routes
@@ -40,6 +41,7 @@ conn = psycopg2.connect(
 # Load or train the tokenization model when the Flask app starts
 model = load_or_train_model()
 tokenization_manager = TokenizationTaskManager(Config,model)
+recents_manager = RecentNotesManager()
 
 task_routes(app, conn, tokenization_manager)
 habit_routes(app, conn, tokenization_manager)
