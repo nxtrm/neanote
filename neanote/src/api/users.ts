@@ -54,7 +54,7 @@ const users = {
         }
     },
 
-    updateUser: async (body) => {
+    updateUserDetails: async (body) => {
         try {
             let response = await a.put(`/api/user`, body);
 

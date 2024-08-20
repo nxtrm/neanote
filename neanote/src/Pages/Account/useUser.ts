@@ -17,7 +17,7 @@ interface Userstate {
     validateUser: () => boolean;
 
     loading: boolean;
-    handleSave: () => void;
+    handleUpdateDetails: () => void;
 }
 
 export const useUser = create<Userstate>()(
@@ -67,13 +67,13 @@ export const useUser = create<Userstate>()(
         get().validateUser();
       },
   
-      handleSave: async () => {
+      handleUpdateDetails: async () => {
         const { currentUser, validateUser }= get()
         if(validateUser()) {
             set((state) => {
                 state.loading = true;
             });
-            const response = await users.updateUser(currentUser);
+            const response = await users.updateUserDetails(currentUser);
             if (response) {
                 set((state) => {
                 state.loading = false;
@@ -81,7 +81,7 @@ export const useUser = create<Userstate>()(
                 });
             }
         }
-        },
+      },
       getUser: async () => {
         const response = await users.getUser();
         if (response) {
