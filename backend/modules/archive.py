@@ -2,7 +2,7 @@ from flask import g, jsonify, request
 from flask_jwt_extended import jwt_required
 import psycopg2
 
-from utils import token_required
+from utils import process_universal_notes, token_required
 
 
 def archive_routes(app,conn, model):
@@ -84,41 +84,7 @@ def archive_routes(app,conn, model):
                 (userId, per_page + 1, offset)  # Fetch one more note than the limit
             )
             rows = cur.fetchall()
-            notes_dict = {}
-            for row in rows:
-                note_id = row['note_id']
-                if note_id not in notes_dict:
-                    notes_dict[note_id] = {
-                        'noteid': note_id,
-                        'title': row['title'][:50] + '...' if len(row['title']) > 50 else row['title'],
-                        'content': row['content'][:100] + '...' if len(row['content']) > 100 else row['content'],
-                        'type': row['type'],
-                        'tags': []
-                    }
-                if row['tagid']:
-                    notes_dict[note_id]['tags'].append({
-                        'tagid': row['tagid'],
-                        'name': row['name'],
-                        'color': row['color']
-                    })
-
-                # Fetch the secondary ID based on the type
-                for note in notes_dict.values():
-                    if note['type'] == 'task':
-                        cur.execute("SELECT id AS taskid FROM Tasks WHERE note_id = %s", (note['noteid'],))
-                        secondary_id = cur.fetchone()
-                        note['secondaryid'] = secondary_id['taskid'] if secondary_id else None
-                    elif note['type'] == 'habit':
-                        cur.execute("SELECT id AS habitid FROM Habits WHERE note_id = %s", (note['noteid'],))
-                        secondary_id = cur.fetchone()
-                        note['secondaryid'] = secondary_id['habitid'] if secondary_id else None
-                    elif note['type'] == 'goal':
-                        cur.execute("SELECT id AS goalid FROM Goals WHERE note_id = %s", (note['noteid'],))
-                        secondary_id = cur.fetchone()
-                        note['secondaryid'] = secondary_id['goalid'] if secondary_id else None
-                    # Add any other types here
-
-            notes = list(notes_dict.values())
+            notes = process_universal_notes(rows,cur)
 
             # Determine if there is a next page
             if len(notes) > per_page:
