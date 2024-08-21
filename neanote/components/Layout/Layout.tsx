@@ -3,6 +3,7 @@ import Sidebar from '../Sidebar/Sidebar'
 import NavBar from '../NavBar/NavBar'
 import { Outlet } from "react-router-dom";
 import PageContainer from '../PageContainer/PageContainer';
+import TextSelectPopover from '../TextSelectPopover/TextSelectPopover';
 
 
 const Layout = () => {
@@ -12,12 +13,12 @@ const Layout = () => {
           <NavBar/>
         </nav>
         <main className='flex-grow p-2 pt-0 flex flex-col'>
+          <TextSelectPopover/>
           <PageContainer>
             <Outlet/>
           </PageContainer>
         </main>
         {/* <footer className='p-2 pt-0 h-15'>
-         
         </footer> */}
     </div>
   )
