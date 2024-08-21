@@ -9,7 +9,7 @@ type RegisterState = {
     email:string
   };
   formHandler: (form) => void;
-  register: () => Promise<void>;
+  register: () => Promise<boolean>;
 };
 
 export let useRegister = create<RegisterState>((set,get)=>({
@@ -24,9 +24,9 @@ export let useRegister = create<RegisterState>((set,get)=>({
       let {form}=get()
       let response = await users.register(form)
       if(response){
-          console.log("Success")
-          Cookies.set('userId', response.userId, { expires: 7 })
-
+        return true
+      } else {
+        return false
       }
 
   }

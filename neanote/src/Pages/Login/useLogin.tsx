@@ -23,7 +23,6 @@ export let useLogin = create<LoginState>((set,get)=>({
       let {form}=get()
       let response = await users.login(form)
       if(response){
-        Cookies.set('userId', response.userId, { expires: 7 })
         return true
       }
       else {

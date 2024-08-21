@@ -7,12 +7,13 @@ import { Form, FormControl, FormField, FormItem, FormMessage } from '../../../co
 import { Input } from "../../../components/@/ui/input";
 import { Label } from "../../../components/@/ui/label";
 import { registerFormSchema } from '../../formValidation';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useRegister } from './useRegister';
 
 
 function Register() {
   const {formHandler, register} = useRegister()
+  const navigate = useNavigate()
   // Defines the form
   const form = useForm<z.infer<typeof registerFormSchema>>({
     resolver: zodResolver(registerFormSchema),
@@ -27,6 +28,7 @@ function Register() {
     console.log(values)
     formHandler(values)
     register()
+    navigate('/dashboard')
   }
 
 return (
@@ -37,7 +39,6 @@ return (
                       Neanote
               </h1>
             </Link>
-            
             <h1 className='text-2xl pt-4 pb-3 font-bold'>Register</h1>
             <Form {...form}>
 

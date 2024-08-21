@@ -17,7 +17,6 @@ function LoginButton() {
   const navigate = useNavigate()
   const handleSignOut = () => {
     Cookies.remove('token')
-    Cookies.remove('userId')
     navigate('/get-started')
   }
   return (
