@@ -8,20 +8,21 @@ from modules.archive import archive_routes
 from modules.habits import habit_routes
 from modules.priorityQueue import TokenizationTaskManager
 from modules.recentsListHash import RecentNotesManager
-from modules.universal import universal_routes
+from modules.universal import summarize, universal_routes
 from modules.tasks import task_routes
 from modules.goals import goal_routes
 from modules.tags import tag_routes
 from modules.users import user_routes
 from utils import token_required
 from word2vec import combine_strings_to_vector, load_or_train_model
-
+import google.generativeai as genai
 
 app = Flask(__name__)
 app.config.from_object(Config)
 
 CORS(app, resources={r"/api/*": {"origins": ["http://localhost:5173"]}} , supports_credentials=True)
 jwt = JWTManager(app)
+# genai.configure(api_key = Config.GEMINI_API_KEY)
 
 conn = psycopg2.connect(
     host="localhost",

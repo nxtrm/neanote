@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from 'react'
 import { Card,CardContent } from '../@/ui/card'
 import { Button } from '../@/ui/button'
-import { FaCopy, FaPaste } from "react-icons/fa6";
+import { FaCopy, FaShare } from "react-icons/fa6";
 import { IoSparkles } from "react-icons/io5";
 
 function TextSelectPopover() {
     const [state, setState] = useState<string>();
     const [selection, setSelection] = useState<string>();
     const [position, setPosition] = useState<Record<string, number>>();
+    let rect;
+    let selectedText = '';
 
     function onSelectStart(event) {
         const target = event.target as HTMLElement;
@@ -19,8 +21,6 @@ function TextSelectPopover() {
 
     const onMouseUp = (event) => {
         const target = event.target as HTMLElement;
-        let selectedText = '';
-        let rect;
 
         if (target.tagName === 'TEXTAREA' || target.tagName === 'INPUT') {
             const input = target as HTMLInputElement | HTMLTextAreaElement;
@@ -30,8 +30,19 @@ function TextSelectPopover() {
 
         if (selectedText) {
             setSelection(selectedText);
-            setPosition({ x: rect.left, y: rect.top });
+            setPosition({
+                x: rect.left + (rect.width / 2),
+                y: rect.top
+            });
         } else {
+            setSelection(undefined);
+            setPosition(undefined);
+        }
+    };
+
+    const onDocumentClick = (event) => {
+        const target = event.target as HTMLElement;
+        if (target.tagName !== 'TEXTAREA' && target.tagName !== 'INPUT') {
             setSelection(undefined);
             setPosition(undefined);
         }
@@ -40,14 +51,15 @@ function TextSelectPopover() {
     useEffect(() => {
         document.addEventListener('selectstart', onSelectStart);
         document.addEventListener('mouseup', onMouseUp);
-        document.addEventListener('keyup', onMouseUp); // To handle keyboard selection in input/textarea
+        document.addEventListener('click', onDocumentClick);
 
         return () => {
             document.removeEventListener('selectstart', onSelectStart);
             document.removeEventListener('mouseup', onMouseUp);
-            document.removeEventListener('keyup', onMouseUp);
+            document.removeEventListener('click', onDocumentClick);
         };
     }, []);
+
 
     return (
         <div role="dialog" aria-labelledby="tooltip" aria-haspopup="dialog">
@@ -62,8 +74,7 @@ function TextSelectPopover() {
                         transform: `translate3d(${position.x}px, ${position.y}px, 0)`
                     }}
                 >
-                    <Button className='h-[30px] w-[30px]' name='copy' size='icon'><FaCopy /></Button>
-                    <Button className='h-[30px] w-[30px]' name='paste' size='icon'><FaPaste /></Button>
+                    <Button className='h-[30px] w-[30px]' name='paste' size='icon'><FaShare /></Button>
                     <Button className='h-[30px] w-[30px]' name='summarize with ai' size='icon'><IoSparkles /></Button>
                 </div>
             )}

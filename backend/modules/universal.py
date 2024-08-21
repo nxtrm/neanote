@@ -2,11 +2,15 @@ from flask import g, jsonify, request
 from flask_jwt_extended import jwt_required
 import psycopg2
 
+from formsValidation import GeminiSummarySchema
 from utils import process_universal_notes, token_required
 from word2vec import combine_strings_to_vector
 
 
-def universal_routes(app, conn, model, recents_manager):
+
+def universal_routes(app, conn, model, recents_manager,
+                    #  genai
+                     ):
     @app.route('/api/search', methods=['GET'])
     @jwt_required()
     @token_required
@@ -118,3 +122,47 @@ def universal_routes(app, conn, model, recents_manager):
         except Exception as e:
             conn.rollback()
             raise
+
+    # Note summarization model using Google's Gemini LLM's API
+    @app.route('/api/summarize', methods=['POST'])
+    @jwt_required()
+    @token_required
+    def summarize(data,genai):
+            try:
+                gemini_schema = GeminiSummarySchema()
+                data = gemini_schema.load(request.json)
+                print('summarizing...')
+                title  = data['title']
+                selection =  data['selection']
+
+                model = genai.GenerativeModel("gemini-1.5-flash")
+                response = model.generate_content("""
+                    Please summarize the following extract from a note titled {title}:
+
+                    {selection}
+
+                    Please include:
+
+                        Key points: What are the most important things mentioned in the extract?
+
+                        Context: How does this extract relate to the note as a whole?
+
+                        Purpose: What is the purpose of this particular extract within the note?
+
+                    Keep the summary concise, clear and below 1000 characters.
+                    """.format(title=title, selection=selection),
+                    # stream=True,
+                    generation_config = genai.types.GenerationConfig(
+                        temperature=0.2,
+                        top_p=0.95,
+                        top_k=40,
+                        stop_sequences=["\n", "\n\n"],
+                        max_output_tokens=256,
+                    ),
+
+                    )
+                print(response.text)
+            except Exception as e:
+                raise
+
+
