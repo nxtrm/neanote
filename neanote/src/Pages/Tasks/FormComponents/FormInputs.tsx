@@ -6,7 +6,6 @@ import TagsDropdownMenu from "../../Tags/components/TagsDropdownMenu"
 import { useTasks } from "../useTasks"
 import CheckBox from "../../../../components/CheckBox/CheckBox"
 import { Label } from "../../../../components/@/ui/label"
-import TextSelectPopover from "../../../../components/TextSelectPopover/TextSelectPopover"
 
 interface Props {
     content: string

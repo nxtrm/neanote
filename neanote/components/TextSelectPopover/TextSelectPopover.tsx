@@ -9,9 +9,12 @@ function TextSelectPopover() {
     const [selection, setSelection] = useState<string>();
     const [position, setPosition] = useState<Record<string, number>>();
 
-    function onSelectStart() {
-        setState('selecting');
-        setSelection(undefined);
+    function onSelectStart(event) {
+        const target = event.target as HTMLElement;
+        if (target.tagName === 'TEXTAREA' || target.tagName === 'INPUT') {
+            setState('selecting');
+            setSelection(undefined);
+        }
     }
 
     const onMouseUp = (event) => {
@@ -21,15 +24,8 @@ function TextSelectPopover() {
 
         if (target.tagName === 'TEXTAREA' || target.tagName === 'INPUT') {
             const input = target as HTMLInputElement | HTMLTextAreaElement;
-            selectedText = input.value.substring(input.selectionStart, input.selectionEnd);
+            selectedText = input.value.substring(input.selectionStart ?? 0, input.selectionEnd ?? 0);
             rect = input.getBoundingClientRect();
-        } else {
-            const selection = window.getSelection();
-            if (selection && selection.rangeCount > 0) {
-                const range = selection.getRangeAt(0);
-                rect = range.getBoundingClientRect();
-                selectedText = selection.toString();
-            }
         }
 
         if (selectedText) {
@@ -58,18 +54,17 @@ function TextSelectPopover() {
             {(selection && position) && (
                 <div
                     className="
-                        absolute -top-[35px] left-0 w-[90px] bg-primary h-[35px] rounded m-0
+                        absolute -top-[40px] left-0 w-[90px] bg-primary h-[35px] rounded m-0
                         after:absolute after:top-full after:left-1/2 after:-translate-x-2 after:h-0 after:w-0 after:border-x-[6px] after:border-x-transparent after:border-b-[8px] after:border-b-black after:rotate-180
                         flex flex-row gap-2 justify-center items-center p-2
-                        "
+                    "
                     style={{
                         transform: `translate3d(${position.x}px, ${position.y}px, 0)`
                     }}
                 >
-                        <Button className='h-[30px] w-[30px]' name='copy' size='icon'><FaCopy /></Button>
-                        <Button className='h-[30px] w-[30px]' name='paste' size='icon'><FaPaste /></Button>
-                        <Button className='h-[30px] w-[30px]' name='summarize with ai' size='icon'><IoSparkles /></Button>
-
+                    <Button className='h-[30px] w-[30px]' name='copy' size='icon'><FaCopy /></Button>
+                    <Button className='h-[30px] w-[30px]' name='paste' size='icon'><FaPaste /></Button>
+                    <Button className='h-[30px] w-[30px]' name='summarize with ai' size='icon'><IoSparkles /></Button>
                 </div>
             )}
         </div>
