@@ -8,7 +8,7 @@ from modules.archive import archive_routes
 from modules.habits import habit_routes
 from modules.priorityQueue import TokenizationTaskManager
 from modules.recentsListHash import RecentNotesManager
-from modules.universal import summarize, universal_routes
+from modules.universal import universal_routes
 from modules.tasks import task_routes
 from modules.goals import goal_routes
 from modules.tags import tag_routes
@@ -42,8 +42,10 @@ conn = psycopg2.connect(
 # Load or train the tokenization model when the Flask app starts
 model = load_or_train_model()
 tokenization_manager = TokenizationTaskManager(Config,model)
+#Initialize the recent notes manager
 recents_manager = RecentNotesManager()
 
+#Initialize routes
 task_routes(app, conn, tokenization_manager, recents_manager)
 habit_routes(app, conn, tokenization_manager, recents_manager)
 goal_routes(app,  conn, tokenization_manager, recents_manager)
@@ -51,8 +53,8 @@ tag_routes(app, conn, tokenization_manager)
 user_routes(app, conn)
 archive_routes(app, conn, tokenization_manager)
 
-#small routes that do not require a separate file
-universal_routes(app, conn, model, recents_manager)
+
+universal_routes(app, conn, model, recents_manager) #small routes that do not require a separate file
 
 #Centralized error handler
 @app.errorhandler(Exception)

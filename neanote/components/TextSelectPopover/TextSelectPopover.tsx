@@ -3,11 +3,15 @@ import { Card,CardContent } from '../@/ui/card'
 import { Button } from '../@/ui/button'
 import { FaCopy, FaShare } from "react-icons/fa6";
 import { IoSparkles } from "react-icons/io5";
+import { universalApi } from '../../src/api/universalApi';
+import SummarizeDialog from '../SummarizeDialog/SummarizeDialog';
 
 function TextSelectPopover() {
     const [state, setState] = useState<string>();
     const [selection, setSelection] = useState<string>();
     const [position, setPosition] = useState<Record<string, number>>();
+    const [dialogOpen, setDialogOpen] = useState<boolean>(false);
+    const [dialogText, setDialogText] = useState<string>('');
     let rect;
     let selectedText = '';
 
@@ -60,6 +64,21 @@ function TextSelectPopover() {
         };
     }, []);
 
+    const handleSummarize = (text: string) => {
+        const response = universalApi.summarize(text);
+        response.then((result) => {
+            if (result && result.success) {
+                setDialogText(result.data.data);
+                setDialogOpen(true);
+            }
+        });
+    };
+
+    const closeDialog = () => {
+        setDialogOpen(false);
+        setSelection(undefined);
+        setPosition(undefined);
+    };
 
     return (
         <div role="dialog" aria-labelledby="tooltip" aria-haspopup="dialog">
@@ -75,11 +94,13 @@ function TextSelectPopover() {
                     }}
                 >
                     <Button className='h-[30px] w-[30px]' name='paste' size='icon'><FaShare /></Button>
-                    <Button className='h-[30px] w-[30px]' name='summarize with ai' size='icon'><IoSparkles /></Button>
+                    <Button className='h-[30px] w-[30px]' onClick={() => handleSummarize(selection)}  name='summarize with ai' size='icon'><IoSparkles /></Button>
                 </div>
             )}
+            {dialogOpen && <SummarizeDialog onClose={closeDialog} text={dialogText} />
+ }
         </div>
     );
 }
 
-export default TextSelectPopover
+export default TextSelectPopover;

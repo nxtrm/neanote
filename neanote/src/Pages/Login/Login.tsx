@@ -31,7 +31,7 @@ function Login() {
       formHandler(values);
       login().then(loginResult => {
         if (loginResult) {
-          navigate("/dashboard")
+          navigate("/")
         }
       })
     }

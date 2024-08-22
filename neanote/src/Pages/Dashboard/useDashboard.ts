@@ -1,7 +1,7 @@
 
 import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
-import { recentsApi } from "../../api/recentsApi";
+import { universalApi } from "../../api/universalApi";
 import { UniversalType } from "../../api/types/ArchiveTypes";
 import { showToast } from "../../../components/Toast";
 
@@ -17,7 +17,7 @@ export const useDashboard = create<Dashboardstate>()(
         recents: [],
         loading:false,
         getRecents: async () => {
-            const response = await recentsApi.getRecents();
+            const response = await universalApi.getRecents();
             if (response && response.success) {
                 set((state) => {
                     state.recents = response.data.data

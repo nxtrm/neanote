@@ -66,5 +66,5 @@ class GoalSchema(Schema):
     goalid = fields.UUID(required=False)   
 
 class GeminiSummarySchema(Schema):
-    title = fields.Str(required=True, validate=lambda s: 100 >= len(s) > 0),
-    selection = fields.Str(required=True, validate=lambda s: 1000 >= len(s) > 100),
+    title = fields.Str(required=False, validate=lambda s: 100 >= len(s) > 0),
+    text = fields.Str(required=False, validate=lambda s: 1000 >= len(s) > 100),

@@ -127,41 +127,43 @@ def universal_routes(app, conn, model, recents_manager,
     @app.route('/api/summarize', methods=['POST'])
     @jwt_required()
     @token_required
-    def summarize(data,genai):
+    def summarize():
             try:
-                gemini_schema = GeminiSummarySchema()
-                data = gemini_schema.load(request.json)
-                print('summarizing...')
-                title  = data['title']
-                selection =  data['selection']
+                #Commented out for now as api not avalible in my region
+                                                                                        
+                # gemini_schema = GeminiSummarySchema()
+                # data = gemini_schema.load(request.json)
+                # title  = data['title']
+                # selection =  data['selection']
 
-                model = genai.GenerativeModel("gemini-1.5-flash")
-                response = model.generate_content("""
-                    Please summarize the following extract from a note titled {title}:
+                # model = genai.GenerativeModel("gemini-1.5-flash")
+                # response = model.generate_content("""
+                #     Please summarize the following extract from a note titled {title}:
 
-                    {selection}
+                #     {selection}
 
-                    Please include:
+                #     Please include:
 
-                        Key points: What are the most important things mentioned in the extract?
+                #         Key points: What are the most important things mentioned in the extract?
 
-                        Context: How does this extract relate to the note as a whole?
+                #         Context: How does this extract relate to the note as a whole?
 
-                        Purpose: What is the purpose of this particular extract within the note?
+                #         Purpose: What is the purpose of this particular extract within the note?
 
-                    Keep the summary concise, clear and below 1000 characters.
-                    """.format(title=title, selection=selection),
-                    # stream=True,
-                    generation_config = genai.types.GenerationConfig(
-                        temperature=0.2,
-                        top_p=0.95,
-                        top_k=40,
-                        stop_sequences=["\n", "\n\n"],
-                        max_output_tokens=256,
-                    ),
+                #     Keep the summary concise, clear and below 1000 characters.
+                #     """.format(title=title, selection=selection),
+                #     # stream=True,
+                #     generation_config = genai.types.GenerationConfig(
+                #         temperature=0.2,
+                #         top_p=0.95,
+                #         top_k=40,
+                #         stop_sequences=["\n", "\n\n"],
+                #         max_output_tokens=256,
+                #     ),
 
-                    )
-                print(response.text)
+                #     )
+                response = "This is a dummy response for now as the API is not available in my region at the moment but it should work fine in your region blah blah blah."
+                return jsonify({'message': 'Summary generated successfully', 'data': response}), 200
             except Exception as e:
                 raise
 

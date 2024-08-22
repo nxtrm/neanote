@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { FaSearch } from "react-icons/fa";
-import { searchApi } from '../../src/api/searchApi';
+import { universalApi } from '../../src/api/universalApi';
 import { UniversalType } from '../../src/api/types/ArchiveTypes';
 import { useScreenSize } from '../../src/DisplayContext';
 import { Button } from "../@/ui/button";
@@ -35,7 +35,7 @@ function SearchBar() {
         setLoading(true);
         setError(null);
         try {
-            const response = await searchApi.search(searchQuery, activeMode, pageIndex);
+            const response = await universalApi.search(searchQuery, activeMode, pageIndex);
             if (response && response.data) {
                 setResults(response.data);
                 setPagination(response.pagination)

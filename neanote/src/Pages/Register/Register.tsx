@@ -28,7 +28,7 @@ function Register() {
     console.log(values)
     formHandler(values)
     register()
-    navigate('/dashboard')
+    navigate('/')
   }
 
 return (
