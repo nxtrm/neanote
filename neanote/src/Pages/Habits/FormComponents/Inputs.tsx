@@ -33,7 +33,7 @@ function Inputs({withChechbox}:{withChechbox?: boolean}) {
           <Textarea
             id="content"
             name="Content"
-            className='mt-3'
+            className='my-2 min-h-[10vh] h-auto max-h-[70vh]'
             value={currentHabit?.content || ''}
             placeholder='Describe your habit here'
             onChange={(e) => updateCurrentHabit('content', e.target.value)}

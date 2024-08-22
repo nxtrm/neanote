@@ -27,15 +27,15 @@ function FormInputs({content, title}: Partial<Goal>) {
         {validationErrors['title'] && (
                   <Label htmlFor='title' className='text-destructive'>{validationErrors['title']}</Label>
                 )}
-        <div className='pt-2 pb-3'>
-                <Textarea
-                    id="content"
-                    name="Content"
-                    value={content}
-                    placeholder='Describe your task here'
-                    onChange={(e) => updateCurrentGoal('content', e.target.value)}
-                    />
-        </div>
+
+            <Textarea
+                id="content"
+                name="Content"
+                className='my-2 min-h-[10vh]  h-auto max-h-[70vh]'
+                value={content}
+                placeholder='Describe your goal here'
+                onChange={(e) => updateCurrentGoal('content', e.target.value)}
+                />
         {validationErrors['content'] && (
           <Label htmlFor="content" className='text-destructive'>{validationErrors['content']}</Label>
         )}
