@@ -88,6 +88,23 @@ const users = {
             return false;
         }
     },
+
+    deleteUser: async (password) => {
+        try {
+            let response = await a.delete(`/api/user/delete`, {data:{password}});
+
+            if (response.status === 200) {
+                showToast('s', 'User has been deleted successfully');
+                return {success:true}
+            } else {
+                showToast('e', `There was an error deleting the user: ${response.data.message}`)
+                return {success:false}
+            }
+        } catch (error) {
+            showToast('e', error);
+            return false;
+        }
+    }
 }
 
 

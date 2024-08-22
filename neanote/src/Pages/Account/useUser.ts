@@ -7,6 +7,7 @@ import { PasswordSchema, UserSettingsSchema } from "../../formValidation";
 interface Userstate {
     user: UserSettings | undefined;
     getUser : () => Promise<void>;
+    deleteUser: (password:string) => Promise<boolean>;
 
     currentUser: UserSettings
     updateCurrentUser: (key: keyof UserSettings, value: any) => void;
@@ -118,7 +119,6 @@ export const useUser = create<Userstate>()(
         }
       },
 
-
       getUser: async () => {
         const response = await users.getUser();
         if (response) {
@@ -128,5 +128,15 @@ export const useUser = create<Userstate>()(
           });
         }
       },
+
+      deleteUser: async (password:string) => {
+        const response = await users.deleteUser(password);
+        if (response && response.success) {
+          return true
+        }
+        else {
+          return false
+        }
+      }
     }))
   );

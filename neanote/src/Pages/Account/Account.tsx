@@ -7,6 +7,7 @@ import { Input } from '../../../components/@/ui/input';
 import { Button } from '../../../components/@/ui/button';
 import {Separator} from '../../../components/@/ui/separator'
 import {PasswordDrawerDialog }from './Components/PasswordDrawerDialog';
+import { DeleteAccountDrawerDialog } from './Components/DeleteAccountDrawerDialog';
 
 function Account() {
     const { currentUser, getUser, updateCurrentUser, pendingChanges, validationErrors, loading, handleUpdateDetails } = useUser();
@@ -61,8 +62,10 @@ function Account() {
           <div className='border-[2px]  border-destructive p-3 rounded-xl flex flex-col gap-2'>
             <h2 className='font-bold text-xl'>Security</h2>
               <Separator/>
-              <PasswordDrawerDialog/>
-
+              <div className='flex flex-row gap-3'>
+                <PasswordDrawerDialog/>
+                <DeleteAccountDrawerDialog/>
+              </div>
           </div>
         </div>
       </>

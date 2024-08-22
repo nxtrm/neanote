@@ -65,11 +65,6 @@ return (
   )
 }
 
-function TriggerButton() {
-    return (
-        <Button variant="destructive" className="w-fit">Change Password</Button>
-    )
-}
 
 function ProfileForm({ className, setOpen }: React.ComponentProps<"form"> & { setOpen: React.Dispatch<React.SetStateAction<boolean>> }) {
     const {handleChangePassword, validationErrors} = useUser()
