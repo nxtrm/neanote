@@ -6,6 +6,7 @@ import TagsDropdownMenu from "../../Tags/components/TagsDropdownMenu"
 import { useTasks } from "../useTasks"
 import CheckBox from "../../../../components/CheckBox/CheckBox"
 import { Label } from "../../../../components/@/ui/label"
+import AutoResizeTextBox from "../../../../components/AutoResizeTextBox/AutoResizeTextBox"
 
 interface Props {
     content: string
@@ -16,6 +17,7 @@ interface Props {
 
 function FormInputs({content, title, withCheckBox, validationErrors}: Props) {
     const {updateCurrentTask, setPendingChanges, toggleTaskCompleted, currentTask} = useTasks()
+
     return (
       <div className="pt-2 h-full">            
         <div className="flex flex-row gap-2 ">
@@ -35,14 +37,8 @@ function FormInputs({content, title, withCheckBox, validationErrors}: Props) {
         {validationErrors['title'] && (
         <Label htmlFor="title" className='text-destructive'>{validationErrors['title']}</Label>
         )}
-        <Textarea
-          id="content"
-          className='my-2 min-h-[10vh]  h-auto max-h-[70vh]'
-          name="Content"
-          value={content}
-          placeholder='Describe your task here'
-          onChange={(e) => updateCurrentTask('content', e.target.value)}
-          />
+
+        <AutoResizeTextBox<Task>  content={content} update={updateCurrentTask} placeholder='Describe your task here'/>
 
         {validationErrors['content'] && (
         <Label htmlFor="content" className='text-destructive'>{validationErrors['content']}</Label>

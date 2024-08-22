@@ -5,6 +5,8 @@ import { Input } from '../../../../components/@/ui/input';
 import { Textarea } from '../../../../components/@/ui/textarea';
 import { useHabits } from '../useHabits';
 import TagsDropdownMenu from '../../Tags/components/TagsDropdownMenu';
+import AutoResizeTextBox from '../../../../components/AutoResizeTextBox/AutoResizeTextBox';
+import { Habit } from '../../../api/types/habitTypes';
 
 function Inputs({withChechbox}:{withChechbox?: boolean}) {
   const {currentHabit, updateCurrentHabit, validationErrors, toggleCompletedToday, setPendingChanges} = useHabits();
@@ -30,14 +32,7 @@ function Inputs({withChechbox}:{withChechbox?: boolean}) {
             <Label htmlFor="title" className='text-destructive py-3'>{validationErrors['title']}</Label>
         )}
 
-          <Textarea
-            id="content"
-            name="Content"
-            className='my-2 min-h-[10vh] h-auto max-h-[70vh]'
-            value={currentHabit?.content || ''}
-            placeholder='Describe your habit here'
-            onChange={(e) => updateCurrentHabit('content', e.target.value)}
-            />
+        <AutoResizeTextBox<Habit>  content={currentHabit?.content || ''} update={updateCurrentHabit} placeholder='Describe your habit here'/>
         {validationErrors['content'] && (
             <Label htmlFor='content' className='text-destructive'>{validationErrors['content']}</Label>
         )}

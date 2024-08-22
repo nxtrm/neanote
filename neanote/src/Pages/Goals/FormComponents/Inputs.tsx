@@ -5,6 +5,7 @@ import { Textarea } from '../../../../components/@/ui/textarea'
 import TagsDropdownMenu from '../../Tags/components/TagsDropdownMenu'
 import { useGoals } from '../useGoals'
 import { Label } from '../../../../components/@/ui/label'
+import AutoResizeTextBox from '../../../../components/AutoResizeTextBox/AutoResizeTextBox'
 
 
 function FormInputs({content, title}: Partial<Goal>) {
@@ -28,14 +29,7 @@ function FormInputs({content, title}: Partial<Goal>) {
                   <Label htmlFor='title' className='text-destructive'>{validationErrors['title']}</Label>
                 )}
 
-            <Textarea
-                id="content"
-                name="Content"
-                className='my-2 min-h-[10vh]  h-auto max-h-[70vh]'
-                value={content}
-                placeholder='Describe your goal here'
-                onChange={(e) => updateCurrentGoal('content', e.target.value)}
-                />
+        <AutoResizeTextBox<Goal>  content={content ? content : ''} update={updateCurrentGoal} placeholder='Describe your goal here'/>
         {validationErrors['content'] && (
           <Label htmlFor="content" className='text-destructive'>{validationErrors['content']}</Label>
         )}
