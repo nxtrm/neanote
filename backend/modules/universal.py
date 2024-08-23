@@ -4,7 +4,7 @@ import psycopg2
 
 from formsValidation import GeminiSummarySchema
 from utils import process_universal_notes, token_required
-from word2vec import combine_strings_to_vector
+from utils.word2vec import combine_strings_to_vector
 
 
 
@@ -138,9 +138,9 @@ def universal_routes(app, conn, model, recents_manager,
 
                 # model = genai.GenerativeModel("gemini-1.5-flash")
                 # response = model.generate_content("""
-                #     Please summarize the following extract from a note titled {title}:
+                #     Please summarize the following extract from a note titled {title}, delimeted by three backticks:
 
-                #     {selection}
+                #     ```{selection}```
 
                 #     Please include:
 

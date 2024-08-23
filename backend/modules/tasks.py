@@ -7,7 +7,6 @@ from formsValidation import TaskSchema
 from utils import token_required, verify_subtask_ownership, verify_task_ownership
 import psycopg2
 
-from word2vec import combine_strings_to_vector
 
 def task_routes(app, conn, tokenization_manager,recents_manager):
 
