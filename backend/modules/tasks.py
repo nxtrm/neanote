@@ -10,11 +10,8 @@ from formsValidation import TaskSchema
 from utils.utils import token_required, verify_subtask_ownership, verify_task_ownership
 import psycopg2
 
-from utils.databaseManager import DatabaseManager
-
 
 def task_routes(app, conn, tokenization_manager,recents_manager):
-    db_manager = DatabaseManager(conn)
 
     #TASK MODULE
     @app.route('/api/tasks/create', methods=['POST'])
@@ -25,33 +22,35 @@ def task_routes(app, conn, tokenization_manager,recents_manager):
             userId = str(g.userId)  # Convert UUID to string if userId is a UUID
             task_schema = TaskSchema()
             data = task_schema.load(request.get_json())
-
             title = data['title']
             tags = data['tags']
             content = data['content']
             subtasks = data['subtasks']
             due_date = data.get('due_date')
-
+            cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
             # Insert into Notes table
-            note_id = db_manager.execute_returning_query(
+            cur.execute(
                 "INSERT INTO Notes (user_id, title, content, type) VALUES (%s, %s, %s, %s) RETURNING id",
                 (userId, title, content, 'task')
-            )[0]
-
-            # Insert into Tasks table
-            task_id = db_manager.execute_returning_query(
-                "INSERT INTO Tasks (note_id, completed, due_date) VALUES (%s, %s, %s) RETURNING id",
-                (note_id, False, due_date)
-            )[0]
-
+            )
+            # Commit the transaction to ensure the insert is finalized
+            conn.commit()
+            noteId = cur.fetchone()[0]
+            cur.execute(
+                """
+                INSERT INTO Tasks (note_id, completed, due_date)
+                VALUES (%s, %s, %s) RETURNING id
+                """,
+                (noteId, False, due_date)
+            )
+            taskId = cur.fetchone()[0]
             new_subtasks = None
-
             if subtasks:
                 subtask_tuples = [
-                    (task_id, subtask['description'], False, subtask['index'])
+                    (taskId, subtask['description'], False, subtask['index'])
                     for subtask in subtasks
                 ]
-                db_manager.executemany_query(
+                cur.executemany(
                     """
                     INSERT INTO Subtasks (task_id, description, completed, st_index)
                     VALUES (%s, %s, %s, %s)
@@ -59,46 +58,46 @@ def task_routes(app, conn, tokenization_manager,recents_manager):
                     """,
                     subtask_tuples
                 )
-                subtasks = db_manager.fetchall_query(
-                    "SELECT id, task_id, description, completed, st_index FROM Subtasks WHERE task_id = %s",
-                    (task_id,)
+                cur.execute(
+                    """
+                    SELECT id, task_id, description, completed, st_index
+                    FROM Subtasks
+                    WHERE task_id = %s
+                    """,
+                    (taskId,)
                 )
-
+                new_subtasks = cur.fetchall()
             if tags:
-                tag_tuples = [(note_id, str(tagId)) for tagId in tags]  # Convert tagId to string if it's a UUID
-                db_manager.executemany_query(
+                tag_tuples = [(noteId, str(tagId)) for tagId in tags]  # Convert tagId to string if it's a UUID
+                cur.executemany(
                     """
                     INSERT INTO NoteTags (note_id, tag_id)
                     VALUES (%s, %s)
                     """,
                     tag_tuples
                 )
-
-            db_manager.commit()
-
             text = [title, content] + [subtask['description'] for subtask in subtasks] if subtasks else [title, content]
             priority = sum(len(string) for string in text)
-
             tokenization_manager.add_note(
-                text=text,
-                priority=priority,
-                note_id=note_id
+            text=text,
+            priority=priority,
+            note_id=noteId
             )
-
+            conn.commit()
             return jsonify({
                 'message': 'Task created successfully',
                 'data': {
-                    'noteid': note_id,
-                    'taskid': task_id,
-                    'subtasks': subtasks
+                    'noteid': noteId,
+                    'taskid': taskId,
+                    'subtasks': new_subtasks
                 }
             }), 200
         except Exception as error:
-            db_manager.rollback()
+            conn.rollback()
             print('Error during transaction', error)
             raise
         finally:
-            db_manager.close()
+            cur.close()
 
     @app.route('/api/tasks/update', methods=['PUT'])
     @jwt_required()
