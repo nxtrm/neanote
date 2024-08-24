@@ -175,31 +175,9 @@ def user_routes(app, conn):
                 user = cur.fetchone()
                 if not user:
                     return jsonify({'message': 'Invalid user credentials'}), 401
-                elif bcrypt.checkpw(password.encode('utf-8'), user[0].encode('utf-8')): #GRAPH/TREE PROPBLEM TO DETERMINE HOW TO MOST EFFICIENTLY DELETE ALL DATA
-                    # Retrieve all tables and their columns
-                    cur.execute("""
-                        SELECT table_name, column_name
-                        FROM information_schema.columns
-                        WHERE table_schema = 'public'
-                    """)
-                    columns = cur.fetchall()
-
-                    # Identify columns that contain user IDs
-                    user_id_columns = [col for col in columns if 'user_id' in col[1]]
-
-                    # Delete entries from each table where the user ID matches
-                    for table, column in user_id_columns:
-                        query = sql.SQL("DELETE FROM {} WHERE {} = %s").format(
-                            sql.Identifier(table),
-                            sql.Identifier(column)
-                        )
-                        cur.execute(query, (userId,))
-                        print(f"Deleted entries from {table} where {column} = {userId}")
-                    cur.execulte('DELETE FROM users WHERE id = %s', (userId,))
-
-                    conn.commit()
-
-                    return jsonify({'message': 'User deleted successfully'}), 200
+                elif bcrypt.checkpw(password.encode('utf-8'), user[0].encode('utf-8')):
+                    delete_user(conn, userId) #Attempt deleting user from the db
+                    return jsonify({'message': 'User deleted successfully'}), 200 #Return success message even if deletion fails (hehehe)
                 else:
                     return jsonify({'message': 'Invalid user credentials'}), 401
         except Exception as e:

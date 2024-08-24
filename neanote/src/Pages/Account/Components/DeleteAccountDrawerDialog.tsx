@@ -24,6 +24,7 @@ import { Checkbox } from "../../../../components/@/ui/checkbox"
 import { useUser } from "../useUser"
 import Cookies from 'js-cookie';
 import { useNavigate } from "react-router-dom"
+import { showToast } from "../../../../components/Toast"
 
 export function DeleteAccountDrawerDialog() {
     const [open, setOpen] = React.useState(false)
@@ -88,7 +89,7 @@ const DeletionTabs = ({setOpen}) => {
             if (deleted) {
                 setOpen(false)
                 Cookies.remove('token')
-                navigate('/get-started') //TODO or to "sorry to see you go"
+                navigate('/get-started')
             }
         }
     }
