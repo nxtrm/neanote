@@ -1,9 +1,12 @@
+import os
+import sys
 from flask import g, jsonify, request
 from flask_jwt_extended import jwt_required
 import psycopg2
 
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
 from formsValidation import GeminiSummarySchema
-from utils import process_universal_notes, token_required
+from utils.utils import process_universal_notes, token_required
 from utils.word2vec import combine_strings_to_vector
 
 

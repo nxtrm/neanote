@@ -1,8 +1,10 @@
+import os
+import sys
 from flask import g, jsonify, request
 from flask_jwt_extended import jwt_required
 import psycopg2
-
-from utils import process_universal_notes, token_required
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
+from utils.utils import process_universal_notes, token_required
 
 
 def archive_routes(app,conn, model):

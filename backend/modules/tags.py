@@ -2,9 +2,13 @@
 from datetime import datetime
 from flask import Blueprint, g, jsonify, request
 from flask_jwt_extended import jwt_required
-from formsValidation import TagSchema
-from utils import token_required, verify_tag_ownership
 import psycopg2.extras
+
+import os
+import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
+from utils.utils import token_required, verify_tag_ownership
+from formsValidation import TagSchema
 
 def tag_routes(app,conn, model):
 

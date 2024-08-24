@@ -1,14 +1,68 @@
 
 from datetime import datetime
+import os
+import sys
 from flask import Blueprint, g, jsonify, request
 from flask_jwt_extended import jwt_required
 from MySQLdb.cursors import DictCursor
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
 from formsValidation import TaskSchema
-from utils import token_required, verify_subtask_ownership, verify_task_ownership
+from utils.utils import token_required, verify_subtask_ownership, verify_task_ownership
 import psycopg2
+
+from utils.databaseManager import DatabaseManager
+class TaskManager:
+    def __init__(self, db_manager):
+        self.db_manager = db_manager
+    
+    def create_task(self,title,tags,content,subtasks,due_date,user_id):
+            # Insert into Notes table
+            note_id = self.db_manager.execute_query(
+                "INSERT INTO Notes (user_id, title, content, type) VALUES (%s, %s, %s, %s) RETURNING id",
+                (user_id, title, content, 'task')
+            )[0][0]
+            # Commit the transaction to ensure the insert is finalized
+            self.db_manager.commit()
+
+            task_id = self.db_manager.execute_query(
+                "INSERT INTO Tasks (note_id, completed, due_date) VALUES (%s, %s, %s) RETURNING id",
+                (note_id, False, due_date)
+            )[0][0]
+
+            new_subtasks = None
+
+            if subtasks:
+                subtask_tuples = [
+                    (task_id, subtask['description'], False, subtask['index'])
+                    for subtask in subtasks
+                ]
+                self.db_manager.executemany(
+                    """
+                    INSERT INTO Subtasks (task_id, description, completed, st_index)
+                    VALUES (%s, %s, %s, %s)
+                    RETURNING id, task_id, description, completed, st_index
+                    """,
+                    subtask_tuples
+                )
+
+                subtasks = self.db_manager.fetchall()
+
+            if tags:
+                tag_tuples = [(note_id, str(tagId)) for tagId in tags]  # Convert tagId to string if it's a UUID
+                self.db_manager.executemany(
+                    """
+                    INSERT INTO NoteTags (note_id, tag_id)
+                    VALUES (%s, %s)
+                    """,
+                    tag_tuples
+                )
+            self.db_manager.commit()
+            return note_id, task_id, subtasks
 
 
 def task_routes(app, conn, tokenization_manager,recents_manager):
+    db_manager = DatabaseManager(conn)
+    task_manager = TaskManager(db_manager)
 
     #TASK MODULE
     @app.route('/api/tasks/create', methods=['POST'])
@@ -26,87 +80,32 @@ def task_routes(app, conn, tokenization_manager,recents_manager):
             subtasks = data['subtasks']
             due_date = data.get('due_date')
 
-
-            cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-            # Insert into Notes table
-            cur.execute(
-                "INSERT INTO Notes (user_id, title, content, type) VALUES (%s, %s, %s, %s) RETURNING id",
-                (userId, title, content, 'task')
-            )
-            # Commit the transaction to ensure the insert is finalized
-            conn.commit()
-            noteId = cur.fetchone()[0]
-
-            cur.execute(
-                """
-                INSERT INTO Tasks (note_id, completed, due_date)
-                VALUES (%s, %s, %s) RETURNING id
-                """,
-                (noteId, False, due_date)
-            )
-
-            taskId = cur.fetchone()[0]
-
-            new_subtasks = None
-
-            if subtasks:
-                subtask_tuples = [
-                    (taskId, subtask['description'], False, subtask['index'])
-                    for subtask in subtasks
-                ]
-                cur.executemany(
-                    """
-                    INSERT INTO Subtasks (task_id, description, completed, st_index)
-                    VALUES (%s, %s, %s, %s)
-                    RETURNING id, task_id, description, completed, st_index
-                    """,
-                    subtask_tuples
-                )
-                cur.execute(
-                    """
-                    SELECT id, task_id, description, completed, st_index
-                    FROM Subtasks
-                    WHERE task_id = %s
-                    """,
-                    (taskId,)
-                )
-
-                new_subtasks = cur.fetchall()
-
-            if tags:
-                tag_tuples = [(noteId, str(tagId)) for tagId in tags]  # Convert tagId to string if it's a UUID
-                cur.executemany(
-                    """
-                    INSERT INTO NoteTags (note_id, tag_id)
-                    VALUES (%s, %s)
-                    """,
-                    tag_tuples
-                )
+            note_id, task_id, subtasks = task_manager.create_task(data, userId)
 
             text = [title, content] + [subtask['description'] for subtask in subtasks] if subtasks else [title, content]
             priority = sum(len(string) for string in text)
+
             tokenization_manager.add_note(
             text=text,
             priority=priority,
-            note_id=noteId
+            note_id=note_id
             )
-            conn.commit()
 
             return jsonify({
                 'message': 'Task created successfully',
                 'data': {
-                    'noteid': noteId,
-                    'taskid': taskId,
-                    'subtasks': new_subtasks
+                    'noteid': note_id,
+                    'taskid': task_id,
+                    'subtasks': subtasks
                 }
             }), 200
 
         except Exception as error:
-            conn.rollback()
+            db_manager.rollback()
             print('Error during transaction', error)
             raise
         finally:
-            cur.close()
+            db_manager.close()
 
     @app.route('/api/tasks/update', methods=['PUT'])
     @jwt_required()

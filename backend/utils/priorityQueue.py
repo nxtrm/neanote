@@ -5,7 +5,7 @@ import heapq
 import time
 from dataclasses import dataclass, field
 from typing import Any, Callable, List, Tuple
-from word2vec import load_or_train_model, combine_strings_to_vector
+from utils.word2vec import load_or_train_model, combine_strings_to_vector
 import psycopg2
 
 @dataclass(order=True)

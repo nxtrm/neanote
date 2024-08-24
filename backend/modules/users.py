@@ -5,8 +5,12 @@ from flask_jwt_extended import create_access_token, jwt_required
 from marshmallow import ValidationError
 from psycopg2 import sql
 import psycopg2
+
+import os
+import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
 from formsValidation import LoginSchema, TagSchema, UserSchema
-from utils import token_required, verify_tag_ownership
+from utils.utils import token_required, verify_tag_ownership
 
 def user_routes(app, conn):
     @app.route('/api/login', methods=['POST'])

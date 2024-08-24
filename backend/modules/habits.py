@@ -1,10 +1,13 @@
 from datetime import datetime
+import os
+import sys
 import uuid
 from flask import Blueprint, g, jsonify, request
 from flask_jwt_extended import jwt_required
 import psycopg2.extras
 from formsValidation import HabitSchema
-from utils import calculate_gap, token_required, verify_habit_ownership
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
+from utils.utils import calculate_gap, token_required, verify_habit_ownership
 
 
 def habit_routes(app,conn, tokenization_manager, recents_manager):

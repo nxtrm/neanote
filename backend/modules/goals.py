@@ -1,9 +1,12 @@
 
 from datetime import datetime
+import os
+import sys
 from flask import Blueprint, g, jsonify, request
 from flask_jwt_extended import jwt_required
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
 from formsValidation import  GoalSchema
-from utils import token_required, verify_milestone_ownership, verify_goal_ownership
+from utils.utils import token_required, verify_milestone_ownership, verify_goal_ownership
 import psycopg2.extras
 
 

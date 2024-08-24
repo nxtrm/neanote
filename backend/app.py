@@ -8,13 +8,12 @@ from modules.archive import archive_routes
 from modules.habits import habit_routes
 from utils.priorityQueue import TokenizationTaskManager
 from utils.recentsListHash import RecentNotesManager
-from utils.word2vec import combine_strings_to_vector, load_or_train_model
+from utils.word2vec import  load_or_train_model
 from modules.universal import universal_routes
 from modules.tasks import task_routes
 from modules.goals import goal_routes
 from modules.tags import tag_routes
 from modules.users import user_routes
-from utils import token_required
 import google.generativeai as genai
 
 app = Flask(__name__)
