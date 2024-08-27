@@ -10,7 +10,7 @@ import Login from "./Pages/Login/Login.tsx";
 import Register from "./Pages/Register/Register.tsx";
 import withTokenCheck from '../components/providers/token-check.tsx';
 import Landing from './Pages/Landing/Landing.tsx';
-import Notes from './Pages/Notes/Notes.tsx';
+import Notes from './Pages/Tasks copy/Notes.tsx';
 import Tasks from './Pages/Tasks/Tasks.tsx';
 import Tags from './Pages/Tags/Tags.tsx';
 import EditTasks from './Pages/Tasks/EditTasks.tsx';
@@ -23,6 +23,8 @@ import CreateTask from './Pages/Tasks/CreateTask.tsx';
 import CreateHabits from './Pages/Habits/CreateHabits.tsx';
 import Archive from './Pages/Archive/Archive.tsx';
 import Account from './Pages/Account/Account.tsx';
+import CreateNote from './Pages/Tasks copy/CreateNote.tsx';
+import EditNotes from './Pages/Tasks copy/EditNotes.tsx';
 
 const CheckedLayout = withTokenCheck(Layout);
 
@@ -33,7 +35,10 @@ const AppRouter = () => (
       <Route path="/" element={<CheckedLayout />}>
         <Route index element={<Dashboard />} />
         <Route path="account" element={<Account/>} />
-        <Route path="notes" element={<Notes />}/>
+
+        <Route path="notes" element={<Notes/>} />
+        <Route path="notes/edit" element={<EditNotes/>} />
+        <Route path="notes/create" element={<CreateNote/>} />
 
         <Route path="tasks" element={<Tasks/>} />
         <Route path="tasks/edit" element={<EditTasks/>} />
