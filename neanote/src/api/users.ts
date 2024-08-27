@@ -1,13 +1,13 @@
 import { showToast } from "../../components/Toast";
 import a from "./api";
-import { UserGetResponse } from "./types/userTypes";
+import { UserGetResponse, UserLoginResponse } from "./types/userTypes";
 
 
 const users = {
 
     login: async (body) => {
         try {
-            let response = await a.post(`/api/login`, body);
+            let response = await a.post<UserLoginResponse>(`/api/login`, body);
 
             if (response.status === 200) {
                 showToast('s', 'Login successful');

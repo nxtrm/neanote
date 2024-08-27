@@ -1,16 +1,14 @@
-import { create } from "zustand"
-import { immer } from "zustand/middleware/immer"
-import { Habit, HabitPreview, HabitPreviewResponse, HabitResponse } from "../../api/types/habitTypes";
-import { useTags } from "../Tags/useTags";
-import habitsApi from "../../api/habitsApi";
-import { v4 as uuidv4 } from 'uuid';
-import { Task } from "../../api/types/taskTypes";
 import { UUID } from "crypto";
-import { HabitSchema } from "../../formValidation";
-import { useTasks } from "../Tasks/useTasks";
-import utilsApi from "../../api/archiveApi";
+import { v4 as uuidv4 } from 'uuid';
+import { create } from "zustand";
+import { immer } from "zustand/middleware/immer";
 import { showToast } from "../../../components/Toast";
-import { current } from "immer";
+import utilsApi from "../../api/archiveApi";
+import habitsApi from "../../api/habitsApi";
+import { Habit, HabitPreview } from "../../api/types/habitTypes";
+import { Task } from "../../api/types/taskTypes";
+import { HabitSchema } from "../../formValidation";
+import { useTags } from "../Tags/useTags";
 
 // Function to generate a new habit object
 const generateNewHabit = () => ({

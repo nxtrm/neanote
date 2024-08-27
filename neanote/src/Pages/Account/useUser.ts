@@ -11,6 +11,7 @@ interface Userstate {
 
     currentUser: UserSettings
     updateCurrentUser: (key: keyof UserSettings, value: any) => void;
+    updateUser: (updateData: object) => void;
 
     pendingChanges:boolean
 
@@ -20,6 +21,7 @@ interface Userstate {
 
     loading: boolean;
     handleUpdateDetails: () => void;
+    handleUpdatePreferences: () => void;
     handleChangePassword: (password: string, newpassword:string, setOpen: (boolean)=>void) => void
 }
 
@@ -35,7 +37,8 @@ export const useUser = create<Userstate>()(
         email: '',
         password: '',
         preferences: {
-          theme: ''
+          theme: 'system',
+          model: 'default',
         }
       },
   
@@ -93,21 +96,37 @@ export const useUser = create<Userstate>()(
         get().validateUser();
       },
   
-      handleUpdateDetails: async () => {
-        const { currentUser, validateUser }= get()
-        if(validateUser()) {
-            set((state) => {
-                state.loading = true;
-            });
-            const response = await users.updateUserDetails(currentUser);
-            if (response) {
-                set((state) => {
-                state.loading = false;
-                state.pendingChanges = false;
-                });
-            }
-        }
+      updateUser: async (updateData: object) => {
+          const { currentUser, validateUser } = get();
+          if (validateUser()) {
+              set((state) => {
+                  state.loading = true;
+              });
+              const response = await users.updateUserDetails(updateData);
+              if (response) {
+                  set((state) => {
+                      state.loading = false;
+                      state.pendingChanges = false;
+                  });
+              }
+          }
       },
+
+      handleUpdateDetails: async () => {
+        const {updateUser, currentUser} = get();
+          await updateUser({
+              username: currentUser.username,
+              email: currentUser.email,
+          });
+      },
+      
+      handleUpdatePreferences: async () => {
+        const {updateUser, currentUser} = get();
+          await updateUser({
+              preferences: currentUser.preferences,
+          });
+      },
+
       handleChangePassword: async (password:string, newpassword: string, setOpen: (boolean)=> void) => {
         const { validatePassword } = get();
         if (validatePassword(password, newpassword)) {
@@ -124,7 +143,11 @@ export const useUser = create<Userstate>()(
         if (response) {
           set((state) => {
             state.user = response;
-            state.currentUser = response;
+            state.currentUser = {
+              username: response.username,
+              email: response.email,
+              preferences: response.preferences,
+            };
           });
         }
       },

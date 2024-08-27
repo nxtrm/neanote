@@ -1,6 +1,7 @@
 import Cookies from 'js-cookie';
 import { create } from 'zustand';
 import users from '../../api/users';
+import { useTheme } from '../../../components/providers/theme-provider';
 
 
 type LoginState = {
@@ -9,7 +10,7 @@ type LoginState = {
     password: string;
   };
   formHandler: (form) => void;
-  login: () => Promise<boolean>;
+  login: () => Promise<'light'|'dark'|'system' | false>;
 };
 
 export let useLogin = create<LoginState>((set,get)=>({
@@ -22,8 +23,8 @@ export let useLogin = create<LoginState>((set,get)=>({
   login:async ()=> {
       let {form}=get()
       let response = await users.login(form)
-      if(response){
-        return true
+      if(response&&response.preferences){
+        return (response.preferences.theme?response.preferences.theme:'system')
       }
       else {
         return false

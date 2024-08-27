@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+import json
 import bcrypt
 from flask import Blueprint, g, jsonify, request
 from flask_jwt_extended import create_access_token, jwt_required
@@ -21,15 +22,15 @@ def user_routes(app, conn):
             username = data['username']
             password = data['password']
 
-            cur = conn.cursor()
+            cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
             cur.execute("SELECT * FROM users WHERE username = %s", (username,))
             user = cur.fetchone()
 
-            if user and bcrypt.checkpw(password.encode('utf-8'), user[3].encode('utf-8')):  # Assuming password is the 4th column
-                userId = str(user[0])
+            if user and bcrypt.checkpw(password.encode('utf-8'), user['password'].encode('utf-8')):
+                userId = str(user['id'])
                 access_token = create_access_token(identity=userId, expires_delta=timedelta(days=1))
 
-                response = jsonify({'message': 'Login successful', 'userId': userId})
+                response = jsonify({'message': 'Login successful', 'preferences': user['preferences']})
                 response.set_cookie('token', access_token)
                 return response, 200
             else:
@@ -62,8 +63,8 @@ def user_routes(app, conn):
             if existing_user:
                 return jsonify({'message': 'User with this username or email already exists'}), 400
 
-            cur.execute("INSERT INTO users (username, email, password) VALUES (%s, %s, %s) RETURNING id", 
-                        (username, email, hashed_password))
+            cur.execute("INSERT INTO users (username, email, password, preferences) VALUES (%s, %s, %s) RETURNING id", 
+                        (username, email, hashed_password, {"theme":"light", "model":"default"}))
             userId = cur.fetchone()[0]
 
             try:
@@ -113,15 +114,19 @@ def user_routes(app, conn):
     def update_user():
         try:
             userId = g.userId
-            # user_schema = UserSchema()
-            # data = user_schema.load(request.json)
             data = request.get_json()
 
             with conn.cursor() as cur:
-                cur.execute(
-                    """UPDATE users SET username = %s, email = %s WHERE id = %s""",
-                    (data['username'], data['email'], userId)
-                )
+                if 'username' in data and 'email' in data:
+                    cur.execute(
+                        """UPDATE users SET username = %s, email = %s WHERE id = %s""",
+                        (data['username'], data['email'], userId)
+                    )
+                if 'preferences' in data:
+                    cur.execute(
+                        """UPDATE users SET preferences = %s WHERE id = %s""",
+                        (json.dumps(data['preferences']), userId)
+                    )
                 conn.commit()
                 return jsonify({'message': 'User data updated successfully'}), 200
 
@@ -161,6 +166,8 @@ def user_routes(app, conn):
                     return jsonify({'message': 'Invalid user credentials'}), 401
         except Exception as e:
             raise
+
+
     
     @app.route('/api/user/delete', methods=['DELETE'])
     @jwt_required()

@@ -8,17 +8,26 @@ import { Button } from '../../../components/@/ui/button';
 import {Separator} from '../../../components/@/ui/separator'
 import {PasswordDrawerDialog }from './Components/PasswordDrawerDialog';
 import { DeleteAccountDrawerDialog } from './Components/DeleteAccountDrawerDialog';
+import { ThemeSelector } from './Components/ThemeSelector';
+import {useTheme} from '../../../components/providers/theme-provider'
 
 function Account() {
-    const { currentUser, getUser, updateCurrentUser, pendingChanges, validationErrors, loading, handleUpdateDetails } = useUser();
-    const [isValidationErrorsEmpty, setIsValidationErrorsEmpty] = useState(true);
+  const { currentUser, getUser, updateCurrentUser, pendingChanges, validationErrors, loading, handleUpdateDetails, handleUpdatePreferences } = useUser();
+  const [isValidationErrorsEmpty, setIsValidationErrorsEmpty] = useState(true);
+  const { setTheme } = useTheme();
 
-    useEffect(() => {
+  useEffect(() => {
       setIsValidationErrorsEmpty(
-        Object.keys(validationErrors).every(key => !validationErrors[key])
+          Object.keys(validationErrors).every(key => !validationErrors[key])
       );
       console.log(validationErrors);
-    }, [validationErrors]);
+  }, [validationErrors]);
+
+  const handleThemeChange = (value) => {
+      updateCurrentUser('preferences', { ...currentUser.preferences, theme: value });
+      setTheme(value);
+      handleUpdatePreferences();
+  }
 
     useEffect(() => {
       getUser();
@@ -50,14 +59,16 @@ function Account() {
               {/* <Label htmlFor="password">Password:</Label>
               <Input id="password" type="password" value={currentUser?.password} onChange={(e) => updateCurrentUser('password', e.target.value)} />  */}
 
-            <Button className='gap-2 w-fit' disabled={!pendingChanges || !isValidationErrorsEmpty} onClick={handleUpdateDetails}>
-              <FaSave /> {loading ? 'Saving...' : 'Save'}
+              <Button className='gap-2 w-fit' disabled={!pendingChanges || !isValidationErrorsEmpty} onClick={handleUpdateDetails}>
+                  <FaSave /> {loading ? 'Saving...' : 'Save'}
               </Button>
           </div>
           <div className='bg-secondary p-3 rounded-xl flex flex-col gap-2'>
-            <h2 className='font-bold text-xl'>Preferences</h2>
-              <Separator/>
-              #theme switch
+              <h2 className='font-bold text-xl'>Preferences</h2>
+              <Separator />
+              <ThemeSelector
+                  theme={currentUser.preferences.theme}
+                  onChange={handleThemeChange} />
           </div>
           <div className='border-[2px]  border-destructive p-3 rounded-xl flex flex-col gap-2'>
             <h2 className='font-bold text-xl'>Security</h2>

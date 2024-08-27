@@ -8,11 +8,14 @@ import { Form, FormControl, FormField, FormItem, FormMessage } from '../../../co
 import { Input } from "../../../components/@/ui/input";
 import { Label } from "../../../components/@/ui/label";
 import { loginFormSchema } from '../../formValidation';
-import { useLogin } from './useLogin';
+
 import Cookies from 'js-cookie';
+import { useLogin } from './useLogin';
+import { useTheme } from '../../../components/providers/theme-provider';
 
 function Login() {
   const {formHandler, login} = useLogin()
+  const {setTheme} = useTheme()
   const navigate = useNavigate()
   // Defines the form
   const form = useForm<z.infer<typeof loginFormSchema>>({
@@ -27,10 +30,10 @@ function Login() {
   
   async function onSubmit(values: z.infer<typeof loginFormSchema>) {
     if (!Cookies.get('token')) {
-
       formHandler(values);
       login().then(loginResult => {
         if (loginResult) {
+          setTheme(loginResult)
           navigate("/")
         }
       })
