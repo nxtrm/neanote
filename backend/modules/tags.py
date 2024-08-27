@@ -7,7 +7,7 @@ import psycopg2.extras
 import os
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
-from utils.utils import token_required, verify_tag_ownership
+from utils.utils import merge_sort, token_required, verify_tag_ownership
 from formsValidation import TagSchema
 
 def tag_routes(app,conn, model):
@@ -55,7 +55,8 @@ def tag_routes(app,conn, model):
                         (userId,)
                     )
                     rows = cur.fetchall()
-                    tags = [{'tagid':row['tagid'], 'name': row['name'], 'color': row['color']} for row in rows]
+                    sorted_tags = merge_sort(rows, key=lambda tag: tag['name']) #Mergesort to sort tags by name
+                    tags = [{'tagid':tag['tagid'], 'name': tag['name'], 'color': tag['color']} for tag in sorted_tags]
 
             return jsonify({'message': 'Tags fetched successfully', 'data': tags}), 200
         except Exception as e:
