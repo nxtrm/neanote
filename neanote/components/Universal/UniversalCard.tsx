@@ -1,6 +1,7 @@
 import React from 'react'
 import { UniversalType } from '../../src/api/types/ArchiveTypes'
 import { FaTasks, FaEdit } from 'react-icons/fa'
+import {FaRegNoteSticky } from 'react-icons/fa6';
 import { LuGoal } from 'react-icons/lu'
 import { MdRepeat } from 'react-icons/md'
 import { Button } from '../@/ui/button'
@@ -12,6 +13,7 @@ function UniversalCard({note, handleEditClick}: {note: UniversalType, handleEdit
     <div className='p-3 w-full bg-background rounded-xl border-[2px]'>
             <div className='flex flex-row justify-between '>
                 <div className='flex flex-row items-center gap-2'>
+                    {note.type === 'note' && <FaRegNoteSticky size={'20px'} />}
                     {note.type === 'task' && <FaTasks size={'20px'} />}
                     {note.type === 'habit' && <MdRepeat size={'20px'} />}
                     {note.type === 'goal' && <LuGoal size={'22px'} />}

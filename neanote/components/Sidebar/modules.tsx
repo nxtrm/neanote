@@ -2,9 +2,14 @@ import React from "react";
 import { FaTasks, FaArchive, FaTags } from "react-icons/fa";
 import { LuGoal } from "react-icons/lu";
 import { MdRepeat } from "react-icons/md";
+import {FaRegNoteSticky } from 'react-icons/fa6';
 
 export const modules = [
-    { link: 'notes', text: 'Notes', disabled: false },
+    { link: 'notes', text: (
+      <div className="flex items-center gap-2">
+          <FaRegNoteSticky /> Notes
+      </div>
+    ), disabled: false },
     {
       link: 'tasks',
       text: (

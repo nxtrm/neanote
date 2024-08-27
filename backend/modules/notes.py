@@ -119,7 +119,7 @@ def note_routes(app, conn, tokenization_manager,recents_manager):
             noteId = data['noteid']
             cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
             cur.execute("DELETE FROM NoteTags WHERE note_id = %s", (noteId,))
-            cur.execute("DELETE FROM Notes WHERE id = %s", (noteId,))
+            cur.execute("DELETE FROM Notes WHERE id = %s AND user_id = %s", (noteId,userId,))
 
             tokenization_manager.delete_note_by_id(noteId)
             conn.commit()
@@ -162,7 +162,6 @@ def note_routes(app, conn, tokenization_manager,recents_manager):
                         tg.name AS tag_name,
                         tg.color AS tag_color
                     FROM Notes n
-                    LEFT JOIN Notes t ON n.id = t.note_id
                     LEFT JOIN NoteTags nt ON n.id = nt.note_id
                     LEFT JOIN Tags tg ON nt.tag_id = tg.id
                     WHERE n.user_id = %s AND n.type = 'note' AND n.archived = FALSE
@@ -231,7 +230,6 @@ def note_routes(app, conn, tokenization_manager,recents_manager):
                         tg.name AS tag_name,
                         tg.color AS tag_color
                     FROM Notes n
-                    LEFT JOIN Notes t ON n.id = t.note_id
                     LEFT JOIN NoteTags nt ON n.id = nt.note_id
                     LEFT JOIN Tags tg ON nt.tag_id = tg.id
                     WHERE n.user_id = %s AND n.id = %s AND n.type = 'note' AND n.archived = FALSE
@@ -245,9 +243,6 @@ def note_routes(app, conn, tokenization_manager,recents_manager):
                     'noteid': rows[0]['note_id'],
                     'title': rows[0]['note_title'],
                     'content': rows[0]['note_content'],
-                    'completed': rows[0]['note_completed'],
-                    'due_date': rows[0]['note_due_date'],
-                    'subnotes': [],
                     'tags': []
                 }
 

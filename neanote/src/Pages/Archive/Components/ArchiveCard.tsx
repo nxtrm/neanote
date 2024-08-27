@@ -5,13 +5,13 @@ import { MdRepeat } from 'react-icons/md'
 import { LuGoal } from 'react-icons/lu'
 import { Button } from '../../../../components/@/ui/button'
 import { MdOutlineRestore } from "react-icons/md";
-import { FaTrash } from 'react-icons/fa6'
+import { FaRegNoteSticky, FaTrash } from 'react-icons/fa6'
 import DeleteDialog from '../../../../components/DeleteDialog/DeleteDialog'
 import { useArchive } from '../useArchive'
 import TagLabel from '../../../../components/TagLabel/TagLabel'
 
 
-function NoteCard({note}:{note:UniversalType}) {
+function ArchiveCard({note}:{note:UniversalType}) {
   const {handleDelete, handleRestore} = useArchive(); 
 
   const onDelete = async () => {
@@ -25,11 +25,12 @@ function NoteCard({note}:{note:UniversalType}) {
     <div className='p-3 w-full rounded-xl border-[2px]'>
         <div className='flex flex-row justify-between '>
             <div className='flex flex-row items-center gap-2' >
+                {note.type === 'note' && <FaRegNoteSticky size={'20px'} />}
                 {note.type ==='task'&& <FaTasks size={'20px'}/>}
                 {note.type ==='habit'&& <MdRepeat size={'20px'}/>}
                 {note.type ==='goal'&& <LuGoal size={'22px'}/>}
 
-                <h3 className="task-title">{note.title}</h3>                                                       
+                <h3 className="task-title">{note.title}</h3>
             </div>
             <div className='flex flex-row items-center gap-2' >
               {note.tags.map((tag, index) => (
@@ -40,7 +41,7 @@ function NoteCard({note}:{note:UniversalType}) {
                         <FaTrash />
                     </Button>
                 </DeleteDialog>
-                
+
                 <Button onClick={onRestore} size="icon">
                     <MdOutlineRestore size={'20px'}/>
                 </Button>
@@ -51,4 +52,4 @@ function NoteCard({note}:{note:UniversalType}) {
   )
 }
 
-export default NoteCard
+export default ArchiveCard

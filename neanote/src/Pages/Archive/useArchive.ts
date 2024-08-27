@@ -7,6 +7,7 @@ import { UUID } from "crypto"
 import habitsApi from "../../api/habitsApi"
 import tasksApi from "../../api/tasksApi"
 import goalsApi from "../../api/goalsApi"
+import notesApi from "../../api/notesApi"
 
 type ArchiveState = {
     archive: UniversalType[]
@@ -53,6 +54,9 @@ export const useArchive = create<ArchiveState>()(
                     case 'task':
                         response = await tasksApi.delete(noteId, secondaryId);
                         break;
+                    case 'note':
+                        response = await notesApi.delete(noteId);
+                        break
                     case 'goal':
                         response = await goalsApi.delete(noteId, secondaryId);
                         break;
