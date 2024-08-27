@@ -35,7 +35,7 @@ export interface Task {
 
   export interface TaskCreateResponse {
     message: string
-    data: {taskid: UUID, noteid: UUID, milestones: Subtask[]};
+    data: {taskid: UUID, noteid: UUID, subtasks: Subtask[]};
   }
 
   export interface TaskPreviewResponse {
