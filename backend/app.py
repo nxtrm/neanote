@@ -6,6 +6,7 @@ import psycopg2
 from config import Config
 from modules.archive import archive_routes
 from modules.habits import habit_routes
+from modules.notes import note_routes
 from utils.priorityQueue import TokenizationTaskManager
 from utils.recentsListHash import RecentNotesManager
 from utils.word2vec import  load_or_train_model
@@ -45,6 +46,7 @@ tokenization_manager = TokenizationTaskManager(Config,model)
 recents_manager = RecentNotesManager()
 
 #Initialize routes
+note_routes(app, conn, tokenization_manager, recents_manager) #Generic notes
 task_routes(app, conn, tokenization_manager, recents_manager)
 habit_routes(app, conn, tokenization_manager, recents_manager)
 goal_routes(app,  conn, tokenization_manager, recents_manager)
