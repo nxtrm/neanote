@@ -1,15 +1,44 @@
 import os
 import sys
+
+import psycopg2
 from flask import g, jsonify, request
 from flask_jwt_extended import jwt_required
-import psycopg2
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
+
+from flask import g, jsonify, request
+from flask_jwt_extended import jwt_required
+
 from formsValidation import GeminiSummarySchema
 from utils.utils import process_universal_notes, token_required
 from utils.word2vec import combine_strings_to_vector
 
 
+class BaseNote:
+    def __init__(self, app, conn, tokenization_manager, recents_manager):
+        self.app = app
+        self.conn = conn
+        self.tokenization_manager = tokenization_manager
+        self.recents_manager = recents_manager
+
+    def create_note(self, cur, userId, title, content, noteType, tags):
+        cur.execute( # Insert into Notes table
+            "INSERT INTO Notes (user_id, title, content, type) VALUES (%s, %s, %s, %s) RETURNING id",
+            (userId, title, content, noteType)
+        )
+        noteId = cur.fetchone()[0]
+
+        if tags:
+            tag_tuples = [(noteId, str(tagId)) for tagId in tags]  # Convert tagId to string if it's a UUID
+            cur.executemany(
+                """
+                INSERT INTO NoteTags (note_id, tag_id)
+                VALUES (%s, %s)
+                """,
+                tag_tuples
+            )
+        return noteId
 
 def universal_routes(app, conn, model, recents_manager,
                     #  genai

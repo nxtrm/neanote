@@ -2,23 +2,43 @@
 from datetime import datetime
 import os
 import sys
-from flask import Blueprint, g, jsonify, request
+from flask import g, jsonify, request
 from flask_jwt_extended import jwt_required
-from MySQLdb.cursors import DictCursor
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
 from formsValidation import TaskSchema
 from utils.utils import token_required, verify_subtask_ownership, verify_task_ownership
 import psycopg2
 
-class TaskApi:
-    def __init__(self,app,conn,tokenization_manager,recents_manager):
+class BaseNote:
+    def __init__(self, app, conn, tokenization_manager, recents_manager):
         self.app = app
         self.conn = conn
         self.tokenization_manager = tokenization_manager
         self.recents_manager = recents_manager
-        self.task_schema = TaskSchema()
 
-        self.task_routes(app)
+    def create_note(self, cur, userId, title, content, noteType, tags):
+        cur.execute( # Insert into Notes table
+            "INSERT INTO Notes (user_id, title, content, type) VALUES (%s, %s, %s, %s) RETURNING id",
+            (userId, title, content, noteType)
+        )
+        noteId = cur.fetchone()[0]
+
+        if tags:
+            tag_tuples = [(noteId, str(tagId)) for tagId in tags]  # Convert tagId to string if it's a UUID
+            cur.executemany(
+                """
+                INSERT INTO NoteTags (note_id, tag_id)
+                VALUES (%s, %s)
+                """,
+                tag_tuples
+            )
+        return noteId
+
+class TaskApi(BaseNote):
+    def __init__(self, app, conn, tokenization_manager, recents_manager):
+        super().__init__(app, conn, tokenization_manager, recents_manager)
+        self.task_schema = TaskSchema()
+        self.task_routes()
 
     def tokenize(self,noteId,title,content,subtasks):
         text = [title, content] + [subtask['description'] for subtask in subtasks] if subtasks else [title, content]
@@ -29,10 +49,10 @@ class TaskApi:
             note_id=noteId
             )
 
-    def task_routes(self, app):
+    def task_routes(self):
 
         #TASK MODULE
-        @app.route('/api/tasks/create', methods=['POST'])
+        @self.app.route('/api/tasks/create', methods=['POST'])
         @jwt_required()
         @token_required
         def create_task():
@@ -48,12 +68,8 @@ class TaskApi:
                 due_date = data.get('due_date')
 
                 with self.conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
-                    cur.execute( # Insert into Notes table
-                        "INSERT INTO Notes (user_id, title, content, type) VALUES (%s, %s, %s, %s) RETURNING id",
-                        (userId, title, content, 'task')
-                    )
+                    noteId = self.create_note(cur, userId, title, content, 'task', tags)
 
-                    noteId = cur.fetchone()[0]
                     cur.execute( #Insert into Tasks table
                         """
                         INSERT INTO Tasks (note_id, completed, due_date)
@@ -85,15 +101,7 @@ class TaskApi:
                             (taskId,)
                         )
                         new_subtasks = cur.fetchall()
-                    if tags:
-                        tag_tuples = [(noteId, str(tagId)) for tagId in tags]  # Convert tagId to string if it's a UUID
-                        cur.executemany(
-                            """
-                            INSERT INTO NoteTags (note_id, tag_id)
-                            VALUES (%s, %s)
-                            """,
-                            tag_tuples
-                        )
+
 
                 self.tokenize(noteId,title,content,subtasks)
                 self.conn.commit()
@@ -112,7 +120,7 @@ class TaskApi:
             finally:
                 cur.close()
 
-        @app.route('/api/tasks/update', methods=['PUT'])
+        @self.app.route('/api/tasks/update', methods=['PUT'])
         @jwt_required()
         @token_required
         def update_task():
@@ -168,7 +176,7 @@ class TaskApi:
             finally:
                 cur.close()
 
-        @app.route('/api/tasks/delete', methods=['PUT'])
+        @self.app.route('/api/tasks/delete', methods=['PUT'])
         @jwt_required()
         @token_required
         def delete_task():
@@ -197,7 +205,7 @@ class TaskApi:
                 cur.close()
 
 
-        @app.route('/api/tasks/toggle', methods=['PUT'])
+        @self.app.route('/api/tasks/toggle', methods=['PUT'])
         @jwt_required()
         @token_required
         def toggle_task_fields():
@@ -243,7 +251,7 @@ class TaskApi:
                 cur.close()
 
 
-        @app.route('/api/tasks/previews', methods=['GET'])
+        @self.app.route('/api/tasks/previews', methods=['GET'])
         @jwt_required()
         @token_required
         def get_task_previews():
@@ -345,7 +353,7 @@ class TaskApi:
             finally:
                 cur.close()
 
-        @app.route('/api/task', methods=['GET'])
+        @self.app.route('/api/task', methods=['GET'])
         @jwt_required()
         @token_required
         def get_task():
