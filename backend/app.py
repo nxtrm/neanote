@@ -11,7 +11,7 @@ from utils.priorityQueue import TokenizationTaskManager
 from utils.recentsListHash import RecentNotesManager
 from utils.word2vec import  load_or_train_model
 from modules.universal import universal_routes
-from modules.tasks import task_routes
+from modules.tasks import TaskApi
 from modules.goals import goal_routes
 from modules.tags import tag_routes
 from modules.users import user_routes
@@ -47,7 +47,7 @@ recents_manager = RecentNotesManager()
 
 #Initialize routes
 note_routes(app, conn, tokenization_manager, recents_manager) #Generic notes
-task_routes(app, conn, tokenization_manager, recents_manager)
+tasks = TaskApi(app, conn, tokenization_manager, recents_manager)
 habit_routes(app, conn, tokenization_manager, recents_manager)
 goal_routes(app,  conn, tokenization_manager, recents_manager)
 tag_routes(app, conn, tokenization_manager)
