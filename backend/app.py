@@ -5,7 +5,7 @@ import jwt
 import psycopg2
 from config import Config
 from modules.archive import archive_routes
-from modules.habits import habit_routes
+from modules.habits import HabitApi
 from modules.notes import NoteApi
 from utils.priorityQueue import TokenizationTaskManager
 from utils.recentsListHash import RecentNotesManager
@@ -48,7 +48,7 @@ recents_manager = RecentNotesManager()
 #Initialize routes
 notes = NoteApi(app, conn, tokenization_manager, recents_manager)
 tasks = TaskApi(app, conn, tokenization_manager, recents_manager)
-habit_routes(app, conn, tokenization_manager, recents_manager)
+habits = HabitApi(app, conn, tokenization_manager, recents_manager)
 goal_routes(app,  conn, tokenization_manager, recents_manager)
 tag_routes(app, conn, tokenization_manager)
 user_routes(app, conn)
