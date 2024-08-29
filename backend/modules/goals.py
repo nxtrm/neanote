@@ -317,7 +317,7 @@ class GoalApi(BaseNote):
                 title = data['title']
                 content = data['content']
                 due_date = data.get('due_date')
-                tags = data['tags']
+                tags = data.get('tags')
                 milestones = data['milestones']
 
                 with self.conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
@@ -337,12 +337,7 @@ class GoalApi(BaseNote):
                         WHERE note_id = %s
                     """, (due_date, note_id))
 
-                    cur.execute("DELETE FROM NoteTags WHERE note_id = %s", (note_id,))
-                    for tag_id in tags:
-                        cur.execute("""
-                            INSERT INTO NoteTags (note_id, tag_id)
-                            VALUES (%s, %s)
-                        """, (note_id, str(tag_id)))  # Convert UUID to string if tag_id is a UUID
+                    self.update_notetags(cur, note_id, tags)
 
                     for milestone in milestones:  # would not work if new milestone is resaved
                         milestone_id = milestone.get('milestoneid')

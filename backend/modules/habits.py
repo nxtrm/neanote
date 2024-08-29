@@ -86,6 +86,7 @@ class HabitApi(BaseNote):
 
                 note_id = str(data['noteid'])
                 habit_id = str(data['habitid'])
+                tags = data.get('tags', [])
 
                 with self.conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
                     if not verify_habit_ownership(userId, habit_id, cur):
@@ -108,13 +109,7 @@ class HabitApi(BaseNote):
                         (reminder_time, repetition, note_id)
                     )
 
-                    cur.execute("DELETE FROM NoteTags WHERE note_id = %s", (note_id,))
-                    if 'tags' in data:
-                        tag_tuples = [(note_id, str(tag)) for tag in data['tags']]
-                        cur.executemany(
-                            "INSERT INTO NoteTags (note_id, tag_id) VALUES (%s, %s)",
-                            tag_tuples
-                        )
+                    self.update_notetags(cur, note_id, tags)
 
                     self.conn.commit()
                     self.tokenize(note_id,data['title'],data['content'])

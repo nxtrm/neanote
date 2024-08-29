@@ -69,6 +69,7 @@ class NoteApi(BaseNote):
                 note_id = str(note['noteid'])
                 title = note['title']
                 content = note['content']
+                tags = note.get('tags', [])
 
                 with self.conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
 
@@ -78,12 +79,7 @@ class NoteApi(BaseNote):
                         WHERE id = %s AND user_id = %s
                     """, (title, content, note_id, userId))
 
-                    cur.execute("DELETE FROM NoteTags WHERE note_id = %s", (note_id,))
-                    for tag in note.get('tags', []):
-                        cur.execute("""
-                            INSERT INTO NoteTags (note_id, tag_id)
-                            VALUES (%s, %s)
-                        """, (note_id, str(tag)))
+                    self.update_notetags(cur, note_id, tags)
 
                     self.tokenize(note_id, title, content)
                     self.conn.commit()

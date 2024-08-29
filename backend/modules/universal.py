@@ -29,17 +29,10 @@ class BaseNote:
         )
         noteId = cur.fetchone()[0]
 
-        if tags:
-            tag_tuples = [(noteId, str(tagId)) for tagId in tags]  # Convert tagId to string if it's a UUID
-            cur.executemany(
-                """
-                INSERT INTO NoteTags (note_id, tag_id)
-                VALUES (%s, %s)
-                """,
-                tag_tuples
-            )
+        self.update_notetags(cur, tags, noteId, withDelete=False)
+
         return noteId
-    def fetch_total_notes(self,cur,note_type, userId, page,offset,per_page):
+    def fetch_total_notes(self, cur,note_type, userId, page,offset,per_page):
         cur.execute("""
                         SELECT COUNT(DISTINCT n.id) AS total
                         FROM Notes n
@@ -49,6 +42,18 @@ class BaseNote:
         nextPage = page + 1 if (offset + per_page) < total else None
         return total, nextPage
 
+    def update_notetags(self, cur,tags,note_id, withDelete=True):
+        if withDelete:
+            cur.execute("DELETE FROM NoteTags WHERE note_id = %s", (note_id,))
+        if tags:
+            tag_tuples = [(note_id, str(tagId)) for tagId in tags]
+            cur.executemany(
+                """
+                INSERT INTO NoteTags (note_id, tag_id)
+                VALUES (%s, %s)
+                """,
+                tag_tuples
+            )
 
 def universal_routes(app, conn, model, recents_manager,
                     #  genai
@@ -111,7 +116,7 @@ def universal_routes(app, conn, model, recents_manager,
                     WHERE n.user_id = %s AND n.archived = FALSE
                         AND (n.title ILIKE %s OR n.content ILIKE %s);
                 """, (user_id, f"%{search_query}%", f"%{search_query}%"))
-            
+
             total = cur.fetchone()[0]
             next_page = page + 1 if offset + per_page < total else None
 

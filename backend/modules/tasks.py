@@ -111,6 +111,7 @@ class TaskApi(BaseNote):
                 content = task['content']
                 due_date = task.get('due_date')
                 subtasks = task.get('subtasks', [])
+                tags = task.get('tags', [])
 
                 with self.conn.cursor(cursor_factory=psycopg2.extras.DictCursor ) as cur:
                     if not verify_task_ownership(userId, task_id, cur):
@@ -135,12 +136,7 @@ class TaskApi(BaseNote):
                             VALUES (%s, %s, %s, %s)
                         """, (task_id, subtask['description'], subtask['completed'], subtask['index']))
 
-                    cur.execute("DELETE FROM NoteTags WHERE note_id = %s", (note_id,))
-                    for tag in task.get('tags', []):
-                        cur.execute("""
-                            INSERT INTO NoteTags (note_id, tag_id)
-                            VALUES (%s, %s)
-                        """, (note_id, str(tag)))
+                    self.update_notetags(cur, note_id, tags)
 
                     self.tokenize(note_id, title, content, subtasks)
                     self.conn.commit()
