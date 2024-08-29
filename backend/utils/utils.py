@@ -62,6 +62,16 @@ def calculate_gap(repetition, today_date, last_date):
         return delta.months + 12 * delta.years
     return None
 
+def verify_subtask_ownership(user_id, subtask_id, cur):
+    cur.execute("""
+        SELECT st.id
+        FROM Subtasks st
+        JOIN Tasks t ON st.task_id = t.id
+        JOIN Notes n ON t.note_id = n.id
+        WHERE st.id = %s AND n.user_id = %s
+    """, (subtask_id, user_id))
+    return cur.fetchone() is not None
+
 def verify_task_ownership(user_id, task_id, cur):
     
     query = """
@@ -95,7 +105,6 @@ def verify_habit_ownership(user_id, habit_id, cur):
     return True
 
 def verify_goal_ownership(user_id, goal_id, cur):
-    
     query = """
     SELECT Notes.user_id
     FROM Goals
@@ -166,15 +175,6 @@ def remove_overdue_archived_notes(conn):
         deleted_notes += 1
     print(f"Number of removed notes: {deleted_notes}")
 
-def verify_subtask_ownership(user_id, subtask_id, cur):
-    cur.execute("""
-        SELECT st.id 
-        FROM Subtasks st
-        JOIN Tasks t ON st.task_id = t.id
-        JOIN Notes n ON t.note_id = n.id
-        WHERE st.id = %s AND n.user_id = %s
-    """, (subtask_id, user_id))
-    return cur.fetchone() is not None
 
 def verify_tag_ownership(user_id, tag_id, cur):
     query = """

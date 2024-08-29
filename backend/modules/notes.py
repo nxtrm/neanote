@@ -7,6 +7,7 @@ from flask_jwt_extended import jwt_required
 from MySQLdb.cursors import DictCursor
 
 from modules.universal import BaseNote
+from utils.userDeleteGraph import delete_user_data_with_backoff
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
 from formsValidation import BaseSchema
 from utils.utils import token_required
@@ -99,19 +100,16 @@ class NoteApi(BaseNote):
             try:
                 userId = g.userId
                 data = request.get_json()
-                noteId = data['noteid']
-                with self.conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
-                    cur.execute("DELETE FROM NoteTags WHERE note_id = %s", (noteId,))
-                    cur.execute("DELETE FROM Notes WHERE id = %s AND user_id = %s", (noteId,userId,))
-
-                self.tokenization_manager.delete_note_by_id(noteId)
-                self.conn.commit()
-                return jsonify({'message': 'Note deleted successfully', 'data': None}), 200
+                note_id = data['noteid']
+                stack = [12,2] #NoteTags, Notes
+                if delete_user_data_with_backoff(self.conn, userId, stack):
+                    self.tokenization_manager.delete_note_by_id(note_id)
+                    return jsonify({'message': 'Note deleted successfully'}), 200
+                else:
+                    return jsonify({'message': 'Failed to delete note data after multiple retries'}), 500
             except Exception as e:
                 self.conn.rollback()
                 raise
-            finally:
-                cur.close()
 
 
         @self.app.route('/api/notes/previews', methods=['GET'])

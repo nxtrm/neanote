@@ -6,6 +6,7 @@ from flask import Blueprint, g, jsonify, request
 from flask_jwt_extended import jwt_required
 
 from modules.universal import BaseNote
+from utils.userDeleteGraph import delete_user_data_with_backoff
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
 from formsValidation import  GoalSchema
 from utils.utils import token_required, verify_milestone_ownership, verify_goal_ownership
@@ -387,15 +388,15 @@ class GoalApi(BaseNote):
                 if not verify_goal_ownership(userId, goal_id, cur):
                     return jsonify({'message': 'You do not have permission to update this goal'}), 403
 
-                # Use a transaction to ensure all deletions are successful or none are
-                with self.conn:
-                    cur.execute("DELETE FROM Milestones WHERE goal_id = %s", (goal_id,))
-                    cur.execute("DELETE FROM Goals WHERE id = %s", (goal_id,))
-                    cur.execute("DELETE FROM NoteTags WHERE note_id = %s", (note_id,))
-                    cur.execute("DELETE FROM Notes WHERE id = %s", (note_id,))
-                    self.conn.commit()
+                stack = [6, 5, 4, 12, 2]  # milestones, goalhistory, goals, notetags, notes
 
-                self.tokenization_manager.delete_note_by_id(note_id)
+                 # Use the delete_user_data_with_backoff function to delete related data
+                if delete_user_data_with_backoff(self.conn, userId, stack):
+                    self.tokenization_manager.delete_note_by_id(note_id)
+                    return jsonify({'message': 'Goal deleted successfully'}), 200
+                else:
+                    return jsonify({'message': 'Failed to delete goal data after multiple retries'}), 500
+
                 return jsonify({'message': 'Goal deleted successfully'}), 200
             except Exception as e:
                 self.conn.rollback()

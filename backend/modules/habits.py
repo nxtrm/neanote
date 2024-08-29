@@ -5,6 +5,7 @@ from flask import  g, jsonify, request
 from flask_jwt_extended import jwt_required
 import psycopg2.extras
 from formsValidation import HabitSchema
+from utils.userDeleteGraph import delete_user_data_with_backoff
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
 from modules.universal import BaseNote
 from utils.utils import calculate_gap, token_required, verify_habit_ownership
@@ -327,16 +328,12 @@ class HabitApi(BaseNote):
                     if not verify_habit_ownership(userId, habit_id, cur):
                         return jsonify({'message': 'You do not have permission to update this habit'}), 403
 
-                    cur.execute("DELETE FROM NoteTags WHERE note_id = %s", (note_id,))
-                    cur.execute("DELETE FROM HabitTasks WHERE habit_id = %s", (habit_id,))
-                    cur.execute("DELETE FROM HabitCompletion WHERE habit_id = %s", (habit_id,))
-                    cur.execute("DELETE FROM Habits WHERE id = %s", (habit_id,))
-                    cur.execute("DELETE FROM Notes WHERE id = %s", (note_id,))
-
-                    self.conn.commit()
-
-                    self.tokenization_manager.delete_note_by_id(note_id)
-                    return jsonify({'message': 'Habit deleted successfully'}), 200
+                    stack = [12,9,8,7,2]
+                    if delete_user_data_with_backoff(self.conn, userId, stack):
+                        self.tokenization_manager.delete_note_by_id(note_id)
+                        return jsonify({'message': 'Habit deleted successfully'}), 200
+                    else:
+                        return jsonify({'message': 'Failed to delete Habit data after multiple retries'}), 500
             except Exception as e:
                 self.conn.rollback()
                 raise

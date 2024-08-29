@@ -6,6 +6,7 @@ from flask import g, jsonify, request
 from flask_jwt_extended import jwt_required
 
 from modules.universal import BaseNote
+from utils.userDeleteGraph import delete_user_data_with_backoff
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
 from formsValidation import TaskSchema
 from utils.utils import token_required, verify_subtask_ownership, verify_task_ownership
@@ -162,20 +163,16 @@ class TaskApi(BaseNote):
                     if verify_task_ownership(userId, taskId, cur) == False:
                         return jsonify({'message': 'You do not have permission to update this task'}), 403
 
-                    cur.execute("DELETE FROM NoteTags WHERE note_id = %s", (noteId,))
-                    cur.execute("DELETE FROM Subtasks WHERE task_id = %s", (taskId,))
-                    cur.execute("DELETE FROM Tasks WHERE note_id = %s", (noteId,))
-                    cur.execute("DELETE FROM Notes WHERE id = %s", (noteId,))
+                    stack =[12,11,10,2] #NoteTags, Subtasks, Tasks, Notes
 
-                    self.tokenization_manager.delete_note_by_id(noteId)
-                    self.conn.commit()
-                    cur.close()
-                return jsonify({'message': 'Task deleted successfully', 'data': None}), 200
+                    if delete_user_data_with_backoff(self.conn, userId, stack):
+                        self.tokenization_manager.delete_note_by_id(noteId)
+                        return jsonify({'message': 'Task deleted successfully'}), 200
+                    else:
+                        return jsonify({'message': 'Failed to delete task data after multiple retries'}), 500
             except Exception as e:
                 self.conn.rollback()
                 raise
-            finally:
-                cur.close()
 
 
         @self.app.route('/api/tasks/toggle', methods=['PUT'])
