@@ -12,7 +12,7 @@ from utils.recentsListHash import RecentNotesManager
 from utils.word2vec import  load_or_train_model
 from modules.universal import universal_routes
 from modules.tasks import TaskApi
-from modules.goals import GoalApi, goal_routes
+from modules.goals import GoalApi
 from modules.tags import tag_routes
 from modules.users import user_routes
 import google.generativeai as genai

@@ -131,12 +131,7 @@ class NoteApi(BaseNote):
 
                 with self.conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
                     # Fetch the total count of notes for pagination metadata
-                    cur.execute("""
-                        SELECT COUNT(DISTINCT n.id) AS total
-                        FROM Notes n
-                        WHERE n.user_id = %s AND n.type = 'note' AND n.archived = FALSE
-                    """, (userId,))
-                    total = cur.fetchone()['total']
+                    total,nextPage = self.fetch_total_notes(cur, 'note', userId, page, offset, per_page)
 
                     cur.execute("""
                         SELECT
@@ -178,7 +173,6 @@ class NoteApi(BaseNote):
                                 })
 
                     notes_list = list(notes.values())
-                    nextPage = page + 1 if (offset + per_page) < total else None
 
                     return jsonify({"notes": notes_list,
                                     'pagination': {

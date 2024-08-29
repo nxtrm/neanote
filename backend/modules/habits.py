@@ -139,13 +139,7 @@ class HabitApi(BaseNote):
 
                 with self.conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
                     # Fetch the total count of habits for pagination metadata
-                    cur.execute("""
-                        SELECT COUNT(DISTINCT n.id) AS total
-                        FROM Notes n
-                        JOIN Habits h ON n.id = h.note_id
-                        WHERE n.user_id = %s AND n.type = %s AND n.archived = FALSE
-                    """, (userId, "habit"))
-                    total = cur.fetchone()['total']
+                    total,nextPage = self.fetch_total_notes(cur, 'habit', userId, page, offset, per_page)
 
                     query = '''
                         SELECT
@@ -197,7 +191,6 @@ class HabitApi(BaseNote):
                             })
 
                     habits_list = list(habits.values())
-                    nextPage = page + 1 if (offset + per_page) < total else None
 
                     self.conn.commit()
                     return jsonify({

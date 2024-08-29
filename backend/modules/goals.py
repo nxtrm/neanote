@@ -115,12 +115,7 @@ class GoalApi(BaseNote):
                 with self.conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
 
                     # Fetch the total count of goals for pagination metadata
-                    cur.execute("""
-                        SELECT COUNT(DISTINCT n.id) AS total
-                        FROM Notes n
-                        WHERE n.user_id = %s AND n.type = 'goal' AND n.archived = FALSE
-                    """, (userId,))
-                    total = cur.fetchone()['total']
+                    total,nextPage = self.fetch_total_notes(cur, 'goal', userId, page, offset, per_page)
 
                     query = """
                         SELECT
@@ -185,7 +180,6 @@ class GoalApi(BaseNote):
 
                     goals_list = [value for key, value in goals.items()]
                     self.conn.commit()
-                    nextPage = page + 1 if (offset + per_page) < total else None
 
                 return jsonify({"goals": goals_list,
                                 'pagination': {

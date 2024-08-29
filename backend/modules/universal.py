@@ -39,6 +39,16 @@ class BaseNote:
                 tag_tuples
             )
         return noteId
+    def fetch_total_notes(self,cur,note_type, userId, page,offset,per_page):
+        cur.execute("""
+                        SELECT COUNT(DISTINCT n.id) AS total
+                        FROM Notes n
+                        WHERE n.user_id = %s AND n.type = %s AND n.archived = FALSE
+                    """, (userId,note_type,))
+        total = cur.fetchone()['total']
+        nextPage = page + 1 if (offset + per_page) < total else None
+        return total, nextPage
+
 
 def universal_routes(app, conn, model, recents_manager,
                     #  genai
