@@ -18,6 +18,19 @@ class TaskApi(BaseNote):
         self.task_schema = TaskSchema()
         self.task_routes()
 
+        self.subtasks_cte = """SubtasksCTE AS (
+                    SELECT
+                        st.task_id,
+                        json_agg(json_build_object(
+                            'subtaskid', st.id,
+                            'description', st.description,
+                            'completed', st.completed,
+                            'index', st.st_index
+                        )) AS subtasks
+                    FROM Subtasks st
+                    GROUP BY st.task_id
+                )"""
+
     def tokenize(self,noteId,title,content,subtasks):
         text = [title, content] + [subtask['description'] for subtask in subtasks] if subtasks else [title, content]
         priority = sum(len(string) for string in text)
@@ -229,34 +242,29 @@ class TaskApi(BaseNote):
                 userId = g.userId
                 # Pagination
                 page = int(request.args.get('pageParam', 1))  # Default to page 1
-                per_page = int(request.args.get('per_page', 5))  # Default to 10 items per page
+                per_page = int(request.args.get('per_page', 5))  # Default to 5 items per page
                 offset = (page - 1) * per_page
 
                 with self.conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
                     # Fetch the total count of tasks for pagination metadata
                     total,nextPage = self.fetch_total_notes(cur, 'task', userId, page, offset, per_page)
 
-                    cur.execute("""
+                    cur.execute(f"""
+                        WITH {self.subtasks_cte},
+                        {self.tags_cte}
                         SELECT
                             n.id AS note_id,
                             n.title AS title,
                             n.content AS content,
-                            n.type AS type,
                             t.id AS task_id,
                             t.completed AS task_completed,
                             t.due_date AS task_due_date,
-                            st.id AS subtaskid,
-                            st.description AS subtask_description,
-                            st.completed AS subtask_completed,
-                            st.st_index AS subtask_index,
-                            tg.id AS tagid,
-                            tg.name AS tag_name,
-                            tg.color AS tag_color
+                            COALESCE(stc.subtasks, '[]') AS subtasks,
+                            COALESCE(tgc.tags, '[]') AS tags
                         FROM Notes n
                         LEFT JOIN Tasks t ON n.id = t.note_id
-                        LEFT JOIN Subtasks st ON t.id = st.task_id
-                        LEFT JOIN NoteTags nt ON n.id = nt.note_id
-                        LEFT JOIN Tags tg ON nt.tag_id = tg.id
+                        LEFT JOIN SubtasksCTE stc ON t.id = stc.task_id
+                        LEFT JOIN TagsCTE tgc ON n.id = tgc.note_id
                         WHERE n.user_id = %s AND n.type = 'task' AND n.archived = FALSE
                         ORDER BY n.updated_at DESC
                         LIMIT %s OFFSET %s
@@ -265,43 +273,21 @@ class TaskApi(BaseNote):
                         ))
 
                     rows = cur.fetchall()
-                    tasks = {}
+                    tasks = []
                     for row in rows:
-                        note_id = row['note_id']
-                        if note_id not in tasks:
-                            tasks[note_id] = {
-                                'noteid': row['note_id'],
-                                'taskid': row['task_id'],
-                                'title': row['title'][:100] + '...' if len(row['title']) > 100 else row['title'],
-                                'content': row['content'][:200] + '...' if len(row['content']) > 200 else row['content'],
-                                'completed': row['task_completed'],
-                                'due_date': row['task_due_date'],
-                                'subtasks': [],
-                                'tags': []
-                            }
+                        task = {
+                            'noteid': row['note_id'],
+                            'taskid': row['task_id'],
+                            'title': row['title'][:100] + '...' if len(row['title']) > 100 else row['title'],
+                            'content': row['content'][:200] + '...' if len(row['content']) > 200 else row['content'],
+                            'completed': row['task_completed'],
+                            'due_date': row['task_due_date'],
+                            'subtasks': row['subtasks'],
+                            'tags': row['tags']
+                        }
+                        tasks.append(task)
 
-                        if row['subtaskid'] is not None:
-                            is_subtask_present = any(subtask['subtaskid'] == row['subtaskid'] for subtask in tasks[note_id]['subtasks'])
-                            if not is_subtask_present:
-                                tasks[note_id]['subtasks'].append({
-                                    'subtaskid': row['subtaskid'],
-                                    'description': row['subtask_description'][:200] + '...' if len(row['subtask_description']) > 200 else row['subtask_description'],
-                                    'index': row['subtask_index'],
-                                    'completed': row['subtask_completed']
-                                })
-
-                        if row['tagid'] is not None:
-                            is_tag_present = any(tag['tagid'] == row['tagid'] for tag in tasks[note_id]['tags'])
-                            if not is_tag_present:
-                                tasks[note_id]['tags'].append({
-                                    'tagid': row['tagid'],
-                                    'name': row['tag_name'],
-                                    'color': row['tag_color']
-                                })
-
-                    tasks_list = list(tasks.values())
-
-                    return jsonify({"tasks": tasks_list,
+                    return jsonify({"tasks": tasks,
                                     'pagination': {
                                         'total': total,
                                         'page': page,
@@ -326,58 +312,41 @@ class TaskApi(BaseNote):
                 noteid = request.args.get('noteid')
 
                 with self.conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
-                    cur.execute("""
+                    cur.execute(f"""
+                        WITH {self.subtasks_cte},
+                        {self.tags_cte}
                         SELECT
-                            n.id AS note_id,
-                            n.title AS note_title,
-                            n.content AS note_content,
-                            n.created_at AS task_created_at,
-                            n.type AS note_type,
-                            t.id AS task_id,
-                            t.completed AS task_completed,
-                            t.due_date AS task_due_date,
-                            st.id AS subtask_id,
-                            st.description AS subtask_description,
-                            st.completed AS subtask_completed,
-                            st.st_index AS subtask_index,
-                            tg.id AS tagid,
-                            tg.name AS tag_name,
-                            tg.color AS tag_color
-                        FROM Notes n
-                        LEFT JOIN Tasks t ON n.id = t.note_id
-                        LEFT JOIN Subtasks st ON t.id = st.task_id
-                        LEFT JOIN NoteTags nt ON n.id = nt.note_id
-                        LEFT JOIN Tags tg ON nt.tag_id = tg.id
-                        WHERE n.user_id = %s AND n.id = %s AND n.type = 'task' AND n.archived = FALSE
-                    """, (userId, noteid))
+                        n.id AS note_id,
+                        n.title AS note_title,
+                        n.content AS note_content,
+                        n.created_at AS task_created_at,
+                        t.id AS task_id,
+                        t.completed AS task_completed,
+                        t.due_date AS task_due_date,
+                        COALESCE(stc.subtasks, '[]') AS subtasks,
+                        COALESCE(tgc.tags, '[]') AS tags
+                    FROM Notes n
+                    LEFT JOIN Tasks t ON n.id = t.note_id
+                    LEFT JOIN SubtasksCTE stc ON t.id = stc.task_id
+                    LEFT JOIN TagsCTE tgc ON n.id = tgc.note_id
+                    WHERE n.user_id = %s AND n.id = %s AND n.type = 'task' AND n.archived = FALSE
+                """, (userId, noteid))
 
-                    rows = cur.fetchall()
-                    if not rows:
+                    row = cur.fetchone()
+                    if not row:
                         return jsonify({'message': "Task not found"}), 404
 
                     task = {
-                        'noteid': rows[0]['note_id'],
-                        'taskid': rows[0]['task_id'],
-                        'title': rows[0]['note_title'],
-                        'content': rows[0]['note_content'],
-                        'completed': rows[0]['task_completed'],
-                        'due_date': rows[0]['task_due_date'],
-                        'subtasks': [],
-                        'tags': []
+                        'noteid': row['note_id'],
+                        'taskid': row['task_id'],
+                        'title': row['note_title'],
+                        'content': row['note_content'],
+                        'completed': row['task_completed'],
+                        'due_date': row['task_due_date'],
+                        'subtasks': row['subtasks'],
+                        'tags': row['tags']
                     }
 
-                    for row in rows:
-                        if row['subtask_id'] is not None:
-                            task['subtasks'].append({
-                                'subtaskid': row['subtask_id'],
-                                'description': row['subtask_description'],
-                                'completed': row['subtask_completed'],
-                                'index': row['subtask_index']
-                            })
-                        if row['tagid'] is not None:
-                            task['tags'].append(
-                                row['tagid']
-                            )
                     self.recents_manager.add_note_for_user(userId, noteid)
                     return jsonify({"task": task, 'message': "Task fetched successfully"}), 200
 

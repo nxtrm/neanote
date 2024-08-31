@@ -22,6 +22,19 @@ class BaseNote:
         self.tokenization_manager = tokenization_manager
         self.recents_manager = recents_manager
 
+        self.tags_cte = """TagsCTE AS (
+                            SELECT
+                                nt.note_id,
+                                json_agg(json_build_object(
+                                    'tagid', tg.id,
+                                    'name', tg.name,
+                                    'color', tg.color
+                                )) AS tags
+                            FROM NoteTags nt
+                            JOIN Tags tg ON nt.tag_id = tg.id
+                            GROUP BY nt.note_id
+                        )"""
+
     def create_note(self, cur, userId, title, content, noteType, tags):
         cur.execute( # Insert into Notes table
             "INSERT INTO Notes (user_id, title, content, type) VALUES (%s, %s, %s, %s) RETURNING id",

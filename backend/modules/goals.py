@@ -17,6 +17,18 @@ class GoalApi(BaseNote):
         super().__init__(app, conn, tokenization_manager, recents_manager)
         self.goal_schema = GoalSchema()
         self.goal_routes()
+        self.milestones_cte = """MilestonesCTE AS (
+                            SELECT
+                                m.goal_id,
+                                json_agg(json_build_object(
+                                    'milestoneid', m.id,
+                                    'description', m.description,
+                                    'completed', m.completed,
+                                    'index', m.ms_index
+                                )) AS milestones
+                            FROM Milestones m
+                            GROUP BY m.goal_id
+                        )"""
 
     def tokenize(self,noteId,title,content,milestones):
         text = [title, content] + [milestone['description'] for milestone in milestones] if milestones else [title, content]
@@ -114,75 +126,49 @@ class GoalApi(BaseNote):
                 offset = (page - 1) * per_page
 
                 with self.conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
-
                     # Fetch the total count of goals for pagination metadata
-                    total,nextPage = self.fetch_total_notes(cur, 'goal', userId, page, offset, per_page)
+                    total, nextPage = self.fetch_total_notes(cur, 'goal', userId, page, offset, per_page)
 
-                    query = """
-                        SELECT
-                            n.id AS note_id,
-                            n.title AS title,
-                            n.content AS content,
-                            g.id AS goal_id,
-                            g.due_date AS due_date,
-                            m.id AS milestone_id,
-                            m.description AS description,
-                            m.completed AS completed,
-                            m.ms_index AS ms_index,
-                            tg.id AS tagid,
-                            tg.name AS tag_name,
-                            tg.color AS tag_color
-                        FROM Notes n
-                        LEFT JOIN Goals g ON n.id = g.note_id
-                        LEFT JOIN Milestones m ON g.id = m.goal_id
-                        LEFT JOIN NoteTags nt ON n.id = nt.note_id
-                        LEFT JOIN Tags tg ON nt.tag_id = tg.id
-                        WHERE n.user_id = %s AND n.type = 'goal' AND n.archived = FALSE
-                        ORDER BY n.created_at DESC
-                        LIMIT %s OFFSET %s
-                    """
+                    query = f"""
+                           WITH {self.milestones_cte},
+                            {self.tags_cte}
+                            SELECT
+                                n.id AS note_id,
+                                n.title AS title,
+                                n.content AS content,
+                                n.type AS type,
+                                g.id AS goal_id,
+                                g.due_date AS due_date,
+                                COALESCE(milestones_cte.milestones, '[]') AS milestones,
+                                COALESCE(tags_cte.tags, '[]') AS tags
+                            FROM Notes n
+                            LEFT JOIN Goals g ON n.id = g.note_id
+                            LEFT JOIN MilestonesCTE milestones_cte ON g.id = milestones_cte.goal_id
+                            LEFT JOIN TagsCTE tags_cte ON n.id = tags_cte.note_id
+                            WHERE n.user_id = %s AND n.type = 'goal' AND n.archived = FALSE
+                            ORDER BY n.created_at DESC
+                            LIMIT %s OFFSET %s
+                        """
 
-                    cur.execute(query, (userId, per_page
-                                        , offset
-                                        ))
+                    cur.execute(query, (userId, per_page, offset))
                     rows = cur.fetchall()
 
-                    goals = {}
+                    goals = []
                     for row in rows:
-                        note_id = row['note_id']
-                        if note_id not in goals:
-                            goals[note_id] = {
-                                'noteid': row['note_id'],
-                                'goalid': row['goal_id'],
-                                'title': row['title'][:50] + '...' if len(row['title']) > 50 else row['title'],
-                                'content': row['content'][:100] + '...' if len(row['content']) > 100 else row['content'],
-                                'due_date': row['due_date'].isoformat() if row['due_date'] else None,
-                                'tags': [],
-                                'milestones': []
-                            }
+                        goal = {
+                            'noteid': row['note_id'],
+                            'goalid': row['goal_id'],
+                            'title': row['title'][:50] + '...' if len(row['title']) > 50 else row['title'],
+                            'content': row['content'][:100] + '...' if len(row['content']) > 100 else row['content'],
+                            'due_date': row['due_date'].isoformat() if row['due_date'] else None,
+                            'tags': row['tags'],
+                            'milestones': row['milestones']
+                        }
+                        goals.append(goal)
 
-                        if row['milestone_id'] is not None:
-                            milestone = {
-                                'milestoneid': row['milestone_id'],
-                                'description': row['description'][:100] + '...' if len(row['description']) > 100 else row['description'],
-                                'completed': row['completed'] == 1,
-                                'index': row['ms_index']
-                            }
-                            goals[note_id]['milestones'].append(milestone)
-
-                        if row['tagid'] is not None:
-                            tag = {
-                                'tagid': row['tagid'],
-                                'name': row['tag_name'],
-                                'color': row['tag_color']
-                            }
-                            if tag not in goals[note_id]['tags']:
-                                goals[note_id]['tags'].append(tag)
-
-                    goals_list = [value for key, value in goals.items()]
                     self.conn.commit()
 
-                return jsonify({"goals": goals_list,
+                return jsonify({"goals": goals,
                                 'pagination': {
                                         'total': total,
                                         'page': page,
@@ -207,61 +193,39 @@ class GoalApi(BaseNote):
 
                 with self.conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
 
-                    query = """
+                    query = f"""
+                        WITH {self.milestones_cte},
+                        {self.tags_cte}
                         SELECT
                             n.id AS note_id,
                             n.title AS title,
                             n.content AS content,
                             g.id AS goal_id,
                             g.due_date AS due_date,
-                            m.id AS milestone_id,
-                            m.description AS description,
-                            m.completed AS completed,
-                            m.ms_index AS ms_index,
-                            tg.id AS tagid,
-                            tg.name AS tag_name,
-                            tg.color AS tag_color
+                            COALESCE(milestones_cte.milestones, '[]') AS milestones,
+                            COALESCE(tags_cte.tags, '[]') AS tags
                         FROM Notes n
                         LEFT JOIN Goals g ON n.id = g.note_id
-                        LEFT JOIN Milestones m ON g.id = m.goal_id
-                        LEFT JOIN NoteTags nt ON n.id = nt.note_id
-                        LEFT JOIN Tags tg ON nt.tag_id = tg.id
+                        LEFT JOIN MilestonesCTE milestones_cte ON g.id = milestones_cte.goal_id
+                        LEFT JOIN TagsCTE tags_cte ON n.id = tags_cte.note_id
                         WHERE n.user_id = %s AND n.type = 'goal' AND n.id = %s AND n.archived = FALSE
                     """
 
                     cur.execute(query, (userId, noteid))
-                    rows = cur.fetchall()
+                    row = cur.fetchone()
 
-                    if not rows:
+                    if not row:
                         return jsonify({'message': "Goal not found"}), 404
 
                     goal = {
-                        'noteid': rows[0]['note_id'],
-                        'goalid': rows[0]['goal_id'],
-                        'title': rows[0]['title'],
-                        'content': rows[0]['content'],
-                        'due_date': rows[0]['due_date'].isoformat() if rows[0]['due_date'] else None,
-                        'tags': [],
-                        'milestones': []
+                        'noteid': row['note_id'],
+                        'goalid': row['goal_id'],
+                        'title': row['title'],
+                        'content': row['content'],
+                        'due_date': row['due_date'].isoformat() if row['due_date'] else None,
+                        'tags': row['tags'],
+                        'milestones': row['milestones']
                     }
-                    milestone_ids = set()
-                    tag_ids = set()
-
-                    for row in rows:
-                        if row['milestone_id'] is not None and row['milestone_id'] not in milestone_ids:
-                            milestone = {
-                                'milestoneid': row['milestone_id'],
-                                'description': row['description'],
-                                'completed': row['completed'],
-                                'index': row['ms_index']
-                            }
-                            goal['milestones'].append(milestone)
-                            milestone_ids.add(row['milestone_id'])
-
-                        if row['tagid'] is not None and row['tagid'] not in tag_ids:
-                            tag = row['tagid']
-                            goal['tags'].append(tag)
-                            tag_ids.add(row['tagid'])
 
 
                 self.conn.commit()

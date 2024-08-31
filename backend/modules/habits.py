@@ -137,61 +137,46 @@ class HabitApi(BaseNote):
                     # Fetch the total count of habits for pagination metadata
                     total,nextPage = self.fetch_total_notes(cur, 'habit', userId, page, offset, per_page)
 
-                    query = '''
+                    cur.execute(f'''
+                        WITH {self.tags_cte}
                         SELECT
                             n.id AS note_id,
                             n.title,
                             n.content,
                             h.id AS habit_id,
                             h.streak,
-                            STRING_AGG(DISTINCT t.id::text, ',') AS tagids,
-                            STRING_AGG(DISTINCT t.name, ',') AS names,
-                            STRING_AGG(DISTINCT t.color, ',') AS colors,
-                            BOOL_OR(hc.completion_date = CURRENT_DATE) AS completed
+                            EXISTS (
+                                SELECT 1
+                                FROM HabitCompletion hc
+                                WHERE hc.habit_id = h.id AND hc.completion_date = CURRENT_DATE
+                            ) AS completed,
+                            COALESCE(tags_cte.tags, '[]') AS tags
                         FROM Notes n
                         JOIN Habits h ON n.id = h.note_id
-                        LEFT JOIN HabitCompletion hc ON h.id = hc.habit_id AND hc.completion_date = CURRENT_DATE
-                        LEFT JOIN NoteTags nt ON n.id = nt.note_id
-                        LEFT JOIN Tags t ON nt.tag_id = t.id
+                        LEFT JOIN TagsCTE tags_cte ON n.id = tags_cte.note_id
                         WHERE n.user_id = %s AND n.type = %s AND n.archived = FALSE
-                        GROUP BY n.id, h.id
                         ORDER BY n.created_at DESC
                         LIMIT %s OFFSET %s
-                    '''
+                    ''', (userId, "habit", per_page, offset))
 
-                    cur.execute(query, (userId, "habit", per_page, offset))
                     rows = cur.fetchall()
-                    habits = {}
+                    habits = []
                     for row in rows:
-                        note_id = row['note_id']
-                        if note_id not in habits:
-                            habits[note_id] = {
-                                'noteid': note_id,
-                                'habitid': row['habit_id'],
-                                'title': row['title'][:50] + '...' if len(row['title']) > 50 else row['title'],
-                                'content': row['content'][:100] + '...' if len(row['content']) > 100 else row['content'],
-                                'streak': row['streak'],
-                                'completed_today': row['completed'],
-                                'tags': [],
-                            }
-
-                        tag_ids = row['tagids'].split(',') if row['tagids'] else []
-                        tag_names = row['names'].split(',') if row['names'] else []
-                        tag_colors = row['colors'].split(',') if row['colors'] else []
-
-                        for tag_id, tag_name, tag_color in zip(tag_ids, tag_names, tag_colors):
-                            habits[note_id]['tags'].append({
-                                'tagid': tag_id,
-                                'name': tag_name,
-                                'color': tag_color
-                            })
-
-                    habits_list = list(habits.values())
+                        habit = {
+                            'noteid': row['note_id'],
+                            'habitid': row['habit_id'],
+                            'title': row['title'][:50] + '...' if len(row['title']) > 50 else row['title'],
+                            'content': row['content'][:100] + '...' if len(row['content']) > 100 else row['content'],
+                            'streak': row['streak'],
+                            'completed_today': row['completed'],
+                            'tags': row['tags']
+                        }
+                        habits.append(habit)
 
                     self.conn.commit()
                     return jsonify({
                         'message': 'Habit previews fetched successfully',
-                        'data': habits_list,
+                        'data': habits,
                         'pagination': {
                             'total': total,
                             'page': page,

@@ -127,48 +127,33 @@ class NoteApi(BaseNote):
                     # Fetch the total count of notes for pagination metadata
                     total,nextPage = self.fetch_total_notes(cur, 'note', userId, page, offset, per_page)
 
-                    cur.execute("""
+                    cur.execute(f"""
+                        WITH {self.tags_cte}
                         SELECT
                             n.id AS note_id,
                             n.title AS title,
                             n.content AS content,
                             n.type AS type,
-                            tg.id AS tagid,
-                            tg.name AS tag_name,
-                            tg.color AS tag_color
+                            COALESCE(tags_cte.tags, '[]') AS tags
                         FROM Notes n
-                        LEFT JOIN NoteTags nt ON n.id = nt.note_id
-                        LEFT JOIN Tags tg ON nt.tag_id = tg.id
+                        LEFT JOIN TagsCTE tags_cte ON n.id = tags_cte.note_id
                         WHERE n.user_id = %s AND n.type = 'note' AND n.archived = FALSE
                         ORDER BY n.updated_at DESC
                         LIMIT %s OFFSET %s
-                    """, (userId, per_page
-                        , offset
-                        ))
+                    """, (userId, per_page, offset))
 
                     rows = cur.fetchall()
-                    notes = {}
+                    notes = []
                     for row in rows:
-                        note_id = row['note_id']
-                        if note_id not in notes:
-                            notes[note_id] = {
-                                'noteid': row['note_id'],
-                                'title': row['title'][:100] + '...' if len(row['title']) > 100 else row['title'],
-                                'content': row['content'][:200] + '...' if len(row['content']) > 200 else row['content'],
-                                'tags': []
-                            }
-                        if row['tagid'] is not None:
-                            is_tag_present = any(tag['tagid'] == row['tagid'] for tag in notes[note_id]['tags'])
-                            if not is_tag_present:
-                                notes[note_id]['tags'].append({
-                                    'tagid': row['tagid'],
-                                    'name': row['tag_name'],
-                                    'color': row['tag_color']
-                                })
+                        note = {
+                            'noteid': row['note_id'],
+                            'title': row['title'][:100] + '...' if len(row['title']) > 100 else row['title'],
+                            'content': row['content'][:200] + '...' if len(row['content']) > 200 else row['content'],
+                            'tags': row['tags']
+                        }
+                        notes.append(note)
 
-                    notes_list = list(notes.values())
-
-                    return jsonify({"notes": notes_list,
+                    return jsonify({"notes": notes,
                                     'pagination': {
                                         'total': total,
                                         'page': page,
@@ -193,38 +178,31 @@ class NoteApi(BaseNote):
                 noteid = request.args.get('noteid')
 
                 with self.conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
-                    cur.execute("""
+
+                    cur.execute(f"""
+                        WITH {self.tags_cte}
                         SELECT
                             n.id AS note_id,
                             n.title AS note_title,
                             n.content AS note_content,
                             n.created_at AS note_created_at,
                             n.type AS note_type,
-                            tg.id AS tagid,
-                            tg.name AS tag_name,
-                            tg.color AS tag_color
+                            COALESCE(tags_cte.tags, '[]') AS tags
                         FROM Notes n
-                        LEFT JOIN NoteTags nt ON n.id = nt.note_id
-                        LEFT JOIN Tags tg ON nt.tag_id = tg.id
+                        LEFT JOIN TagsCTE tags_cte ON n.id = tags_cte.note_id
                         WHERE n.user_id = %s AND n.id = %s AND n.type = 'note' AND n.archived = FALSE
                     """, (userId, noteid))
 
-                    rows = cur.fetchall()
-                    if not rows:
+                    row = cur.fetchone()
+                    if not row:
                         return jsonify({'message': "Note not found"}), 404
 
                     note = {
-                        'noteid': rows[0]['note_id'],
-                        'title': rows[0]['note_title'],
-                        'content': rows[0]['note_content'],
-                        'tags': []
+                        'noteid': row['note_id'],
+                        'title': row['note_title'],
+                        'content': row['note_content'],
+                        'tags': row['tags']
                     }
-
-                    for row in rows:
-                        if row['tagid'] is not None:
-                            note['tags'].append(
-                                row['tagid']
-                            )
                     self.recents_manager.add_note_for_user(userId, noteid)
                     return jsonify({"note": note, 'message': "Note fetched successfully"}), 200
 

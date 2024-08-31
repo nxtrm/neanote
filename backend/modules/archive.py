@@ -70,17 +70,17 @@ def archive_routes(app,conn, model):
                     WHERE n.user_id = %s AND n.archived = TRUE
                 """, (userId,))
             total = cur.fetchone()['total']
-            
+
             cur.execute(
                 """
-                SELECT n.id AS note_id, n.title, n.content, n.type, 
-                t.id AS tagid, 
-                t.name, 
+                SELECT n.id AS note_id, n.title, n.content, n.type,
+                t.id AS tagid,
+                t.name,
                 t.color
                 FROM Notes n
                 LEFT JOIN NoteTags nt ON n.id = nt.note_id
                 LEFT JOIN Tags t ON nt.tag_id = t.id
-                WHERE n.user_id = %s AND n.archived = TRUE 
+                WHERE n.user_id = %s AND n.archived = TRUE
                 LIMIT %s OFFSET %s
                 """,
                 (userId, per_page + 1, offset)  # Fetch one more note than the limit
