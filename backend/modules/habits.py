@@ -262,27 +262,27 @@ class HabitApi(BaseNote):
                                 row['tagid']
                             )
 
-                        if row['linked_task_id']:
-                            linked_task = next((task for task in habit['linked_tasks'] if task['taskid'] == row['linked_task_id']), None)
-                            if not linked_task:
-                                linked_task = {
-                                    'noteid': row['linked_note_id'],
-                                    'taskid': row['linked_task_id'],
-                                    'title': row['linked_note_title'],
-                                    'content': row['linked_note_content'],
-                                    'completed': row['linked_task_completed'],
-                                    'due_date': row['linked_task_due_date'],
-                                    'subtasks': []
-                                }
-                                habit['linked_tasks'].append(linked_task)
+                        # if row['linked_task_id']:
+                        #     linked_task = next((task for task in habit['linked_tasks'] if task['taskid'] == row['linked_task_id']), None)
+                        #     if not linked_task:
+                        #         linked_task = {
+                        #             'noteid': row['linked_note_id'],
+                        #             'taskid': row['linked_task_id'],
+                        #             'title': row['linked_note_title'],
+                        #             'content': row['linked_note_content'],
+                        #             'completed': row['linked_task_completed'],
+                        #             'due_date': row['linked_task_due_date'],
+                        #             'subtasks': []
+                        #         }
+                        #         habit['linked_tasks'].append(linked_task)
 
-                            if row['linked_subtask_id']:
-                                if not any(subtask['subtask_id'] == row['linked_subtask_id'] for subtask in linked_task['subtasks']):
-                                    linked_task['subtasks'].append({
-                                        'subtask_id': row['linked_subtask_id'],
-                                        'description': row['linked_subtask_description'],
-                                        'completed': row['linked_subtask_completed']
-                                    })
+                        #     if row['linked_subtask_id']:
+                        #         if not any(subtask['subtask_id'] == row['linked_subtask_id'] for subtask in linked_task['subtasks']):
+                        #             linked_task['subtasks'].append({
+                        #                 'subtask_id': row['linked_subtask_id'],
+                        #                 'description': row['linked_subtask_description'],
+                        #                 'completed': row['linked_subtask_completed']
+                        #             })
 
                     self.conn.commit()
                     self.recents_manager.add_note_for_user(userId, noteid)
