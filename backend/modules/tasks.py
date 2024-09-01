@@ -177,7 +177,7 @@ class TaskApi(BaseNote):
                         return jsonify({'message': 'You do not have permission to update this task'}), 403
 
                     stack =[12,11,10,2] #NoteTags, Subtasks, Tasks, Notes
-
+                    stack.reverse()
                     if delete_notes_with_backoff(self.conn, noteId, stack):
                         self.tokenization_manager.delete_note_by_id(noteId)
                         return jsonify({'message': 'Task deleted successfully'}), 200

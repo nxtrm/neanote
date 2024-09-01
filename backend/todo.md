@@ -3,7 +3,6 @@
 Notes
 
 Habits
-1. Tags not sent on creation + 'NoneType' object is not subscriptable
 
 2. Add a last week's visualisation of completed streak in EditHabits
 3.  fix checkbox not updating in linked tasks
@@ -16,7 +15,6 @@ Habits
 ## NEW NOTE DELETION DELETES ALL NOTES
 - simplify deletion
 
--habits issue #1
 - simplify frontend validation and other logic
 - create the dashboard arrangable grid with dummy components
     - elements from Habits issue #2

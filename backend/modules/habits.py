@@ -45,9 +45,6 @@ class HabitApi(BaseNote):
 
                 with self.conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
                     noteId = self.create_note(cur, userId, title, content, 'habit', tags)
-                    # Commit the transaction to ensure the insert is finalized
-                    self.conn.commit()
-                    noteId = cur.fetchone()
 
                     cur.execute(
                         """
@@ -56,7 +53,7 @@ class HabitApi(BaseNote):
                         """,
                         (noteId, reminder_time,  repetition, 0)
                     )
-                    habitId = cur.fetchone()
+                    habitId = cur.fetchone()[0]
 
                     self.conn.commit()
 
@@ -313,7 +310,7 @@ class HabitApi(BaseNote):
                     if not verify_habit_ownership(userId, habit_id, cur):
                         return jsonify({'message': 'You do not have permission to update this habit'}), 403
 
-                    stack = [12,9,8,7,2]
+                    stack = [2, 7, 8, 9, 12]
                     if delete_notes_with_backoff(self.conn, note_id, stack):
                         self.tokenization_manager.delete_note_by_id(note_id)
                         return jsonify({'message': 'Habit deleted successfully'}), 200

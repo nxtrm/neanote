@@ -102,6 +102,7 @@ class NoteApi(BaseNote):
                 data = request.get_json()
                 note_id = data['noteId']
                 stack = [12,2] #NoteTags, Notes
+                stack.reverse()
                 if delete_notes_with_backoff(self.conn, note_id, stack):
                     self.tokenization_manager.delete_note_by_id(note_id)
                     return jsonify({'message': 'Note deleted successfully'}), 200

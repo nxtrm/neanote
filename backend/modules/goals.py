@@ -353,7 +353,7 @@ class GoalApi(BaseNote):
                     return jsonify({'message': 'You do not have permission to update this goal'}), 403
 
                 stack = [6, 5, 4, 12, 2]  # milestones, goalhistory, goals, notetags, notes
-
+                stack.reverse()
                  # Use the delete_user_data_with_backoff function to delete related data
                 if delete_user_data_with_backoff(self.conn, userId, stack):
                     self.tokenization_manager.delete_note_by_id(note_id)
