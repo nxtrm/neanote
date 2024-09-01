@@ -80,7 +80,9 @@ export const useNotes = create<NoteState>()(
             Object.entries(result.error.flatten().fieldErrors).map(([key, value]) => [key, value.join(", ")])
           );
           state.validationErrors = errors;
+          console.log(state.validationErrors)
         });
+        console.log(currentNote)
         return false;
       } else {
         set((state) => {
@@ -151,7 +153,7 @@ export const useNotes = create<NoteState>()(
               state.currentNote = response.data;
             });
             if (response.data.tags)
-              setSelectedTagIds(response.data.tags);
+              setSelectedTagIds(response.data.tags.map(tag=>tag.tagid));
           } else {
             showToast('error', response.message);
           }

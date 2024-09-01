@@ -25,7 +25,7 @@ export interface Task {
   };
 
   export interface TaskResponse {
-    task: TaskwithIds;
+    task: Task;
     message: string
   }
 

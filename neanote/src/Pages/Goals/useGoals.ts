@@ -230,7 +230,7 @@ export const useGoals = create<GoalState>()(
                 set((state) => {
                   state.currentGoal = goalWithFormattedDate;
                 });
-                setSelectedTagIds(response.data.tags);
+                setSelectedTagIds(response.data.tags.map(tag=>tag.tagid));
               } else {
                 showToast('error', response.message);
               }

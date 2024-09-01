@@ -38,7 +38,7 @@ export interface GoalsPreview {
 
 export interface GoalResponse {
     success:boolean
-    goal: GoalwithIds;
+    goal: Goal;
     message: string;
 }
 

@@ -1,9 +1,6 @@
 # KNOWN ISSUES
 
-- TAGS NOT SHOWN IN TAG MENU
-
 Notes
-1. Validation failed for tags
 
 Habits
 1. Tags not sent on creation + 'NoneType' object is not subscriptable
@@ -16,13 +13,14 @@ Habits
 
 # TASK LIST
 
-- fix tags + notes and habbits issues #1
+-notes and habbits issues #1
 - remove linked tasks
 - simplify frontend validation and other logic
 - create the dashboard arrangable grid with dummy components
     - elements from Habits issue #2
 - add a calendar page
     - optionally add events note type with google maps + calendar integration
+- add a dashboard (during school)
 
 # IDEAS OR DO-LATER
 

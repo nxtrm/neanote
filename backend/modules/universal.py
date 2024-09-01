@@ -55,7 +55,8 @@ class BaseNote:
         nextPage = page + 1 if (offset + per_page) < total else None
         return total, nextPage
 
-    def update_notetags(self, cur,tags,note_id, withDelete=True):
+    def update_notetags(self, cur, note_id, tags, withDelete=True):
+
         if withDelete:
             cur.execute("DELETE FROM NoteTags WHERE note_id = %s", (note_id,))
         if tags:

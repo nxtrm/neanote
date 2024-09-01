@@ -67,7 +67,7 @@ export const TaskSchema = z.object({
 export const NoteSchema = z.object({
   noteid: uuidSchema,
   title: titleSchema,
-  tags: z.array(uuidSchema), // tag ids
+  // tags: z.array(uuidSchema), // tag ids
   content: contentSchema,
 });
 
