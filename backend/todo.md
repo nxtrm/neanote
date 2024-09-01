@@ -13,7 +13,10 @@ Habits
 
 # TASK LIST
 
--notes and habbits issues #1
+## NEW NOTE DELETION DELETES ALL NOTES
+- simplify deletion
+
+-habits issue #1
 - remove linked tasks
 - simplify frontend validation and other logic
 - create the dashboard arrangable grid with dummy components

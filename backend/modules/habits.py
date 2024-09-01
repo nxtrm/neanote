@@ -5,7 +5,7 @@ from flask import  g, jsonify, request
 from flask_jwt_extended import jwt_required
 import psycopg2.extras
 from formsValidation import HabitSchema
-from utils.userDeleteGraph import delete_user_data_with_backoff
+from utils.userDeleteGraph import delete_notes_with_backoff, delete_user_data_with_backoff
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
 from modules.universal import BaseNote
 from utils.utils import calculate_gap, token_required, verify_habit_ownership
@@ -47,7 +47,7 @@ class HabitApi(BaseNote):
                     noteId = self.create_note(cur, userId, title, content, 'habit', tags)
                     # Commit the transaction to ensure the insert is finalized
                     self.conn.commit()
-                    noteId = cur.fetchone()[0]
+                    noteId = cur.fetchone()
 
                     cur.execute(
                         """
@@ -56,7 +56,7 @@ class HabitApi(BaseNote):
                         """,
                         (noteId, reminder_time,  repetition, 0)
                     )
-                    habitId = cur.fetchone()[0]
+                    habitId = cur.fetchone()
 
                     self.conn.commit()
 
@@ -314,7 +314,7 @@ class HabitApi(BaseNote):
                         return jsonify({'message': 'You do not have permission to update this habit'}), 403
 
                     stack = [12,9,8,7,2]
-                    if delete_user_data_with_backoff(self.conn, userId, stack):
+                    if delete_notes_with_backoff(self.conn, note_id, stack):
                         self.tokenization_manager.delete_note_by_id(note_id)
                         return jsonify({'message': 'Habit deleted successfully'}), 200
                     else:

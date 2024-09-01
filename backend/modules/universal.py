@@ -40,9 +40,9 @@ class BaseNote:
             "INSERT INTO Notes (user_id, title, content, type) VALUES (%s, %s, %s, %s) RETURNING id",
             (userId, title, content, noteType)
         )
-        noteId = cur.fetchone()[0]
+        noteId = str(cur.fetchone()[0])
 
-        self.update_notetags(cur, tags, noteId, withDelete=False)
+        self.update_notetags(cur, noteId,tags, withDelete=False)
 
         return noteId
     def fetch_total_notes(self, cur,note_type, userId, page,offset,per_page):
