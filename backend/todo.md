@@ -15,11 +15,10 @@ Habits
 - simplify deletion
 
 - simplify frontend validation and other logic
-- create the dashboard arrangable grid with dummy components
-    - elements from Habits issue #2
 - add a calendar page
     - optionally add events note type with google maps + calendar integration
-- add a dashboard (during school)
+- create the dashboard arrangable grid with dummy components
+    - elements from Habits issue #2
 
 # IDEAS OR DO-LATER
 
