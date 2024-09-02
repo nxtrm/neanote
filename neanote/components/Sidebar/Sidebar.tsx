@@ -47,7 +47,6 @@ function Sidebar() {
                   <ThemeSwitcher/>
                   <LoginButton/>
                </div>)}
-              <div>Calendar</div>
                 {modules.map((module) => (
                 <Button
                   variant={`${location.pathname.includes(module.link) ? "default" : "secondary"}` }

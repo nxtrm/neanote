@@ -6,6 +6,7 @@ import { useDashboard } from './useDashboard';
 import { Label } from '../../../components/@/ui/label';
 import UniversalCard from '../../../components/Universal/UniversalCard';
 import { useNavigate } from "react-router-dom";
+import { MdSpaceDashboard } from "react-icons/md";
 
 function Dashboard() {
   const {recents, getRecents, loading} = useDashboard()
@@ -22,7 +23,9 @@ function Dashboard() {
   
   return (
     <>
-      Dashboard
+      <TitleComponent>
+          <MdSpaceDashboard size={'20px'} /> Dashboard
+        </TitleComponent>
       <div className='bg-secondary rounded-xl p-2'>
         <div className="flex flex-row gap-3 items-center pb-2">
             <TitleComponent><FaHistory size={'17px'}/> Recents</TitleComponent>

@@ -12,7 +12,6 @@ Habits
 
 # TASK LIST
 
-## NEW NOTE DELETION DELETES ALL NOTES
 - simplify deletion
 
 - simplify frontend validation and other logic
