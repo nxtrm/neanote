@@ -1,3 +1,4 @@
+from datetime import datetime
 import os
 import sys
 
@@ -183,6 +184,74 @@ def universal_routes(app, conn, model, recents_manager,
         except Exception as e:
             conn.rollback()
             raise
+
+    @app.route('/api/calendar', methods=['GET'])
+    @jwt_required()
+    @token_required
+    def get_calendar_notes():
+        try:
+            userId = g.userId
+            start_date = request.args.get('startDate')
+            end_date = request.args.get('endDate')
+
+            # Convert start and end dates to datetime objects
+            start_date = datetime.fromisoformat(str(start_date))
+            end_date = datetime.fromisoformat(str(end_date))
+
+            with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
+                # Fetch notes from goals table
+                cur.execute("""
+                    SELECT n.id AS note_id, n.title, n.content, g.due_date
+                    FROM Notes n
+                    JOIN Goals g ON n.id = g.note_id
+                    WHERE n.user_id = %s AND g.due_date BETWEEN %s AND %s
+                """, (userId, start_date, end_date))
+                goal_notes = cur.fetchall()
+
+                # Fetch notes from tasks table
+                cur.execute("""
+                    SELECT n.id AS note_id, n.title, n.content, t.due_date
+                    FROM Notes n
+                    JOIN Tasks t ON n.id = t.note_id
+                    WHERE n.user_id = %s AND t.due_date BETWEEN %s AND %s
+                """, (userId, start_date, end_date))
+                task_notes = cur.fetchall()
+
+                # Combine results
+                notes = []
+                for row in goal_notes + task_notes:
+                    note = {
+                        'note_id': row['note_id'],
+                        'title': row['title'],
+                        'content': row['content'],
+                        'due_date': row['due_date'],
+                        'tags' : []
+                    }
+                    #Select tags
+                    cur.execute("""
+                        SELECT
+                            nt.note_id,
+                            json_agg(json_build_object(
+                                'tagid', tg.id,
+                                'name', tg.name,
+                                'color', tg.color
+                            )) AS tags
+                        FROM NoteTags nt
+                        JOIN Tags tg ON nt.tag_id = tg.id
+                        WHERE nt.note_id = %s
+                        GROUP BY nt.note_id
+                    """, (row['note_id'],))
+                    note['tags'] = cur.fetchone()
+                    notes.append(note)
+
+                return jsonify({'message': 'Notes retrieved successfully', 'data': notes}), 200
+
+        except Exception as e:
+            conn.rollback()
+            print(f"An error occurred: {e}")
+            return jsonify({'message': 'An error occurred', 'error': str(e)}), 500
+
+
 
     # Note summarization model using Google's Gemini LLM's API
     @app.route('/api/summarize', methods=['POST'])

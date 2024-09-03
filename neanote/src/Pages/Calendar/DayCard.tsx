@@ -6,9 +6,10 @@ interface Props {
     month: number
     handleDateClick: (date: Date) => void
     secondary?: boolean
+
 }
 
-function DayCard({ day, year, month, handleDateClick, secondary }: Props) {
+function DayCard({ day, year, month, handleDateClick, secondary}: Props) {
   return (
     <Card
           key={day}
@@ -16,7 +17,8 @@ function DayCard({ day, year, month, handleDateClick, secondary }: Props) {
           onClick={() => handleDateClick(new Date(year, month, day))}
         >
           <CardHeader>{day}</CardHeader>
-          <CardContent></CardContent>
+          <CardContent>
+          </CardContent>
     </Card>
   )
 }

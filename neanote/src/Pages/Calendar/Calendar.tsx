@@ -1,40 +1,27 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import TitleComponent from '../../../components/TitleComponent/TitleComponent'
 import { FaRegCalendar } from 'react-icons/fa'
 import {Button} from '../../../components/@/ui/button'
 import DayCard from './DayCard';
+import { useCalendar } from './useCalendar';
 
 
 const Calendar = () => {
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const { currentDate,  fetchNotes,daysInMonth, handlePrevMonth, handleNextMonth, handleDateClick } = useCalendar();
 
-  const daysInMonth = (month: number, year: number) => {
-    return new Date(year, month + 1, 0).getDate();
-  };
-
-  const handlePrevMonth = () => {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
-  };
-
-  const handleNextMonth = () => {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
-  };
-
-  const handleDateClick = (date: Date) => {
-    setSelectedDate(date);
-    console.log(`Date picked: ${date.toDateString()}`);
-  };
+  useEffect(() => {
+    const startDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+    const endDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+    fetchNotes(startDate, endDate);
+  }, [currentDate, fetchNotes]);
 
   const renderDays = (): JSX.Element[] => {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
     const daysInCurrentMonth = daysInMonth(month, year);
-    const firstDayOfMonth = new Date(year, month, 1).getDay();
     const daysInPrevMonth = daysInMonth(month - 1, year);
     const totalDays = 35;
     const daysNeededFromPrevMonth = totalDays - daysInCurrentMonth;
-
 
     const days: JSX.Element[] = [];
 
@@ -56,7 +43,7 @@ const Calendar = () => {
     // Days in current month
     for (let day = 1; day <= daysInCurrentMonth; day++) {
       days.push(
-        <DayCard day={day} year={year} month={month} handleDateClick={handleDateClick}/>
+        <DayCard day={day} year={year} month={month} handleDateClick={handleDateClick} />
       );
     }
 
@@ -69,9 +56,9 @@ const Calendar = () => {
         <TitleComponent>
           <FaRegCalendar size={'18px'} /> Calendar
         </TitleComponent>
-        <div className='flex flex-row gap-2 items-center'>
+        <div className='flex flex-row gap-2 items-center justify-center'>
           <Button onClick={handlePrevMonth}>Previous</Button>
-          <span className='flex bg-primary h-10 rounded-md p-2 text-sm text-secondary items-center '>
+          <span className='flex bg-primary h-10 rounded-md p-2 text-sm text-secondary items-center justify-center'>
             {currentDate.toLocaleString('default', { month: 'long' })} {currentDate.getFullYear()}
           </span>
           <Button onClick={handleNextMonth}>Next</Button>
