@@ -7,12 +7,13 @@ import { useCalendar } from './useCalendar';
 
 
 const Calendar = () => {
-  const { currentDate,  fetchNotes,daysInMonth, handlePrevMonth, handleNextMonth, handleDateClick } = useCalendar();
+  const { currentDate, daysInMonth, handlePrevMonth, handleNextMonth, handleDateClick, fetchNotes, notes } = useCalendar();
 
   useEffect(() => {
     const startDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
     const endDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
     fetchNotes(startDate, endDate);
+    console.log(notes)
   }, [currentDate, fetchNotes]);
 
   const renderDays = (): JSX.Element[] => {
@@ -25,9 +26,18 @@ const Calendar = () => {
 
     const days: JSX.Element[] = [];
 
+    // Helper function to get notes for a specific day
+    const getNotesForDay = (day: number, month: number, year: number) => {
+      return notes.filter(note => {
+        const noteDate = new Date(note.due_date);
+        return noteDate.getDate() === day && noteDate.getMonth() === month && noteDate.getFullYear() === year;
+      });
+    };
+
     // Days from previous month
     for (let i = daysNeededFromPrevMonth; i > 0; i--) {
       const day = daysInPrevMonth - i + 1;
+      const dayNotes = getNotesForDay(day, month - 1, year);
       days.push(
         <DayCard
           key={`prev-${day}`}
@@ -35,6 +45,7 @@ const Calendar = () => {
           year={year}
           month={month - 1}
           handleDateClick={handleDateClick}
+          notes={dayNotes}
           secondary
         />
       );
@@ -42,8 +53,16 @@ const Calendar = () => {
 
     // Days in current month
     for (let day = 1; day <= daysInCurrentMonth; day++) {
+      const dayNotes = getNotesForDay(day, month, year);
       days.push(
-        <DayCard day={day} year={year} month={month} handleDateClick={handleDateClick} />
+        <DayCard
+          key={`current-${day}`}
+          day={day}
+          year={year}
+          month={month}
+          handleDateClick={handleDateClick}
+          notes={dayNotes}
+        />
       );
     }
 

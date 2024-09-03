@@ -1,12 +1,12 @@
 import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
-import { UniversalType } from "../../api/types/ArchiveTypes";
+import { UniversalTypeWithDate } from "../../api/types/ArchiveTypes";
 import { universalApi } from "../../api/universalApi";
 
 type CalendarState = {
     currentDate: Date;
     selectedDate: Date | null;
-    notes: UniversalType[];
+    notes: UniversalTypeWithDate[];
     daysInMonth: (month: number, year: number) => number;
     handlePrevMonth: () => void;
     handleNextMonth: () => void;
@@ -45,7 +45,7 @@ export const useCalendar = create<CalendarState>()(
           const response = await universalApi.getDue(startDate.toISOString(),endDate.toISOString());
             if (response ) {
                 set((state) => {
-                  state.notes = response.data;
+                  state.notes = response.data.data;
                 });
             }
         } catch (error) {

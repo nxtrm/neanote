@@ -11,6 +11,10 @@ export interface UniversalType {
     tags:Tag[]
 }
 
+export interface UniversalTypeWithDate extends UniversalType {
+    due_date:Date
+}
+
 export interface ArchiveResponse {
     success:boolean
     data:UniversalType[]
