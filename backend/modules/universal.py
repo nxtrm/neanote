@@ -222,7 +222,7 @@ def universal_routes(app, conn, model, recents_manager,
                 for row in goal_notes + task_notes:
                     note = {
                         'note_id': row['note_id'],
-                        'title': row['title'],
+                        'title': row['title'][:50] + '...' if len(row['title']) > 50 else row['title'],
                         'content': row['content'],
                         'due_date': row['due_date'],
                         'tags' : []
@@ -230,7 +230,6 @@ def universal_routes(app, conn, model, recents_manager,
                     #Select tags
                     cur.execute("""
                         SELECT
-                            nt.note_id,
                             json_agg(json_build_object(
                                 'tagid', tg.id,
                                 'name', tg.name,

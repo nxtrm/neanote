@@ -15,13 +15,13 @@ function DayCard({ day, year, month, handleDateClick, secondary, notes}: Props) 
   return (
     <Card
           key={day}
-          className={`m-1 items-center justify-center flex flex-col ${secondary ?'bg-secondary' :  'bg-transparent'}`}
+          className={`m-1 items-center flex flex-col ${secondary ?'bg-secondary' :  'bg-transparent'}`}
           onClick={() => handleDateClick(new Date(year, month, day))}
         >
           <CardHeader>{day}</CardHeader>
           <CardContent>
           {notes?.map(note => (
-            <div key={note.note_id} className="">
+            <div key={note.note_id} className={`border p-2 rounded-xl border-l-[5px] hover:bg-secondary `}>
               {note.title}
             </div>
           ))}

@@ -11,12 +11,12 @@ Habits
 
 
 # TASK LIST
+- update calendar entry ui and add clickability
+    - optionally add events note type with google maps + calendar integration
 
 - simplify deletion
 
 - simplify frontend validation and other logic
-- add a calendar page
-    - optionally add events note type with google maps + calendar integration
 - create the dashboard arrangable grid with dummy components
     - elements from Habits issue #2
 

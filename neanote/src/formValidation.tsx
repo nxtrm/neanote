@@ -49,7 +49,6 @@ export const TaskSchema = z.object({
   taskid: uuidSchema,
   noteid: uuidSchema,
   title: titleSchema,
-  tags: z.array(uuidSchema), // tag ids
   content: contentSchema,
   subtasks: z.array(
     z.object({
