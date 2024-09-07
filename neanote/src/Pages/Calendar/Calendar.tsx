@@ -4,6 +4,7 @@ import { FaRegCalendar } from 'react-icons/fa'
 import {Button} from '../../../components/@/ui/button'
 import DayCard from './DayCard';
 import { useCalendar } from './useCalendar';
+import { useNavigate } from 'react-router-dom';
 
 
 const Calendar = () => {
@@ -15,6 +16,7 @@ const Calendar = () => {
     fetchNotes(startDate, endDate);
     console.log(notes)
   }, [currentDate, fetchNotes]);
+
 
   const renderDays = (): JSX.Element[] => {
     const year = currentDate.getFullYear();

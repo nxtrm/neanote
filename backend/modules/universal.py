@@ -87,7 +87,7 @@ def universal_routes(app, conn, model, recents_manager,
             offset = (page - 1) * per_page
 
             if search_mode == "approximate":
-                query_vector = combine_strings_to_vector([search_query], model, False)
+                query_vector = combine_strings_to_vector(search_query.split(), model, False)
 
                 cur.execute("""
                     SELECT n.id AS note_id, n.title, n.content, n.type,
@@ -201,7 +201,7 @@ def universal_routes(app, conn, model, recents_manager,
             with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
                 # Fetch notes from goals table
                 cur.execute("""
-                    SELECT n.id AS note_id, n.title, n.content, g.due_date
+                    SELECT n.id AS note_id, n.title, n.content, n.type, g.due_date
                     FROM Notes n
                     JOIN Goals g ON n.id = g.note_id
                     WHERE n.user_id = %s AND g.due_date BETWEEN %s AND %s
@@ -210,7 +210,7 @@ def universal_routes(app, conn, model, recents_manager,
 
                 # Fetch notes from tasks table
                 cur.execute("""
-                    SELECT n.id AS note_id, n.title, n.content, t.due_date
+                    SELECT n.id AS note_id, n.title, n.type, n.content, t.due_date
                     FROM Notes n
                     JOIN Tasks t ON n.id = t.note_id
                     WHERE n.user_id = %s AND t.due_date BETWEEN %s AND %s
@@ -221,10 +221,11 @@ def universal_routes(app, conn, model, recents_manager,
                 notes = []
                 for row in goal_notes + task_notes:
                     note = {
-                        'note_id': row['note_id'],
+                        'noteid': row['note_id'],
                         'title': row['title'][:50] + '...' if len(row['title']) > 50 else row['title'],
                         'content': row['content'],
                         'due_date': row['due_date'],
+                        'type': row['type'],
                         'tags' : []
                     }
                     #Select tags

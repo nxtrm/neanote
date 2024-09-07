@@ -72,12 +72,13 @@ def combine_strings_to_vector(strings, model, preprocess):
     Args:
     - strings (list of str): The array of strings to combine (e.g., title, content).
     - model: The Word2Vec model used to generate word vectors.
+    - preprocess (bool): Flag to indicate whether to preprocess the text.
 
     Returns:
     - np.ndarray: The combined vector for all the strings.
     """
     if preprocess:
-    # Preprocess the text data
+        # Preprocess the text data
         processed_data = process_text_data(strings)
     else:
         processed_data = strings
@@ -85,7 +86,9 @@ def combine_strings_to_vector(strings, model, preprocess):
     all_word_vectors = []
 
     for sentence in processed_data:
-        word_vectors = [model.wv[word] for word in sentence if word in model.wv]
+        # Ensure sentence is tokenized into words
+        words = sentence.split() if isinstance(sentence, str) else sentence
+        word_vectors = [model.wv[word] for word in words if word in model.wv]
         all_word_vectors.extend(word_vectors)
 
     if len(all_word_vectors) == 0:
