@@ -158,7 +158,7 @@ export const useTasks = create<TaskState>()(
               state.currentTask = { ...response.data, due_date: dueDate };
             });
             if (response.data.tags)
-            setSelectedTagIds(response.data.tags);
+            setSelectedTagIds(response.data.tags.map(tag=>tag.tagid));
           } else {
             showToast('error', response.message);
           }

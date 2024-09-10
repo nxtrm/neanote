@@ -1,12 +1,8 @@
 # KNOWN ISSUES
 
-- TAGS NOT SHOWN IN TAG MENU
-
 Notes
-1. Validation failed for tags
 
 Habits
-1. Tags not sent on creation + 'NoneType' object is not subscriptable
 
 2. Add a last week's visualisation of completed streak in EditHabits
 3.  fix checkbox not updating in linked tasks
@@ -15,15 +11,16 @@ Habits
 
 
 # TASK LIST
+- update some api methods to include composition and aggregation
 - add sorting into the pagination, using sorting algorithms
+- update calendar entry ui and add clickability
+    - optionally add events note type with google maps + calendar integration
 
-- fix tags + notes and habbits issues #1
-- remove linked tasks
+- simplify deletion
+
 - simplify frontend validation and other logic
 - create the dashboard arrangable grid with dummy components
     - elements from Habits issue #2
-- add a calendar page
-    - optionally add events note type with google maps + calendar integration
 
 # IDEAS OR DO-LATER
 

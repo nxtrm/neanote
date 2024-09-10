@@ -1,3 +1,4 @@
+from datetime import datetime
 import os
 import sys
 
@@ -40,9 +41,9 @@ class BaseNote:
             "INSERT INTO Notes (user_id, title, content, type) VALUES (%s, %s, %s, %s) RETURNING id",
             (userId, title, content, noteType)
         )
-        noteId = cur.fetchone()[0]
+        noteId = str(cur.fetchone()[0])
 
-        self.update_notetags(cur, tags, noteId, withDelete=False)
+        self.update_notetags(cur, noteId,tags, withDelete=False)
 
         return noteId
     def fetch_total_notes(self, cur,note_type, userId, page,offset,per_page):
@@ -55,7 +56,8 @@ class BaseNote:
         nextPage = page + 1 if (offset + per_page) < total else None
         return total, nextPage
 
-    def update_notetags(self, cur,tags,note_id, withDelete=True):
+    def update_notetags(self, cur, note_id, tags, withDelete=True):
+
         if withDelete:
             cur.execute("DELETE FROM NoteTags WHERE note_id = %s", (note_id,))
         if tags:
@@ -85,7 +87,7 @@ def universal_routes(app, conn, model, recents_manager,
             offset = (page - 1) * per_page
 
             if search_mode == "approximate":
-                query_vector = combine_strings_to_vector([search_query], model, False)
+                query_vector = combine_strings_to_vector(search_query.split(), model, False)
 
                 cur.execute("""
                     SELECT n.id AS note_id, n.title, n.content, n.type,
@@ -182,6 +184,74 @@ def universal_routes(app, conn, model, recents_manager,
         except Exception as e:
             conn.rollback()
             raise
+
+    @app.route('/api/calendar', methods=['GET'])
+    @jwt_required()
+    @token_required
+    def get_calendar_notes():
+        try:
+            userId = g.userId
+            start_date = request.args.get('startDate')
+            end_date = request.args.get('endDate')
+
+            # Convert start and end dates to datetime objects
+            start_date = datetime.fromisoformat(str(start_date))
+            end_date = datetime.fromisoformat(str(end_date))
+
+            with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
+                # Fetch notes from goals table
+                cur.execute("""
+                    SELECT n.id AS note_id, n.title, n.content, n.type, g.due_date
+                    FROM Notes n
+                    JOIN Goals g ON n.id = g.note_id
+                    WHERE n.user_id = %s AND g.due_date BETWEEN %s AND %s
+                """, (userId, start_date, end_date))
+                goal_notes = cur.fetchall()
+
+                # Fetch notes from tasks table
+                cur.execute("""
+                    SELECT n.id AS note_id, n.title, n.type, n.content, t.due_date
+                    FROM Notes n
+                    JOIN Tasks t ON n.id = t.note_id
+                    WHERE n.user_id = %s AND t.due_date BETWEEN %s AND %s
+                """, (userId, start_date, end_date))
+                task_notes = cur.fetchall()
+
+                # Combine results
+                notes = []
+                for row in goal_notes + task_notes:
+                    note = {
+                        'noteid': row['note_id'],
+                        'title': row['title'][:50] + '...' if len(row['title']) > 50 else row['title'],
+                        'content': row['content'],
+                        'due_date': row['due_date'],
+                        'type': row['type'],
+                        'tags' : []
+                    }
+                    #Select tags
+                    cur.execute("""
+                        SELECT
+                            json_agg(json_build_object(
+                                'tagid', tg.id,
+                                'name', tg.name,
+                                'color', tg.color
+                            )) AS tags
+                        FROM NoteTags nt
+                        JOIN Tags tg ON nt.tag_id = tg.id
+                        WHERE nt.note_id = %s
+                        GROUP BY nt.note_id
+                    """, (row['note_id'],))
+                    note['tags'] = cur.fetchone()
+                    notes.append(note)
+
+                return jsonify({'message': 'Notes retrieved successfully', 'data': notes}), 200
+
+        except Exception as e:
+            conn.rollback()
+            print(f"An error occurred: {e}")
+            return jsonify({'message': 'An error occurred', 'error': str(e)}), 500
+
+
 
     # Note summarization model using Google's Gemini LLM's API
     @app.route('/api/summarize', methods=['POST'])

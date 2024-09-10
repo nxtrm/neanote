@@ -55,16 +55,16 @@ function CreateHabits() {
             </div>
           </div>
           <Inputs/>
-            {currentHabit?.linked_tasks ?<div className='flex flex-col pt-3 gap-2'>
+            {/* {currentHabit?.linked_tasks ?<div className='flex flex-col pt-3 gap-2'>
                 {currentHabit.linked_tasks.map((task) => {
                 return (
                     <TaskCard key={task.taskid} task={task} />
                 )
 
             })}
-          </div>: null}
+          </div>: null} */}
             <div className='pt-3 flex justify-between'>
-              <LinkTasks linked_tasks={currentHabit?.linked_tasks ? currentHabit.linked_tasks : []}/>
+              {/* <LinkTasks linked_tasks={currentHabit?.linked_tasks ? currentHabit.linked_tasks : []}/> */}
               <div className='flex gap-2'>
               <Button disabled={!isValidationErrorsEmpty} onClick={handleSaveHabit}>Save</Button>
               </div>

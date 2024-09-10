@@ -25,6 +25,7 @@ import Archive from './Pages/Archive/Archive.tsx';
 import Account from './Pages/Account/Account.tsx';
 import CreateNote from './Pages/Tasks copy/CreateNote.tsx';
 import EditNotes from './Pages/Tasks copy/EditNotes.tsx';
+import Calendar from './Pages/Calendar/Calendar.tsx';
 
 const CheckedLayout = withTokenCheck(Layout);
 
@@ -35,6 +36,7 @@ const AppRouter = () => (
       <Route path="/" element={<CheckedLayout />}>
         <Route index element={<Dashboard />} />
         <Route path="account" element={<Account/>} />
+        <Route path="calendar" element={<Calendar/>} />
 
         <Route path="notes" element={<Notes/>} />
         <Route path="notes/edit" element={<EditNotes/>} />

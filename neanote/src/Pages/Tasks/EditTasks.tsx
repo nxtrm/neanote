@@ -41,6 +41,7 @@ function EditTasks() {
     setIsValidationErrorsEmpty(
       Object.keys(validationErrors).every((key) => !validationErrors[key])
     );
+    console.log(validationErrors)
 
   }, [validationErrors]);
 

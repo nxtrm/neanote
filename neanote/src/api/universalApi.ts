@@ -46,6 +46,17 @@ export const universalApi = {
         }
     },
 
+    getDue : async(startDate,endDate) => {
+        try {
+            let response = await a.get('/api/calendar', {params:{startDate, endDate}});
+            let success = false
+            if (response.status === 200)
+                success = true
+            return{data: response.data, success: success};
+        } catch (error) {
+            return false;
+    }},
+
     summarize : async (text:string) => {
         try {
             let response = await a.post<SummarizeResponse>('/api/summarize', {text});

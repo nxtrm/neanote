@@ -10,7 +10,7 @@ export interface Note {
   };
 
   export interface NoteResponse {
-    note: NotewithIds;
+    note: Note;
     message: string
   }
 

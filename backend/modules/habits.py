@@ -5,7 +5,7 @@ from flask import  g, jsonify, request
 from flask_jwt_extended import jwt_required
 import psycopg2.extras
 from formsValidation import HabitSchema
-from utils.userDeleteGraph import delete_user_data_with_backoff
+from utils.userDeleteGraph import delete_notes_with_backoff, delete_user_data_with_backoff
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
 from modules.universal import BaseNote
 from utils.utils import calculate_gap, token_required, verify_habit_ownership
@@ -45,9 +45,6 @@ class HabitApi(BaseNote):
 
                 with self.conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
                     noteId = self.create_note(cur, userId, title, content, 'habit', tags)
-                    # Commit the transaction to ensure the insert is finalized
-                    self.conn.commit()
-                    noteId = cur.fetchone()[0]
 
                     cur.execute(
                         """
@@ -262,27 +259,27 @@ class HabitApi(BaseNote):
                                 row['tagid']
                             )
 
-                        if row['linked_task_id']:
-                            linked_task = next((task for task in habit['linked_tasks'] if task['taskid'] == row['linked_task_id']), None)
-                            if not linked_task:
-                                linked_task = {
-                                    'noteid': row['linked_note_id'],
-                                    'taskid': row['linked_task_id'],
-                                    'title': row['linked_note_title'],
-                                    'content': row['linked_note_content'],
-                                    'completed': row['linked_task_completed'],
-                                    'due_date': row['linked_task_due_date'],
-                                    'subtasks': []
-                                }
-                                habit['linked_tasks'].append(linked_task)
+                        # if row['linked_task_id']:
+                        #     linked_task = next((task for task in habit['linked_tasks'] if task['taskid'] == row['linked_task_id']), None)
+                        #     if not linked_task:
+                        #         linked_task = {
+                        #             'noteid': row['linked_note_id'],
+                        #             'taskid': row['linked_task_id'],
+                        #             'title': row['linked_note_title'],
+                        #             'content': row['linked_note_content'],
+                        #             'completed': row['linked_task_completed'],
+                        #             'due_date': row['linked_task_due_date'],
+                        #             'subtasks': []
+                        #         }
+                        #         habit['linked_tasks'].append(linked_task)
 
-                            if row['linked_subtask_id']:
-                                if not any(subtask['subtask_id'] == row['linked_subtask_id'] for subtask in linked_task['subtasks']):
-                                    linked_task['subtasks'].append({
-                                        'subtask_id': row['linked_subtask_id'],
-                                        'description': row['linked_subtask_description'],
-                                        'completed': row['linked_subtask_completed']
-                                    })
+                        #     if row['linked_subtask_id']:
+                        #         if not any(subtask['subtask_id'] == row['linked_subtask_id'] for subtask in linked_task['subtasks']):
+                        #             linked_task['subtasks'].append({
+                        #                 'subtask_id': row['linked_subtask_id'],
+                        #                 'description': row['linked_subtask_description'],
+                        #                 'completed': row['linked_subtask_completed']
+                        #             })
 
                     self.conn.commit()
                     self.recents_manager.add_note_for_user(userId, noteid)
@@ -313,8 +310,8 @@ class HabitApi(BaseNote):
                     if not verify_habit_ownership(userId, habit_id, cur):
                         return jsonify({'message': 'You do not have permission to update this habit'}), 403
 
-                    stack = [12,9,8,7,2]
-                    if delete_user_data_with_backoff(self.conn, userId, stack):
+                    stack = [2, 7, 8, 9, 12]
+                    if delete_notes_with_backoff(self.conn, note_id, stack):
                         self.tokenization_manager.delete_note_by_id(note_id)
                         return jsonify({'message': 'Habit deleted successfully'}), 200
                     else:

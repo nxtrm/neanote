@@ -63,8 +63,9 @@ def user_routes(app, conn):
             if existing_user:
                 return jsonify({'message': 'User with this username or email already exists'}), 400
 
-            cur.execute("INSERT INTO users (username, email, password, preferences) VALUES (%s, %s, %s) RETURNING id", 
-                        (username, email, hashed_password, {"theme":"light", "model":"default"}))
+            preferences = json.dumps({"theme": "light", "model": "default"})
+            cur.execute("INSERT INTO users (username, email, password, preferences) VALUES (%s, %s, %s, %s) RETURNING id", 
+                        (username, email, hashed_password, preferences))
             userId = cur.fetchone()[0]
 
             try:

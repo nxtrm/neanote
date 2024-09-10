@@ -6,7 +6,7 @@ from flask import Blueprint, g, jsonify, request
 from flask_jwt_extended import jwt_required
 
 from modules.universal import BaseNote
-from utils.userDeleteGraph import delete_user_data_with_backoff
+from utils.userDeleteGraph import delete_notes_with_backoff, delete_user_data_with_backoff
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
 from formsValidation import BaseSchema
 from utils.utils import token_required
@@ -99,9 +99,10 @@ class NoteApi(BaseNote):
             try:
                 userId = g.userId
                 data = request.get_json()
-                note_id = data['noteid']
+                note_id = data['noteId']
                 stack = [12,2] #NoteTags, Notes
-                if delete_user_data_with_backoff(self.conn, userId, stack):
+                stack.reverse()
+                if delete_notes_with_backoff(self.conn, note_id, stack):
                     self.tokenization_manager.delete_note_by_id(note_id)
                     return jsonify({'message': 'Note deleted successfully'}), 200
                 else:

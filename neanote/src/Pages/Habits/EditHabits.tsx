@@ -90,15 +90,15 @@ function EditHabits() {
           <Inputs withChechbox/>
           {(currentHabit.linked_tasks.length > 0) &&
           <div className='flex pt-3 flex-col gap-2'>
-             {currentHabit.linked_tasks.map((task) => {
+             {/* {currentHabit.linked_tasks.map((task) => {
               return (
                 <TaskCard key={task.taskid} task={task} />
               )
 
-            })}
+            })} */}
           </div>}
             <div className=' flex mt-3 justify-between'>
-              <LinkTasks linked_tasks={currentHabit.linked_tasks ? currentHabit.linked_tasks : []}/>
+              {/* <LinkTasks linked_tasks={currentHabit.linked_tasks ? currentHabit.linked_tasks : []}/> */}
               <FormButtons
                 pendingChanges={pendingChanges}
                 isValidationErrorsEmpty={isValidationErrorsEmpty}
