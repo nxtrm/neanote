@@ -11,11 +11,8 @@ Habits
 
 
 # TASK LIST
-<<<<<<< HEAD
 - update some api methods to include composition and aggregation
 - add sorting into the pagination, using sorting algorithms
-=======
->>>>>>> 304685bf930089cd91ecd355dc56c73fb94443a2
 - update calendar entry ui and add clickability
     - optionally add events note type with google maps + calendar integration
 
