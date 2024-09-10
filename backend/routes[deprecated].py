@@ -4,7 +4,7 @@ from flask import Flask, g, jsonify, request
 from flask_cors import CORS
 from flask_jwt_extended import (JWTManager, create_access_token,
                                 get_jwt_identity, jwt_required)
-from MySQLdb.cursors import DictCursor
+
 from dateutil.relativedelta import relativedelta
 from formsValidation import GoalCreateSchema, GoalUpdateSchema, HabitCreateSchema, HabitUpdateSchema, LoginSchema, TagSchema, TaskCreateSchema, TaskSchema, UserSchema
 from utils import  token_required, verify_goal_ownership, verify_habit_ownership, verify_milestone_ownership, verify_subtask_ownership, verify_tag_ownership, verify_task_ownership

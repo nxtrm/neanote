@@ -15,6 +15,7 @@ Habits
 
 
 # TASK LIST
+- add sorting into the pagination, using sorting algorithms
 
 - fix tags + notes and habbits issues #1
 - remove linked tasks

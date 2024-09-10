@@ -25,7 +25,7 @@ jwt = JWTManager(app)
 # genai.configure(api_key = Config.GEMINI_API_KEY)
 
 conn = psycopg2.connect(
-    host="localhost",
+    host=Config.host,
     database=Config.database,
     user=Config.user,
     password=Config.password,

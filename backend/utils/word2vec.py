@@ -21,7 +21,7 @@ def load_or_train_model():
 
         # Assuming the text data is in a column named 'text'
         if not os.path.exists(PROCESSED_DATA_PATH):
-            df = pd.read_csv("H:/Code/Note/backend/data/data.csv", encoding="utf-8")
+            df = pd.read_csv(os.path.join('backend/data', 'data.csv'), encoding="utf-8")
             text_data = df['text'].dropna().tolist()
             data = process_text_data(text_data)
             with open (PROCESSED_DATA_PATH, 'w') as f:

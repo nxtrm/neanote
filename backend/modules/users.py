@@ -26,7 +26,7 @@ def user_routes(app, conn):
             cur.execute("SELECT * FROM users WHERE username = %s", (username,))
             user = cur.fetchone()
 
-            if user and bcrypt.checkpw(password.encode('utf-8'), user['password'].encode('utf-8')):
+            if user and bcrypt.checkpw(password.encode('utf-8'), user['password'].encode('utf-8')): #comment out if invalid salt
                 userId = str(user['id'])
                 access_token = create_access_token(identity=userId, expires_delta=timedelta(days=1))
 

@@ -4,7 +4,6 @@ import os
 import sys
 from flask import Blueprint, g, jsonify, request
 from flask_jwt_extended import jwt_required
-from MySQLdb.cursors import DictCursor
 
 from modules.universal import BaseNote
 from utils.userDeleteGraph import delete_user_data_with_backoff
