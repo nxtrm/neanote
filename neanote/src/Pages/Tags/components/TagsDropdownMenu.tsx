@@ -8,14 +8,16 @@ import {
 import { Button } from "../../../../components/@/ui/button";
 import { useTags } from "../useTags";
 import TagLabel from "./TagLabel";
-import SortDropDownMenu from "./SortDropDownMenu";
+import { Tag } from "../../../api/types/tagTypes";
+import { quicksort } from "../../../../components/utils";
+import SortMenu from "../../../../components/SortMenu/SortMenu";
 
 interface Props {
   onChange: () => void
 }
 
 function TagsDropdownMenu({onChange}:Props) {
-  const { tags, fetchTags, order, setOrder} = useTags();
+  const { tags, setTags, fetchTags, order, setOrder} = useTags();
 
   React.useEffect(() => {
     if (tags.length < 1) {
@@ -24,12 +26,19 @@ function TagsDropdownMenu({onChange}:Props) {
   }, [tags.length, fetchTags]);
 
   React.useEffect(() => {
-    sort_tags(order,setOrder)
+    sort_tags(tags,order)
+    console.log(tags)
   },[order])
 
-  function sort_tags(tags,order) {
+  function sort_tags(tags: Tag[], order: string) {
 
+    const ascendingComparator = (a: Tag, b: Tag) => a.name.localeCompare(b.name);
+    const descendingComparator = (a: Tag, b: Tag) => b.name.localeCompare(a.name);
 
+    const comparator = order === 'ascending' ? ascendingComparator : descendingComparator;
+
+    const sortedTags = quicksort(tags, comparator);
+    setTags(sortedTags); // Update the tags array using setTags
   }
 
   return (
@@ -52,7 +61,7 @@ function TagsDropdownMenu({onChange}:Props) {
             />
           ))}
         </div>
-        <SortDropDownMenu order={order} setOrder={setOrder}/>
+        <SortMenu order={order} setOrder={setOrder}/>
       </DialogContent>
     </Dialog>
   );

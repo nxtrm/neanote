@@ -7,21 +7,21 @@ import {
     DropdownMenuLabel,
     DropdownMenuSeparator,
     DropdownMenuTrigger,
-  } from "../../../../components/@/ui/dropdown-menu"
-import { Button } from '../../../../components/@/ui/button'
+  } from "../@/ui/dropdown-menu"
+import { Button } from '../@/ui/button'
 
 interface Props {
   order:string
   setOrder: (order: string)=>void;
 }
 
-function SortDropDownMenu({order, setOrder} : Props) {
+function SortMenu({order, setOrder} : Props) {
   return (
     <DropdownMenu>
     <DropdownMenuTrigger asChild>
-      <Button className='w-40' variant="default">Sort: {order.charAt(0).toUpperCase() + order.slice(1)}</Button>
+      <Button className='w-[120px]' variant="default">Sort: {order.charAt(0).toUpperCase() + order.slice(1)}</Button>
     </DropdownMenuTrigger>
-    <DropdownMenuContent className="w-40 flex flex-col justify-center items-center">
+    <DropdownMenuContent className="w-[120px] flex flex-col justify-center items-center">
       <DropdownMenuLabel onClick={()=>setOrder('ascending')}>Ascending</DropdownMenuLabel>
       <DropdownMenuLabel onClick={()=> setOrder('descending')}>Descending</DropdownMenuLabel>
     </DropdownMenuContent>
@@ -29,4 +29,4 @@ function SortDropDownMenu({order, setOrder} : Props) {
   )
 }
 
-export default SortDropDownMenu
+export default SortMenu

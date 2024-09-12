@@ -3,5 +3,6 @@ backend/todo
 backend/mysql-config.py
 backend/modules/__pycache__/
 backend/utils/__pycache__/
+backend/__pycache__/
 backend/data/
 backend/venv/
