@@ -8,13 +8,14 @@ import {
 import { Button } from "../../../../components/@/ui/button";
 import { useTags } from "../useTags";
 import TagLabel from "./TagLabel";
+import SortDropDownMenu from "./SortDropDownMenu";
 
 interface Props {
   onChange: () => void
 }
 
 function TagsDropdownMenu({onChange}:Props) {
-  const { tags, fetchTags} = useTags();
+  const { tags, fetchTags, order, setOrder} = useTags();
 
   React.useEffect(() => {
     if (tags.length < 1) {
@@ -22,12 +23,21 @@ function TagsDropdownMenu({onChange}:Props) {
     }
   }, [tags.length, fetchTags]);
 
+  React.useEffect(() => {
+    sort_tags(order,setOrder)
+  },[order])
+
+  function sort_tags(tags,order) {
+
+
+  }
+
   return (
-    <Dialog>
+    <Dialog >
       <DialogTrigger asChild>
         <Button variant="secondary">Tags</Button>
       </DialogTrigger>
-      <DialogContent className="mx-auto w-fit">
+      <DialogContent className="mx-auto w-[50vw] ">
         <DialogHeader className="px-2 pt-2 text-xl font-bold">
           Tags
         </DialogHeader>
@@ -42,6 +52,7 @@ function TagsDropdownMenu({onChange}:Props) {
             />
           ))}
         </div>
+        <SortDropDownMenu order={order} setOrder={setOrder}/>
       </DialogContent>
     </Dialog>
   );

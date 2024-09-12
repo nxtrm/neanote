@@ -7,6 +7,8 @@ type TagState = {
     section: string;
     setSection: (section: string) => void;
     tags: Tag[]; 
+    order: string;
+    setOrder: (order: string)=>void;
     fetchTags: () => Promise<void>;
     tagTitle: string;
     setTagTitle: (title: string) => void;
@@ -27,11 +29,13 @@ export const useTags = create<TagState>((set, get) => ({
     tagTitle: '',
     currentTagId: undefined,
     selectedTagIds: [],
+    order: 'ascending',
     color: '#000000',
     section: 'all tags',
     setSection: (section) => set({ section }),
     setTagTitle: (title) => set({ tagTitle: title }),
     setColor: (color) => set({ color }),
+    setOrder: (order) => set({ order }),
 
     fetchTags: async () => {
         const fetchedTags = await tagsApi.getAll();
