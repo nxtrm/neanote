@@ -16,10 +16,12 @@ class HabitApi(BaseNote):
         self.habit_schema = HabitSchema()
         self.habit_routes()
 
+        self.base_note = BaseNote(app, conn, tokenization_manager, recents_manager) #add composition
+
     def tokenize(self,noteId,title,content):
         text = [title, content]
         priority = sum(len(string) for string in text)
-        self.tokenization_manager.add_note(
+        self.base_note.tokenization_manager.add_note(
             text=text,
             priority=priority,
             note_id=noteId
@@ -43,7 +45,7 @@ class HabitApi(BaseNote):
                 repetition = reminder.get('repetition')
 
 
-                with self.conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
+                with self.base_note.conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
                     noteId = self.create_note(cur, userId, title, content, 'habit', tags)
 
                     cur.execute(
@@ -55,7 +57,7 @@ class HabitApi(BaseNote):
                     )
                     habitId = cur.fetchone()[0]
 
-                    self.conn.commit()
+                    self.base_note.conn.commit()
 
                     self.tokenize(noteId,title,content)
 
@@ -68,7 +70,7 @@ class HabitApi(BaseNote):
                     }), 200
 
             except Exception as e:
-                self.conn.rollback()
+                self.base_note.conn.rollback()
                 print(f"An error occurred: {e}")
                 raise
 
@@ -86,7 +88,7 @@ class HabitApi(BaseNote):
                 habit_id = str(data['habitid'])
                 tags = data.get('tags', [])
 
-                with self.conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
+                with self.base_note.conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
                     if not verify_habit_ownership(userId, habit_id, cur):
                         return jsonify({'message': 'You do not have permission to update this habit'}), 403
 
@@ -109,12 +111,12 @@ class HabitApi(BaseNote):
 
                     self.update_notetags(cur, note_id, tags)
 
-                    self.conn.commit()
+                    self.base_note.conn.commit()
                     self.tokenize(note_id,data['title'],data['content'])
                     return jsonify({'message': 'Habit updated successfully'}), 200
 
             except Exception as e:
-                self.conn.rollback()
+                self.base_note.conn.rollback()
                 print(f"An error occurred: {e}")
                 raise
 
@@ -130,7 +132,7 @@ class HabitApi(BaseNote):
                 per_page = int(request.args.get('per_page', 5))  # Default to 10 items per page
                 offset = (page - 1) * per_page
 
-                with self.conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
+                with self.base_note.conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
                     # Fetch the total count of habits for pagination metadata
                     total,nextPage = self.fetch_total_notes(cur, 'habit', userId, page, offset, per_page)
 
@@ -168,9 +170,9 @@ class HabitApi(BaseNote):
                             'completed_today': row['completed'],
                             'tags': row['tags']
                         }
-                        habits.append(habit)
+                        habits.base_note.append(habit)
 
-                    self.conn.commit()
+                    self.base_note.conn.commit()
                     return jsonify({
                         'message': 'Habit previews fetched successfully',
                         'data': habits,
@@ -182,7 +184,7 @@ class HabitApi(BaseNote):
                         }
                     }), 200
             except Exception as e:
-                self.conn.rollback()
+                self.base_note.conn.rollback()
                 print(f"An error occurred: {e}")
                 raise
 
@@ -196,7 +198,7 @@ class HabitApi(BaseNote):
                 userId = g.userId
                 noteid = request.args.get('noteid')
 
-                with self.conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
+                with self.base_note.conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
                     cur.execute(
                         '''
                         SELECT
@@ -255,7 +257,7 @@ class HabitApi(BaseNote):
                             }
 
                         if row['tagid'] is not None:
-                            habit['tags'].append(
+                            habit['tags'].base_note.append(
                                 row['tagid']
                             )
 
@@ -271,25 +273,25 @@ class HabitApi(BaseNote):
                         #             'due_date': row['linked_task_due_date'],
                         #             'subtasks': []
                         #         }
-                        #         habit['linked_tasks'].append(linked_task)
+                        #         habit['linked_tasks'].base_note.append(linked_task)
 
                         #     if row['linked_subtask_id']:
                         #         if not any(subtask['subtask_id'] == row['linked_subtask_id'] for subtask in linked_task['subtasks']):
-                        #             linked_task['subtasks'].append({
+                        #             linked_task['subtasks'].base_note.append({
                         #                 'subtask_id': row['linked_subtask_id'],
                         #                 'description': row['linked_subtask_description'],
                         #                 'completed': row['linked_subtask_completed']
                         #             })
 
-                    self.conn.commit()
-                    self.recents_manager.add_note_for_user(userId, noteid)
+                    self.base_note.conn.commit()
+                    self.base_note.recents_manager.add_note_for_user(userId, noteid)
                     if habit:
                         return jsonify({'message': 'Habit fetched successfully', 'data': habit}), 200
                     else:
                         return jsonify({'message': 'Habit not found'}), 404
 
             except Exception as e:
-                self.conn.rollback()
+                self.base_note.conn.rollback()
                 print(f"An error occurred: {e}")
                 raise
             finally:
@@ -303,7 +305,7 @@ class HabitApi(BaseNote):
             cur = None
             try:
                 userId = g.userId
-                with self.conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
+                with self.base_note.conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
                     habit_id = request.args.get('habitid')
                     note_id = request.args.get('noteid')
 
@@ -311,13 +313,13 @@ class HabitApi(BaseNote):
                         return jsonify({'message': 'You do not have permission to update this habit'}), 403
 
                     stack = [2, 7, 8, 9, 12]
-                    if delete_notes_with_backoff(self.conn, note_id, stack):
-                        self.tokenization_manager.delete_note_by_id(note_id)
+                    if delete_notes_with_backoff(self.base_note.conn, note_id, stack):
+                        self.base_note.tokenization_manager.delete_note_by_id(note_id)
                         return jsonify({'message': 'Habit deleted successfully'}), 200
                     else:
                         return jsonify({'message': 'Failed to delete Habit data after multiple retries'}), 500
             except Exception as e:
-                self.conn.rollback()
+                self.base_note.conn.rollback()
                 raise
             finally:
                 cur.close()
@@ -332,7 +334,7 @@ class HabitApi(BaseNote):
                 data = request.get_json()
                 habit_id = str(data['habitid'])
 
-                with self.conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
+                with self.base_note.conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
                     if not verify_habit_ownership(userId, habit_id, cur):
                         return jsonify({'message': 'You do not have permission to update this habit'}), 403
 
@@ -365,10 +367,10 @@ class HabitApi(BaseNote):
 
                     cur.execute("INSERT INTO HabitCompletion (habit_id, completion_date) VALUES (%s, %s)", (habit_id, today_date))
 
-                    self.conn.commit()
+                    self.base_note.conn.commit()
                     return jsonify({'message': 'Habit completed successfully', 'data': streak}), 200
             except Exception as e:
-                self.conn.rollback()
+                self.base_note.conn.rollback()
                 print(f"An error occurred: {e}")
                 return jsonify({'message': 'An error occurred while completing the habit'}), 500
 
@@ -381,7 +383,7 @@ class HabitApi(BaseNote):
             try:
                 userId = g.userId
 
-                with self.conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
+                with self.base_note.conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
                     data = request.get_json()
                     habit_id = data['habitid']
                     task_id = data['taskid']
@@ -394,10 +396,10 @@ class HabitApi(BaseNote):
                             return jsonify({'message': 'You do not have permission to update this habit'}), 403
                         cur.execute("DELETE FROM HabitTasks WHERE habit_id = %s AND task_id = %s", (habit_id, task_id,))
 
-                self.conn.commit()
+                self.base_note.conn.commit()
                 return jsonify({'message': 'Habit linked successfully'}), 200
             except Exception as e:
-                self.conn.rollback()
+                self.base_note.conn.rollback()
                 raise
             finally:
                 cur.close()
