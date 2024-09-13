@@ -268,18 +268,29 @@ export const useTasks = create<TaskState>()(
       },
 
     toggleSubtaskCompleted: async (subtaskId, taskId) => {
+      let all_completed=true
       set((state) => {
         state.tasks = state.tasks.map((task) => {
           if (task.taskid === taskId) {
-            const newSubtasks = task.subtasks.map((subtask) => 
-              subtask.subtaskid === subtaskId ? { ...subtask, completed: !subtask.completed } : subtask
+            let newSubtasks = []
+            task.subtasks.map((subtask) => {
+              if (subtask.subtaskid === subtaskId) {
+                subtask = { ...subtask, completed: !subtask.completed }
+              }
+              newSubtasks.push(subtask)
+              if (subtask.completed!= true) {
+                all_completed=false
+              }
+            }
             );
+
             return { ...task, subtasks: newSubtasks };
           }
           return task;
         });
       });
       try {
+        //call task api to toggle completeness of the whole task
         await tasksApi.toggleCompleteness(taskId, subtaskId);
       } catch (error) {
         // Revert subtask completion on failure

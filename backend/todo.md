@@ -11,16 +11,15 @@ Habits
 
 
 # TASK LIST
-- fix loading animation for first load
-- add sorting into the tag pagination menu, using sorting algorithms
-- update calendar entry ui and add clickability
-    - optionally add events note type with google maps + calendar integration
 
+- add sorting into sort params
 - simplify deletion
+
 
 - simplify frontend validation and other logic
 - create the dashboard arrangable grid with dummy components
     - elements from Habits issue #2
+- optionally add events note type with google maps + calendar integration
 
 # IDEAS OR DO-LATER
 

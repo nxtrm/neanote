@@ -27,7 +27,6 @@ function TagsDropdownMenu({onChange}:Props) {
 
   React.useEffect(() => {
     sort_tags(tags,order)
-    console.log(tags)
   },[order])
 
   function sort_tags(tags: Tag[], order: string) {

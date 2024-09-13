@@ -40,6 +40,40 @@ class TaskApi(BaseNote):
             note_id=noteId
             )
 
+    # def check_completion(self, taskId):
+    #     with self.conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
+    #         cur.execute(
+    #             """
+    #             SELECT t.completed, st.completed
+    #             FROM Tasks t
+    #             LEFT JOIN SubtasksCTE st ON t.id = stc.task_id
+    #             WHERE t.id = %s
+    #             ORDER BY n.updated_at DESC
+    #             """, (taskId))
+    #         row = cur.fetchone()
+    #         if not row:
+    #             return jsonify({'message': "Task not found"}), 404
+    #         task = {
+    #                     'taskid': row['task_id'],
+    #                     'completed': row['task_completed'],
+    #                     'subtasks': row['subtasks'],
+    #                 }
+    #         all_completed=True
+    #         if task['completed'] != True:
+    #             for subtask in task['subtasks']:
+    #                 if subtask['completed'] != True:
+    #                     all_completed=False
+    #                     break
+
+    #         if all_completed: #complete the task if all subtasks are completed
+    #             complete_task_sql = """
+    #                 UPDATE Tasks
+    #                     SET completed = TRUE, completion_timestamp = CURRENT_TIMESTAMP
+    #                 WHERE id = %s
+    #             """
+    #             cur.execute(complete_task_sql, (taskId,))
+
+
     def task_routes(self):
 
         #TASK MODULE
