@@ -272,25 +272,25 @@ export const useTasks = create<TaskState>()(
       set((state) => {
         state.tasks = state.tasks.map((task) => {
           if (task.taskid === taskId) {
-            let newSubtasks = []
-            task.subtasks.map((subtask) => {
+            const newSubtasks = task.subtasks.map((subtask) => {
               if (subtask.subtaskid === subtaskId) {
-                subtask = { ...subtask, completed: !subtask.completed }
+                subtask = { ...subtask, completed: !subtask.completed };
               }
-              newSubtasks.push(subtask)
-              if (subtask.completed!= true) {
-                all_completed=false
-              }
-            }
-            );
+              if (subtask.completed !== true) {
+                all_completed = false;
 
-            return { ...task, subtasks: newSubtasks };
+              }
+              return subtask;
+            });
+    
+            return { ...task, completed:true, subtasks: newSubtasks };
           }
           return task;
         });
       });
       try {
         //call task api to toggle completeness of the whole task
+        await tasksApi.toggleCompleteness(taskId, null);
         await tasksApi.toggleCompleteness(taskId, subtaskId);
       } catch (error) {
         // Revert subtask completion on failure
@@ -300,7 +300,7 @@ export const useTasks = create<TaskState>()(
               const revertedSubtasks = task.subtasks.map((subtask) => 
                 subtask.subtaskid === subtaskId ? { ...subtask, completed: !subtask.completed } : subtask
               );
-              return { ...task, subtasks: revertedSubtasks };
+              return { ...task,completed:false, subtasks: revertedSubtasks };
             }
             return task;
           });

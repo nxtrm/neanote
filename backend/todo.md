@@ -35,8 +35,6 @@ Habits
 - add tokens and request limits
 - store preferred user summarization model in preferences
 
-## Tasks
-- Implement completion timestamps when all subtasks are completed (easy)
 
 
 
