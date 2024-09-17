@@ -24,7 +24,7 @@ function CreateHabits() {
 
   const handleClose = () => {
       useHabits.setState({
-        section: 'all habits',
+
         pendingChanges: false,
         validationErrors: {},
       })

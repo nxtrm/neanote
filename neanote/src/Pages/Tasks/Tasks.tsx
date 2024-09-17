@@ -9,7 +9,7 @@ import TitleComponent from '../../../components/TitleComponent/TitleComponent';
 import { useTasks } from './useTasks';
 
 const Tasks: React.FC = () => {
-  const { tasks, setSection, fetchTaskPreviews, resetCurrentTask, nextPage, page } = useTasks();
+  const { tasks, fetchTaskPreviews, resetCurrentTask, nextPage, page } = useTasks();
   const navigate = useNavigate();
 
   const [lastFetchTime, setLastFetchTime] = useState<Date | null>(null);
@@ -34,7 +34,6 @@ const Tasks: React.FC = () => {
 
   const handleAddTaskClick = () => {
     resetCurrentTask();
-    setSection('create');
     navigate('/tasks/create')
   };
 

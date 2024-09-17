@@ -18,7 +18,6 @@ import { useScreenSize } from '../../src/DisplayContext';
 function TaskCard({ task }: { task: Task }) {
   const {
     toggleTaskCompleted,
-    setSection,
     loading,
   } = useTasks();
 
@@ -31,7 +30,6 @@ function TaskCard({ task }: { task: Task }) {
   var { isDateCollapsed, isTagCompressed } = useScreenSize();
 
   function handleEditClick(noteId) {
-    setSection('edit');
     localStorage.setItem('currentTaskId', noteId.toString());
     navigate('/tasks/edit');
   }

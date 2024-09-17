@@ -14,7 +14,7 @@ import FormButtons from '../../../components/FormButtons/FormButtons';
 
 
 function CreateGoal() {
-  const {currentGoal, loading, validationErrors, section, pendingChanges, handleMilestoneCompletion, resetCurrentGoal,handleCreateGoal, handleUpdateGoal, handleAddMilestone, handleRemoveMilestone, updateCurrentGoal} = useGoals();
+  const {currentGoal, loading, validationErrors, pendingChanges, handleMilestoneCompletion, resetCurrentGoal,handleCreateGoal, handleUpdateGoal, handleAddMilestone, handleRemoveMilestone, updateCurrentGoal} = useGoals();
   const navigate = useNavigate();
 
   const [isValidationErrorsEmpty, setIsValidationErrorsEmpty] = useState(true);
@@ -27,7 +27,6 @@ function CreateGoal() {
 
   const handleClose = () => {
       useGoals.setState({
-        section: 'all goals',
         validationErrors: {},
       })
       useTags.setState({

@@ -17,7 +17,6 @@ import { useScreenSize } from '../../../DisplayContext';
 
 function GoalCard({ goal }: { goal: Goal }) {
     const {
-        setSection,
         loading,
         handleMilestoneCompletion
       } = useGoals()
@@ -25,7 +24,6 @@ function GoalCard({ goal }: { goal: Goal }) {
       const navigate = useNavigate()
 
       function handleEditClick(noteId : UUID) {
-        setSection('edit goal');
         localStorage.setItem('currentGoalId', noteId);
         navigate('/goals/edit');
     }

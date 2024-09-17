@@ -11,11 +11,10 @@ import PaginationSelector from '../../../components/Pagination/PaginationSelecto
 
 function Goals() {
   const navigate = useNavigate(); 
-  const {resetCurrentGoal, goalPreviews, fetchGoalPreviews, setSection, nextPage, page} = useGoals();
+  const {resetCurrentGoal, goalPreviews, fetchGoalPreviews,nextPage, page} = useGoals();
 
   const handleAddGoalClick = () => {
         resetCurrentGoal();
-        setSection('create');
         navigate('/goals/create')
   }
   const [lastFetchTime, setLastFetchTime] = useState<Date | null>(null);

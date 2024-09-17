@@ -26,7 +26,10 @@ def user_routes(app, conn):
             cur.execute("SELECT * FROM users WHERE username = %s", (username,))
             user = cur.fetchone()
 
-            if user and bcrypt.checkpw(password.encode('utf-8'), user['password'].encode('utf-8')): #comment out if invalid salt
+            if (user 
+                and bcrypt.checkpw(password.encode('utf-8'), user['password'].encode('utf-8'))
+                ):
+
                 userId = str(user['id'])
                 access_token = create_access_token(identity=userId, expires_delta=timedelta(days=1))
 
@@ -64,7 +67,7 @@ def user_routes(app, conn):
                 return jsonify({'message': 'User with this username or email already exists'}), 400
 
             preferences = json.dumps({"theme": "light", "model": "default"})
-            cur.execute("INSERT INTO users (username, email, password, preferences) VALUES (%s, %s, %s, %s) RETURNING id", 
+            cur.execute("INSERT INTO users (username, email, password, preferences) VALUES (%s, %s, %s, %s) RETURNING id",
                         (username, email, hashed_password, preferences))
             userId = cur.fetchone()[0]
 
@@ -108,7 +111,7 @@ def user_routes(app, conn):
                 return jsonify({'data': user, 'message': 'User data retrieved successfully'}), 200
         except Exception as e:
             raise
-    
+
     @app.route('/api/user', methods=['PUT'])
     @jwt_required()
     @token_required
@@ -133,7 +136,7 @@ def user_routes(app, conn):
 
         except Exception as e:
             raise
-    
+
     @app.route('/api/user/password', methods=['PUT'])
     @jwt_required()
     @token_required
@@ -169,7 +172,7 @@ def user_routes(app, conn):
             raise
 
 
-    
+
     @app.route('/api/user/delete', methods=['DELETE'])
     @jwt_required()
     @token_required

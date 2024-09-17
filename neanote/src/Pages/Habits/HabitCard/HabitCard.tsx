@@ -1,23 +1,22 @@
-import React, { useEffect, useState } from 'react'
-import { Habit, HabitPreview } from '../../../api/types/habitTypes'
-import CheckBox from '../../../../components/CheckBox/CheckBox'
-import{ Button } from '../../../../components/@/ui/button'
+import React from 'react'
 import { FaEdit } from 'react-icons/fa'
 import { useNavigate } from 'react-router-dom'
-import { useHabits } from '../useHabits'
+import { Button } from '../../../../components/@/ui/button'
+import { Skeleton } from '../../../../components/@/ui/skeleton'
+import CheckBox from '../../../../components/CheckBox/CheckBox'
 import TagLabel from '../../../../components/TagLabel/TagLabel'
+import { HabitPreview } from '../../../api/types/habitTypes'
+import { useScreenSize } from '../../../DisplayContext'
+import { useHabits } from '../useHabits'
 import './HabitCard.css'
 import StreakLabel from './StreakLabel'
-import { Skeleton } from '../../../../components/@/ui/skeleton'
-import { useScreenSize } from '../../../DisplayContext'
 
 function HabitCard({habit}: {habit: HabitPreview}) {
-    const {fetchHabit,loading, setSection, toggleCompletedToday} = useHabits();
+    const {fetchHabit,loading, toggleCompletedToday} = useHabits();
     const navigate = useNavigate()
     const {isTagCompressed} = useScreenSize()
 
     function handleEditClick(noteId) {
-        setSection('edit');
         localStorage.setItem('currentHabitId', noteId.toString());
         navigate('/habits/edit');
     }

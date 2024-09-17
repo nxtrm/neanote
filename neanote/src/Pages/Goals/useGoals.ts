@@ -44,9 +44,6 @@ type GoalState = {
     handleMilestoneCompletion: (goalid:UUID, milestoneid:UUID) => Promise<void>
     archive: (noteId: UUID) => Promise<void>;
 
-    section:string
-    setSection: (section: string) => void;
-
     loading:boolean;
     setLoading: (loading: boolean) => void;
 
@@ -65,12 +62,9 @@ export const useGoals = create<GoalState>()(
         goalPreviews: [],
         validationErrors:{},
         pendingChanges: false,
-        section: "all goals",
 
         loading: false,
         setLoading: (loading) => set({loading}),
-
-        setSection: (section) => set({section}),
         setPendingChanges: (value) => set({pendingChanges: value}),
 
         page:1,
@@ -103,7 +97,6 @@ export const useGoals = create<GoalState>()(
                   milestones: response.data.milestones,
                   tags: [],
                 });
-                state.section = 'edit goal';
               });
               localStorage.setItem('currentGoalId', response.data.noteid.toString());
               showToast('success', 'Goal created successfully');

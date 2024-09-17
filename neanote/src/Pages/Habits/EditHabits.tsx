@@ -39,7 +39,6 @@ function EditHabits() {
     const handleClose = () => {
       localStorage.removeItem('currentHabitId');
       useHabits.setState({
-        section: 'all habits',
         pendingChanges: false,
         validationErrors: {},
       })

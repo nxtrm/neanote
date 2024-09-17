@@ -27,9 +27,6 @@ const generateNewCurrentTask = () => {
 type TaskState = {
   loading:boolean;
   setLoading: (loading: boolean) => void;
-  
-  section: string;
-  setSection: (section: string) => void;
 
   currentTask: Task;
   // setCurrentTask: (task: Task) => void;
@@ -60,7 +57,6 @@ type TaskState = {
 
 export const useTasks = create<TaskState>()(
   immer((set, get) => ({
-    section: 'all tasks',
     selectedTagIds: [],
     tasks: [],
     loading: false,
@@ -74,8 +70,7 @@ export const useTasks = create<TaskState>()(
     setPendingChanges: (value) => set({pendingChanges: value}),
     
     setLoading : (loading) => set({ loading }),
-    
-    setSection: (section) => set({ section }),
+
 
     validateTask: () => {
       const { currentTask } = get();
@@ -125,7 +120,6 @@ export const useTasks = create<TaskState>()(
       resetCurrentTask: () => {
         useTags.getState().selectedTagIds = [];
         set((state) => {
-          state.section = 'all tasks';
           state.currentTask = generateNewCurrentTask()
           state.pendingChanges = false;
         })

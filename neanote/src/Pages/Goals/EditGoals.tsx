@@ -58,7 +58,6 @@ function EditGoals() {
   const handleClose = () => {
       localStorage.removeItem('currentGoalId');
       useGoals.setState({
-        section: 'all goals',
         pendingChanges: false,
         validationErrors: {},
       })

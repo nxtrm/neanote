@@ -20,7 +20,6 @@ import FormButtons from '../../../components/FormButtons/FormButtons';
 function CreateTask() {
   const {
     currentTask,
-    section,
     toggleTaskCompleted,
     pendingChanges, loading,
     toggleSubtaskCompleted,

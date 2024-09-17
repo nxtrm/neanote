@@ -10,11 +10,10 @@ import TitleComponent from '../../../components/TitleComponent/TitleComponent';
 import PaginationSelector from '../../../components/Pagination/PaginationSelector';
 
 function Habits() {
-    const {habitPreviews, resetCurrentHabit, setSection, fetchHabitPreviews, nextPage, page} = useHabits();
+    const {habitPreviews, resetCurrentHabit,fetchHabitPreviews, nextPage, page} = useHabits();
     const navigate = useNavigate();
     const handleAddHabitClick = () => {
         resetCurrentHabit();
-        setSection('create');
         navigate('/habits/create')
       };
 

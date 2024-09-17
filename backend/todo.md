@@ -1,20 +1,12 @@
 # KNOWN ISSUES
 
-Notes
-
 Habits
 
 2. Add a last week's visualisation of completed streak in EditHabits
-3.  fix checkbox not updating in linked tasks
-4.  Fix linked tasks not being returned
 17. Fix date
 
 
 # TASK LIST
-
-- add sorting into sort params
-- simplify deletion
-
 
 - simplify frontend validation and other logic
 - create the dashboard arrangable grid with dummy components

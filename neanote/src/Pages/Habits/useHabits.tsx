@@ -36,9 +36,6 @@ type HabitState = {
     loading: boolean;
     setLoading: (loading: boolean) => void;
 
-    section: string;
-    setSection: (section: string) => void;
-
     updateCurrentHabit: <K extends keyof Habit>(key: K, value: Habit[K]) => void;
     resetCurrentHabit: () => void;
 
@@ -67,13 +64,11 @@ export const useHabits = create<HabitState>()(
         habitPreviews: [],
         currentHabit: generateNewHabit(),
         loading: false,
-        section: "all habits",
         validationErrors:{},
         pendingChanges: false,
 
 
         setPendingChanges : (pendingChanges) => set({pendingChanges}),
-        setSection: (section) => set({ section }),
         setLoading: (loading) => set({ loading }),
 
         validateHabit: () => {
