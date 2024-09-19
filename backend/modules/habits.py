@@ -137,7 +137,7 @@ class HabitApi(BaseNote):
                     total,nextPage = self.fetch_total_notes(cur, 'habit', userId, page, offset, per_page)
 
                     cur.execute(f'''
-                        WITH {self.tags_cte}
+                        WITH {self.base_note.tags_cte}
                         SELECT
                             n.id AS note_id,
                             n.title,
