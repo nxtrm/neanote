@@ -151,7 +151,6 @@ export const useHabits = create<HabitState>()(
 
         handleCreateHabit: async () => {
             const { currentHabit, setLoading } = get();
-            setLoading(true);
             get().validateHabit()
             if (get().validateHabit()) {
                 const response = await habitsApi.create(currentHabit.title, currentHabit.tags, currentHabit.content, currentHabit.reminder);
@@ -174,7 +173,6 @@ export const useHabits = create<HabitState>()(
             } else {
                 showToast('error', 'Validation failed');
             }
-            setLoading(false);
         return false
         },
 
