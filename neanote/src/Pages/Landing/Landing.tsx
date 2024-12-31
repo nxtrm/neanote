@@ -1,8 +1,6 @@
 import React from 'react'
-import Title from '../../../components/Sidebar/Title'
-import { Button } from '../../../components/@/ui/button'
 import { Link } from 'react-router-dom'
-import Login from '../Login/Login'
+import { Button } from '../../../components/@/ui/button'
 
 function Landing() {
 return (

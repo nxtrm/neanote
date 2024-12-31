@@ -9,11 +9,10 @@ Habits
 # TASK LIST
 
 - fix habit basenote problems
+- simplify oop
 
-- simplify frontend validation and other logic
-- create the dashboard arrangable grid with dummy components
-    - elements from Habits issue #2
-- optionally add events note type with google maps + calendar integration
+- create dashboard with widgets
+
 
 # IDEAS OR DO-LATER
 
