@@ -49,7 +49,7 @@ const ColumnContainer: React.FC<ColumnContainerProps> = ({
   };
 
   return (
-    <div ref={setNodeRef} style={style} className='bg-secondary rounded-xl p-2 my-2 min-h-[70vh] w-[300px]'>
+    <div ref={setNodeRef} style={style} className='bg-secondary rounded-xl p-2 min-h-[70vh] w-[300px]'>
 
       <SortableContext items={widgets.map((widget) => widget.id)}>
         <div className='flex flex-col gap-2'>

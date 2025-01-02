@@ -56,69 +56,68 @@ import { useScreenSize } from '../../../DisplayContext.tsx';
           } else {
             numColumns = 6;
           }
-    
+
           const initialColumns = Array.from({ length: numColumns }, (_, index) => ({
             id: `column-${index + 1}`,
             title: `Column ${index + 1}`,
           }));
-    
+
           setColumns(initialColumns);
         };
-    
+
         determineColumns();
       }, [screenSize]);
 
-    const handleDragEnd = (event: any) => {
-      const { active, over } = event;
+      const handleDragEnd = (event: any) => {
+        const { active, over } = event;
 
-      if (!over) return;
+        if (!over) return;
 
-      const activeId = active.id;
-      const overId = over.id;
+        const activeId = active.id;
+        const overId = over.id;
 
-      if (activeId === overId) return;
+        if (activeId === overId) return;
 
-      const isActiveWidget = active.data.current?.type === "Widget";
-      const isOverWidget = over.data.current?.type === "Widget";
-      const isOverColumn = over.data.current?.type === "Column";
+        const isActiveWidget = active.data.current?.type === 'Widget';
+        const isOverWidget = over.data.current?.type === 'Widget';
+        const isOverColumn = over.data.current?.type === 'Column';
 
-      // Handle widget to widget movement
-      if (isActiveWidget && isOverWidget) {
-        setWidgets((widgets) => {
-          const activeIndex = widgets.findIndex((widget) => widget.id === activeId);
-          const overIndex = widgets.findIndex((widget) => widget.id === overId);
+        // Handle widget to widget movement
+        if (isActiveWidget && isOverWidget) {
+          setWidgets((prevWidgets) => {
+            const activeIndex = prevWidgets.findIndex((widget) => widget.id === activeId);
+            const overIndex = prevWidgets.findIndex((widget) => widget.id === overId);
 
-          if (widgets[activeIndex].columnId !== widgets[overIndex].columnId) {
-            // Moving to a different column
-            widgets[activeIndex].columnId = widgets[overIndex].columnId;
-          }
+            if (activeIndex === -1 || overIndex === -1) return prevWidgets;
 
-          return arrayMove(widgets, activeIndex, overIndex);
-        });
-      }
+            // If moving to a different column
+            if (prevWidgets[activeIndex].columnId !== prevWidgets[overIndex].columnId) {
+              prevWidgets[activeIndex].columnId = prevWidgets[overIndex].columnId;
+            }
 
-      // Handle widget to column movement
-      if (isActiveWidget && isOverColumn) {
-        setWidgets((widgets) => {
-          const activeIndex = widgets.findIndex((widget) => widget.id === activeId);
-          const updatedWidgets = [...widgets];
-          updatedWidgets[activeIndex] = {
-            ...updatedWidgets[activeIndex],
-            columnId: overId
-          };
-          return updatedWidgets;
-        });
-      }
-    };
+            return arrayMove(prevWidgets, activeIndex, overIndex);
+          });
+        }
 
+        // Handle widget to column movement
+        if (isActiveWidget && isOverColumn) {
+          setWidgets((prevWidgets) => {
+            const activeIndex = prevWidgets.findIndex((widget) => widget.id === activeId);
+            if (activeIndex === -1) return prevWidgets;
 
-    const addColumn = () => {
-      const newColumnId = `column-${Date.now()}`;
-      const newColumn: Column = {
-        id: newColumnId,
+            const updatedWidgets = [...prevWidgets];
+            updatedWidgets[activeIndex] = {
+              ...updatedWidgets[activeIndex],
+              columnId: overId,
+            };
+            return updatedWidgets;
+          });
+        }
+
+        setActiveWidget(null); // Clear active widget after drag ends
       };
-      setColumns([...columns, newColumn]);
-    };
+
+
 
     const removeColumn = (id: string) => {
       setColumns(columns.filter((column) => column.id !== id));
@@ -161,7 +160,7 @@ import { useScreenSize } from '../../../DisplayContext.tsx';
             }
           }}
         >
-          <div className='flex gap-4'>
+          <div className='flex bg-secondary rounded-md my-2 gap-4'>
             <SortableContext items={columnsId} strategy={rectSortingStrategy}>
               {columns.map((column) => (
                 <ColumnContainer

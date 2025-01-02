@@ -1,7 +1,7 @@
 import React from 'react';
 import { FaTrash } from 'react-icons/fa';
 import { Button } from '../../../../components/@/ui/button';
-import UniversalCard from '../../../../components/Universal/UniversalCard';
+import { ChartWidget } from './ChartWidget';
 
 interface WidgetProps {
   id: string;
@@ -13,16 +13,17 @@ interface WidgetProps {
 
 export const Widget: React.FC<WidgetProps> = ({ id, data, editMode, onRemove, handleEditClick }) => {
   return (
-    <div className='relative h-50 bg-background rounded-md p-4 shadow'>
+    <div className='relative min-h-50 bg-background rounded-md p-4 shadow'>
       {editMode && (
         <Button
           onClick={onRemove}
-          className='absolute top-2 right-2 text-red-500'
+          className='absolute h-10 w-10 top-2 right-2 text-red-500'
           variant='ghost'
         >
           <FaTrash />
         </Button>
       )}
+      I<ChartWidget/>
 
     </div>
   );

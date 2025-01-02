@@ -15,12 +15,14 @@ const SortableItem: React.FC<SortableItemProps> = ({ id, children, editMode }) =
     transform,
     transition,
     isDragging,
-  } = useSortable({ id, disabled: !editMode });
+  } = useSortable({ id,
+    data: { type: 'Widget' },
+    disabled: !editMode });
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.5 : 1,
+    opacity: isDragging ? 0.7 : 1,
     cursor: editMode ? 'grab' : 'default',
   };
 
