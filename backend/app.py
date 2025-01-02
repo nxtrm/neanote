@@ -16,6 +16,7 @@ from modules.goals import GoalApi
 from modules.tags import tag_routes
 from modules.users import user_routes
 import google.generativeai as genai
+from modules.widgets import widget_routes
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -54,7 +55,7 @@ goals = GoalApi(app,  conn, tokenization_manager, recents_manager)
 tag_routes(app, conn, tokenization_manager)
 user_routes(app, conn)
 archive_routes(app, conn, tokenization_manager)
-
+widget_routes(app, conn)
 
 universal_routes(app, conn, model, recents_manager) #small routes that do not require a separate file
 

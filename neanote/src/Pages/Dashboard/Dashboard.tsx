@@ -7,6 +7,8 @@ import { Label } from '../../../components/@/ui/label';
 import UniversalCard from '../../../components/Universal/UniversalCard';
 import { useNavigate } from "react-router-dom";
 import { MdSpaceDashboard } from "react-icons/md";
+import WidgetGrid from './Components/WidgetGrid';
+import KanbanBoard from '../../../components/KanBan/KanbanBoard';
 
 function Dashboard() {
   const {recents, getRecents, loading} = useDashboard()
@@ -26,6 +28,8 @@ function Dashboard() {
       <TitleComponent>
           <MdSpaceDashboard size={'20px'} /> Dashboard
         </TitleComponent>
+        {/* <KanbanBoard/> */}
+        <WidgetGrid/>
       <div className='bg-secondary rounded-xl p-2'>
         <div className="flex flex-row gap-3 items-center pb-2">
             <TitleComponent><FaHistory size={'17px'}/> Recents</TitleComponent>
