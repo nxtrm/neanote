@@ -6,12 +6,14 @@ import { useDashboard } from './useDashboard';
 import { Label } from '../../../components/@/ui/label';
 import UniversalCard from '../../../components/Universal/UniversalCard';
 import { useNavigate } from "react-router-dom";
-import { MdSpaceDashboard } from "react-icons/md";
+import { MdEdit, MdOutlineCheck, MdSpaceDashboard } from "react-icons/md";
 import WidgetGrid from './Components/WidgetGrid';
 import KanbanBoard from '../../../components/KanBan/KanbanBoard';
+import EditPicker from './Components/EditPicker';
+import { Button } from '../../../components/@/ui/button';
 
 function Dashboard() {
-  const {recents, getRecents, loading} = useDashboard()
+  const {recents, getRecents, loading, editMode, setEditMode} = useDashboard()
   const navigate = useNavigate();
 
     useEffect(() => {
@@ -24,10 +26,19 @@ function Dashboard() {
 }
   
   return (
-    <>
-      <TitleComponent>
+    <>  
+    <div className="flex flex-row justify-between pb-2">
+
+        <TitleComponent>
           <MdSpaceDashboard size={'20px'} /> Dashboard
         </TitleComponent>
+        <div className="flex flex-row gap-2">
+          <Button onClick={() => setEditMode(!editMode)}>
+            {editMode ? <MdOutlineCheck /> : <MdEdit />}
+          </Button>
+        <EditPicker/>
+        </div>
+    </div>
         {/* <KanbanBoard/> */}
         <WidgetGrid/>
       <div className='bg-secondary rounded-xl p-2'>
