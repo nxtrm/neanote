@@ -16,6 +16,7 @@ import {
 import { ChartWidget } from '../../../../components/Widgets/Chart/ChartWidget';
 import WidgetContainer from '../../../../components/Widgets/WidgetPreviewContainer';
 import NumberWidget from '../../../../components/Widgets/Number/NumberWidget';
+import { ProgressWidget } from '../../../../components/Widgets/ProgressWidget/ProgressWidget';
 function EditPicker() {
   const {
       columns,
@@ -46,14 +47,17 @@ function EditPicker() {
             <FaPlusCircle /> Add Widget
           </Button>
         )}
-        <div className='flex bg-secondary rounded-xl min-w-full min-h-[40vh] flex-row gap-2'>
+        <div className='grid grid-cols-1 sm:grid-cols-1 md:grid-cols-3 lg:grid-cols-4 bg-secondary rounded-xl min-w-full min-h-[40vh]'>
           <WidgetContainer title={'Chart'} description='Visualise your task completion rates.'>
-            <h1>Sample title</h1>
+            <h1>Tasks completion</h1>
             <ChartWidget label='Sample' color='destructive' sample={true} data={null}/>
           </WidgetContainer>
           <WidgetContainer title={'Number'} description='Display your streaks and averages.'>
-            <NumberWidget caption={'Tasks completed'} number={25}/>
+            <NumberWidget caption={'Habit streak'} number={25}/>
           </WidgetContainer>
+          <WidgetContainer title={'Progress'} description='Track your progress.'>
+              <ProgressWidget title='Investments' progress={75} />
+            </WidgetContainer>
         </div>
       </div>
     </DrawerContent>
