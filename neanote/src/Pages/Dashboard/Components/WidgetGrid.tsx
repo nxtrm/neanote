@@ -7,20 +7,16 @@ import {
   useSensors,
 } from '@dnd-kit/core';
 import {
-  SortableContext,
-  arrayMove,
   rectSortingStrategy,
+  SortableContext
 } from '@dnd-kit/sortable';
 import React, { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { FaPlusCircle } from 'react-icons/fa';
-import { Button } from '../../../../components/@/ui/button';
-import SortableItem from './SortableItem';
 import { Widget } from '../useDashboard.ts';
 import ColumnContainer from './ColumnContainer';
 
-import { useDashboard } from '../useDashboard';
 import { useScreenSize } from '../../../DisplayContext';
+import { useDashboard } from '../useDashboard';
 
 const WidgetGrid = () => {
   const {
@@ -122,7 +118,6 @@ const WidgetGrid = () => {
                 key={column.id}
                 column={column}
                 widgets={widgets.filter((widget) => widget.columnId === column.id)}
-                addWidget={addWidget}
                 removeWidget={removeWidget}
                 editMode={editMode}
                 removeColumn={removeColumn}

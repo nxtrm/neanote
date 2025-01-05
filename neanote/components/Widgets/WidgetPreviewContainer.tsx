@@ -1,31 +1,35 @@
-import React from 'react'
+import React from 'react';
 import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardFooter,
-    CardHeader,
-    CardTitle,
-  } from "../@/ui/card"
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "../@/ui/card";
 
 interface Props {
-    title:string;
-    description:string;
-    children: React.ReactNode
-}
-// add clickability to the container to add the widget
-function WidgetPreviewContainer({description,title , children}: Props) {
-  return (
-    <Card className='bg-background h-fit rounded-xl m-2 '>
-        <CardHeader>
-            <CardTitle>{title}</CardTitle>
-            <CardDescription>{description}</CardDescription>
-        </CardHeader>
-        <CardContent>
-            {children}
-        </CardContent>
-        </Card>
-  )
+  title: string;
+  description: string;
+  children: React.ReactNode;
+  type: 'Chart' | 'Number' | 'Progress';
+  onClick: (widgetType: 'Chart' | 'Number' | 'Progress') => void;
 }
 
-export default WidgetPreviewContainer
+function WidgetPreviewContainer({ description, title, children, type, onClick }: Props) {
+  return (
+    <Card
+      className='bg-background h-fit rounded-xl m-2 cursor-pointer'
+      onClick={() => onClick(type)}
+    >
+      <CardHeader>
+        <CardTitle>{title}</CardTitle>
+        <CardDescription>{description}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        {children}
+      </CardContent>
+    </Card>
+  );
+}
+
+export default WidgetPreviewContainer;

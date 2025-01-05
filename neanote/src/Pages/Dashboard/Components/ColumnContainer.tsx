@@ -19,7 +19,6 @@ interface Widget {
 interface ColumnContainerProps {
   column: Column;
   widgets: Widget[];
-  addWidget: (columnId: string) => void;
   removeWidget: (id: string) => void;
   editMode: boolean;
   removeColumn: (id: string) => void;
@@ -28,7 +27,6 @@ interface ColumnContainerProps {
 const ColumnContainer: React.FC<ColumnContainerProps> = ({
   column,
   widgets,
-  addWidget,
   removeWidget,
   editMode,
   removeColumn,
