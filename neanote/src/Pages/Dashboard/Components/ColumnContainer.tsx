@@ -1,10 +1,8 @@
 import { SortableContext, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import React from 'react';
-import { FaPlusCircle, FaTrash } from 'react-icons/fa';
 import SortableItem from './SortableItem';
 import { Widget } from './Widget';
-import { Button } from '../../../../components/@/ui/button';
 
 interface Column {
   id: string;
