@@ -55,7 +55,7 @@ const WidgetGrid = () => {
     const determineColumns = () => {
       let numColumns;
       if (screenSize === 'small') {
-        numColumns = 2;
+        numColumns = 1;
       } else if (screenSize === 'medium') {
         numColumns = 3;
       } else {

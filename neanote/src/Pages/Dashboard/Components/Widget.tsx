@@ -1,11 +1,11 @@
 import React from 'react';
 import { FaTrash } from 'react-icons/fa';
 import { Button } from '../../../../components/@/ui/button';
-import { ChartWidget } from './ChartWidget';
+import { ChartWidget } from '../../../../components/Widgets/Chart/ChartWidget';
 
 interface WidgetProps {
   id: string;
-  data: any; // Define the appropriate type
+  data: any;
   editMode: boolean;
   onRemove: () => void;
   handleEditClick: (noteId: string, type: string) => void;
@@ -23,7 +23,7 @@ export const Widget: React.FC<WidgetProps> = ({ id, data, editMode, onRemove, ha
           <FaTrash />
         </Button>
       )}
-      I<ChartWidget/>
+      {/* add widget dynanically here */}
 
     </div>
   );

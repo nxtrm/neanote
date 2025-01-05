@@ -52,7 +52,7 @@ const ColumnContainer: React.FC<ColumnContainerProps> = ({
     <div ref={setNodeRef} style={style} className='bg-secondary rounded-xl p-2 min-h-[70vh] w-[300px]'>
 
       <SortableContext items={widgets.map((widget) => widget.id)}>
-        <div className='flex flex-col gap-2'>
+        <div className='flex flex-grow flex-col gap-2'>
           {widgets.map((widget) => (
             <SortableItem key={widget.id} id={widget.id} editMode={editMode}>
               <Widget
