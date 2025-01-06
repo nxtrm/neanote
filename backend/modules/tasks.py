@@ -248,6 +248,30 @@ class TaskApi(BaseNote):
                         """
                         cur.execute(toggle_task_sql, (taskId,))
 
+                        cur.execute("""
+                            SELECT completed
+                            FROM Tasks
+                            WHERE id = %s
+                        """, (taskId,))
+                        task_completed = cur.fetchone()['completed']
+                        try:
+                            cur.execute("""
+                                SELECT total_completed_tasks
+                                FROM taskstatistics
+                                WHERE user_id = %s
+                            """, (userId,))
+                            total_completed_tasks = cur.fetchone()['total_completed_tasks']
+                            cur.execute("""
+                                UPDATE taskstatistics
+                                SET total_completed_tasks = %s
+                                WHERE user_id = %s
+                            """, (total_completed_tasks + 1 if task_completed else (total_completed_tasks - 1 if total_completed_tasks-1>0 else 0), userId))
+                        except:
+                            cur.execute("""
+                                INSERT INTO taskstatistics (user_id, total_completed_tasks)
+                                VALUES (%s, %s)
+                            """, (userId, 1))
+
                     if subtaskId and verify_subtask_ownership(userId, subtaskId, cur):
                         toggle_subtask_sql = """
                             UPDATE Subtasks

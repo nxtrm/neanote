@@ -1,16 +1,21 @@
 
-from datetime import datetime
 import os
 import sys
+from datetime import datetime
+
 from flask import Blueprint, g, jsonify, request
 from flask_jwt_extended import jwt_required
 
 from modules.universal import BaseNote
 from utils.userDeleteGraph import delete_user_data_with_backoff
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
-from formsValidation import  GoalSchema
-from utils.utils import token_required, verify_milestone_ownership, verify_goal_ownership
 import psycopg2.extras
+
+from formsValidation import GoalSchema
+from utils.utils import (token_required, verify_goal_ownership,
+                         verify_milestone_ownership)
+
 
 class GoalApi(BaseNote):
     def __init__(self, app, conn, tokenization_manager, recents_manager):
@@ -259,6 +264,23 @@ class GoalApi(BaseNote):
                         SET completed = NOT completed
                         WHERE id = %s
                     """, (milestone_id,))
+                    # Check if the milestone was the last one at this goal
+                    cur.execute("""
+                        WITH milestone_counts AS (
+                            SELECT 
+                                goal_id,
+                                COUNT(*) FILTER (WHERE completed = TRUE) AS completed_milestones,
+                                COUNT(*) AS total_milestones
+                            FROM Milestones
+                            WHERE goal_id = (SELECT goal_id FROM Milestones WHERE id = %s)
+                            GROUP BY goal_id
+                        )
+                        UPDATE Goals
+                        SET completion_timestamp = NOW()
+                        WHERE id = (SELECT goal_id FROM Milestones WHERE id = %s)
+                        AND (SELECT completed_milestones FROM milestone_counts) = (SELECT total_milestones FROM milestone_counts)
+                    """, (milestone_id, milestone_id))
+
                     self.conn.commit()
                     return jsonify({'message': 'Milestone toggled successfully'}), 200
 
