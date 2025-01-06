@@ -15,6 +15,7 @@ import { ProgressWidget } from '../../../../components/Widgets/ProgressWidget/Pr
 import NumberWidget from '../../../../components/Widgets/Number/NumberWidget';
 import WidgetPreviewContainer from '../../../../components/Widgets/WidgetPreviewContainer';
 import { WidgetSetup } from './WidgetSetup';
+import HabitWeek from '../../../../components/Widgets/HabitWeek/HabitWeek';
 
 function EditPicker() {
   const {
@@ -25,7 +26,7 @@ function EditPicker() {
     setWidgetConfig,
   } = useDashboard();
 
-  const handleWidgetClick = (widgetType: 'Chart' | 'Number' | 'Progress') => {
+  const handleWidgetClick = (widgetType: 'Chart' | 'Number' | 'Progress' | 'HabitWeek') => {
     setSelectedWidgetType(widgetType); // Show setup screen
     setWidgetConfig({ title: '', dataSource: '' }); // Reset widget config
   };
@@ -33,7 +34,7 @@ function EditPicker() {
   const handleSave = (config: any) => {
     const columnId = columns[0]?.id || 'column-1';
 
-    addWidget(columnId, config.title, config.type, config.dataSource); 
+    addWidget(columnId, config.title, config.type, config.dataSource);
 
     setSelectedWidgetType(null);
   };
@@ -60,13 +61,22 @@ function EditPicker() {
           {selectedWidgetType === null ? (
             // 1) WIDGET SELECTION GRID
             <div className='grid grid-cols-1 sm:grid-cols-1 md:grid-cols-3 lg:grid-cols-4 bg-secondary rounded-xl min-w-full min-h-[40vh]'>
-              <WidgetPreviewContainer
+               <WidgetPreviewContainer
                 title={'Chart'}
                 description='Visualise your task completion rates.'
                 type='Chart'
                 onClick={handleWidgetClick}
               >
                 <ChartWidget label='Sample' color='destructive' sample={true} data={null}/>
+              </WidgetPreviewContainer>
+
+              <WidgetPreviewContainer
+                title={'Progress'}
+                description='Track your progress.'
+                type='Progress'
+                onClick={handleWidgetClick}
+              >
+                <ProgressWidget title='Investments' progress={75} />
               </WidgetPreviewContainer>
 
               <WidgetPreviewContainer
@@ -79,14 +89,14 @@ function EditPicker() {
               </WidgetPreviewContainer>
 
               <WidgetPreviewContainer
-                title={'Progress'}
-                description='Track your progress.'
-                type='Progress'
+                title={'Habit Week'}
+                description='View your weekly habit progress.'
+                type='HabitWeek'
                 onClick={handleWidgetClick}
               >
-                <ProgressWidget title='Investments' progress={75} />
+                <HabitWeek data={[true,true,false,true,true,true,false]}/>
               </WidgetPreviewContainer>
-              
+
               {/* Add more preview widgets here if needed */}
             </div>
           ) : (

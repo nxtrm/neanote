@@ -11,8 +11,8 @@ interface Props {
   title: string;
   description: string;
   children: React.ReactNode;
-  type: 'Chart' | 'Number' | 'Progress';
-  onClick: (widgetType: 'Chart' | 'Number' | 'Progress') => void;
+  type: 'Chart' | 'Number' | 'Progress' | 'HabitWeek';
+  onClick: (widgetType: 'Chart' | 'Number' | 'Progress' | 'HabitWeek') => void;
 }
 
 function WidgetPreviewContainer({ description, title, children, type, onClick }: Props) {

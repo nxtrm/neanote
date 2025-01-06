@@ -13,7 +13,7 @@ export interface Column {
 export interface Widget {
   id: string;
   columnId: string;
-  type: 'Chart' | 'Number' | 'Progress';
+  type: 'Chart' | 'Number' | 'Progress' | 'HabitWeek';
   title: string;
   content: string;
   dataSource?: string;
@@ -26,7 +26,7 @@ interface DashboardState {
   columns: Column[];
   widgets: Widget[];
   editMode: boolean;
-  selectedWidgetType: 'Chart' | 'Number' | 'Progress' | null;
+  selectedWidgetType: 'Chart' | 'Number' | 'Progress'|'HabitWeek' | null;
   widgetConfig: { title: string; dataSource: string } | null;
   addColumn: () => void;
   removeColumn: (id: string) => void;
@@ -118,7 +118,7 @@ export const useDashboard = create<DashboardState>()(
         state.columns = columns;
       });
     },
-    setSelectedWidgetType: (widgetType: 'Chart' | 'Number' | 'Progress' | null) => {
+    setSelectedWidgetType: (widgetType: 'Chart' | 'Number' | 'Progress' | 'HabitWeek' | null) => {
       set((state) => {
         state.selectedWidgetType = widgetType;
       });
