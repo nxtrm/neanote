@@ -4,19 +4,11 @@ import { universalApi } from "../../api/universalApi";
 import { UniversalType } from "../../api/types/ArchiveTypes";
 import { showToast } from "../../../components/Toast";
 import { arrayMove } from "@dnd-kit/sortable";
+import { Widget, WidgetType, DataSourceType } from "../../api/types/widgetTypes";
 
 export interface Column {
   id: string;
   title: string;
-}
-
-export interface Widget {
-  id: string;
-  columnId: string;
-  type: 'Chart' | 'Number' | 'Progress' | 'HabitWeek';
-  title: string;
-  content: string;
-  dataSource?: string;
 }
 
 interface DashboardState {
@@ -26,16 +18,16 @@ interface DashboardState {
   columns: Column[];
   widgets: Widget[];
   editMode: boolean;
-  selectedWidgetType: 'Chart' | 'Number' | 'Progress'|'HabitWeek' | null;
+  selectedWidgetType: WidgetType | null;
   widgetConfig: { title: string; dataSource: string } | null;
   addColumn: () => void;
   removeColumn: (id: string) => void;
-  addWidget: (columnId: string, title: string, type: Widget['type'], dataSource?: string, content?: string) => void;
+  addWidget: (columnId: string, widgetId: string, type: WidgetType, title: string, dataSourceType: DataSourceType, dataSourceId?: string) => void;
   removeWidget: (id: string) => void;
   moveWidget: (activeId: string, overId: string, overColumnId: string) => void;
   setColumns: (columns: Column[]) => void;
   setEditMode: (editMode: boolean) => void;
-  setSelectedWidgetType: (widgetType: 'Chart' | 'Number' | 'Progress' | null) => void;
+  setSelectedWidgetType: (widgetType: WidgetType | null) => void;
   setWidgetConfig: (config: { title: string; dataSource: string } | null) => void;
 }
 
@@ -79,18 +71,17 @@ export const useDashboard = create<DashboardState>()(
         state.widgets = state.widgets.filter((widget) => widget.columnId !== id);
       });
     },
-    addWidget: (columnId, title, type, dataSource, content) => {
-      const newWidgetId = `widget-${Date.now()}`;
-      const newWidget: Widget = {
-        id: newWidgetId,
-        columnId,
-        content: content || '',
-        type,
-        title,
-        dataSource,
-      };
+    addWidget: (columnId, widgetId, type, title, dataSourceType, dataSourceId) => {
       set((state) => {
-        state.widgets.push(newWidget);
+        state.widgets.push({
+          id: widgetId,
+          columnId,
+          type,
+          title,
+          content: '',
+          dataSourceType,
+          dataSourceId,
+        });
       });
     },
     removeWidget: (id: string) => {
@@ -118,7 +109,7 @@ export const useDashboard = create<DashboardState>()(
         state.columns = columns;
       });
     },
-    setSelectedWidgetType: (widgetType: 'Chart' | 'Number' | 'Progress' | 'HabitWeek' | null) => {
+    setSelectedWidgetType: (widgetType: WidgetType | null) => {
       set((state) => {
         state.selectedWidgetType = widgetType;
       });

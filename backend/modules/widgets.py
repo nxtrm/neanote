@@ -29,33 +29,90 @@ def widget_routes(app, conn):
 
     @app.route('/user_widgets', methods=['GET'])
     @jwt_required()
+    @token_required
     def get_user_widgets():
         try:
-            cur = conn.cursor()
-            cur.execute('SELECT * FROM user_widgets WHERE user_id = %s', (g.user['id'],))
-            user_widgets = cur.fetchall()
-            cur.close()
-            return jsonify(user_widgets)
-        except psycopg2.Error as e:
-            return jsonify({'error': str(e)}), 500
+            user_id = g.userId
+            cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
-    @app.route('/user_widgets', methods=['POST'])
+            # Fetch widgets with their data
+            cur.execute("""
+                SELECT w.*,
+                    CASE
+                        WHEN w.data_source_type = 'habit' THEN (
+                            SELECT json_build_object(
+                                'streak', h.streak,
+                                'completions', (
+                                    SELECT json_agg(completion_date)
+                                    FROM HabitCompletion hc
+                                    WHERE hc.habit_id = h.id
+                                    AND completion_date >= CURRENT_DATE - INTERVAL '7 days'
+                                )
+                            )
+                            FROM Habits h
+                            WHERE h.note_id = w.data_source_id::uuid
+                        )
+                        WHEN w.data_source_type = 'goal' THEN (
+                            SELECT json_build_object(
+                                'total_milestones', COUNT(m.id),
+                                'completed_milestones', COUNT(m.id) FILTER (WHERE m.completed = true)
+                            )
+                            FROM Goals g
+                            LEFT JOIN Milestones m ON g.id = m.goal_id
+                            WHERE g.note_id = w.data_source_id::uuid
+                        )
+                        WHEN w.data_source_type = 'task' THEN (
+                            SELECT json_build_object(
+                                'completed_tasks', COUNT(*) FILTER (WHERE t.completed = true),
+                                'total_tasks', COUNT(*)
+                            )
+                            FROM Tasks t
+                            WHERE t.note_id = w.data_source_id::uuid
+                        )
+                    END as source_data
+                FROM user_widgets w
+                WHERE w.user_id = %s
+            """, (user_id,))
+
+            widgets = cur.fetchall()
+            return jsonify(widgets)
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500
+        finally:
+            cur.close()
+
+    @app.route('/api/user_widgets/create', methods=['POST'])
     @jwt_required()
+    @token_required
     def create_user_widget():
         try:
             data = request.get_json()
+            user_id = g.userId
+
             cur = conn.cursor()
-            cur.execute('INSERT INTO user_widgets (user_id, widget_id, data_source_type, data_source_id, configuration) VALUES (%s, %s, %s, %s, %s) RETURNING *', 
-                        (g.user['id'], data['widget_id'], data['data_source_type'], data['data_source_id'], json.dumps(data['configuration'])))
-            user_widget = cur.fetchone()
+            cur.execute(
+                """
+                INSERT INTO user_widgets
+                (user_id, widget_id, title, data_source_type, data_source_id, configuration)
+                VALUES (%s, %s, %s, %s, %s, %s)
+                RETURNING *
+                """,
+                (user_id, data['widget_id'],data['configuration']['title'] , data['data_source_type'],
+                 data.get('data_source_id'), json.dumps(data['configuration']))
+            )
+
+            widget = cur.fetchone()
             conn.commit()
-            cur.close()
-            return jsonify(user_widget)
-        except psycopg2.Error as e:
+            return jsonify(widget)
+        except Exception as e:
+            conn.rollback()
             return jsonify({'error': str(e)}), 500
+        finally:
+            cur.close()
 
     @app.route('/user_widgets/<int:user_widget_id>', methods=['GET'])
     @jwt_required()
+    @token_required
     def get_user_widget(user_widget_id):
         try:
             cur = conn.cursor()
@@ -70,11 +127,12 @@ def widget_routes(app, conn):
 
     @app.route('/user_widgets/<int:user_widget_id>', methods=['PUT'])
     @jwt_required()
+    @token_required
     def update_user_widget(user_widget_id):
         try:
             data = request.get_json()
             cur = conn.cursor()
-            cur.execute('UPDATE user_widgets SET widget_id = %s, data_source_type = %s, data_source_id = %s, configuration = %s WHERE id = %s AND user_id = %s RETURNING *', 
+            cur.execute('UPDATE user_widgets SET widget_id = %s, data_source_type = %s, data_source_id = %s, configuration = %s WHERE id = %s AND user_id = %s RETURNING *',
                         (data['widget_id'], data['data_source_type'], data['data_source_id'], json.dumps(data['configuration']), user_widget_id, g.user['id']))
             user_widget = cur.fetchone()
             conn.commit()
@@ -87,6 +145,7 @@ def widget_routes(app, conn):
 
     @app.route('/user_widgets/<int:user_widget_id>', methods=['DELETE'])
     @jwt_required()
+    @token_required
     def delete_user_widget(user_widget_id):
         try:
             cur = conn.cursor()
@@ -99,3 +158,79 @@ def widget_routes(app, conn):
             return jsonify({'error': 'User widget not found'}), 404
         except psycopg2.Error as e:
             return jsonify({'error': str(e)}), 500
+
+    @app.route('/api/widgets/datasources/<widget_type>', methods=['GET'])
+    @jwt_required()
+    @token_required
+    def get_widget_data_sources(widget_type):
+        cur = None
+        try:
+            user_id = g.userId
+            cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+
+            if widget_type == 'Chart':
+                cur.execute("""
+                    SELECT json_build_object(
+                        'id', type,
+                        'title', type || ' (' || count || ' items)',
+                        'type', type
+                    ) as source
+                    FROM (
+                        SELECT 'task' as type, COUNT(*) as count FROM Notes 
+                        WHERE user_id = %s AND type = 'task'
+                        UNION ALL
+                        SELECT 'habit', COUNT(*) FROM Notes 
+                        WHERE user_id = %s AND type = 'habit'
+                        UNION ALL
+                        SELECT 'goal', COUNT(*) FROM Notes 
+                        WHERE user_id = %s AND type = 'goal'
+                    ) as counts
+                """, (user_id, user_id, user_id))
+
+            elif widget_type == 'Progress':
+                cur.execute("""
+                    SELECT json_build_object(
+                        'id', n.id,
+                        'title', n.title || ' (' || COUNT(m.id) || ' milestones)',
+                        'type', 'goal'
+                    ) as source
+                    FROM Notes n
+                    JOIN Goals g ON n.id = g.note_id
+                    JOIN Milestones m ON g.id = m.goal_id
+                    WHERE n.user_id = %s
+                    GROUP BY n.id, n.title
+                    HAVING COUNT(m.id) > 0
+                """, (user_id,))
+
+            elif widget_type == 'Number':
+                cur.execute("""
+                    SELECT json_build_object(
+                        'id', n.id,
+                        'title', n.title || ' (streak: ' || h.streak || ')',
+                        'type', 'habit'
+                    ) as source
+                    FROM Notes n
+                    JOIN Habits h ON n.id = h.note_id
+                    WHERE n.user_id = %s AND h.streak > 0
+                """, (user_id,))
+
+            elif widget_type == 'HabitWeek':
+                cur.execute("""
+                    SELECT json_build_object(
+                        'id', n.id,
+                        'title', n.title,
+                        'type', 'habit'
+                    ) as source
+                    FROM Notes n
+                    JOIN Habits h ON n.id = h.note_id
+                    WHERE n.user_id = %s
+                """, (user_id,))
+
+            sources = [row['source'] for row in cur.fetchall()]
+            return jsonify({'sources': sources})
+
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500
+        finally:
+            if cur is not None:
+                cur.close()

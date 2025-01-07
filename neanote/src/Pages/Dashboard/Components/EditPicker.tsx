@@ -16,6 +16,7 @@ import NumberWidget from '../../../../components/Widgets/Number/NumberWidget';
 import WidgetPreviewContainer from '../../../../components/Widgets/WidgetPreviewContainer';
 import { WidgetSetup } from './WidgetSetup';
 import HabitWeek from '../../../../components/Widgets/HabitWeek/HabitWeek';
+import widgetsApi from '../../../api/widgetsApi';
 
 function EditPicker() {
   const {
@@ -31,12 +32,27 @@ function EditPicker() {
     setWidgetConfig({ title: '', dataSource: '' }); // Reset widget config
   };
 
-  const handleSave = (config: any) => {
-    const columnId = columns[0]?.id || 'column-1';
-
-    addWidget(columnId, config.title, config.type, config.dataSource);
-
-    setSelectedWidgetType(null);
+  const handleSave = async (widgetData: any) => {
+    try {
+      // Create the widget in the backend
+      const response = await widgetsApi.createUserWidget(widgetData);
+      
+      if (response.success) {
+        // Add widget to the grid
+        const columnId = columns[0]?.id || 'column-1';
+        addWidget(
+          columnId,
+          response.data.id,
+          widgetData.widget_id,
+          widgetData.configuration.title,
+          widgetData.data_source_type,
+          widgetData.data_source_id
+        );
+        setSelectedWidgetType(null);
+      }
+    } catch (error) {
+      console.error('Failed to create widget:', error);
+    }
   };
 
   const handleCancel = () => {

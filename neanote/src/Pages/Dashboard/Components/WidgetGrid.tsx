@@ -12,11 +12,11 @@ import {
 } from '@dnd-kit/sortable';
 import React, { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Widget } from '../useDashboard.ts';
 import ColumnContainer from './ColumnContainer';
 
 import { useScreenSize } from '../../../DisplayContext';
 import { useDashboard } from '../useDashboard';
+import { Widget } from '../../../api/types/widgetTypes';
 
 const WidgetGrid = () => {
   const {

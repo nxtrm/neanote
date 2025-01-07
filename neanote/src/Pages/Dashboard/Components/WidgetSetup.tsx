@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '../../../../components/@/ui/button';
 import { Label } from '../../../../components/@/ui/label';
 import {Input } from '../../../../components/@/ui/input';
@@ -11,24 +11,56 @@ import {
     SelectTrigger,
     SelectValue,
   } from "../../../../components/@/ui/select"
+import widgetsApi from '../../../api/widgetsApi';
+import { WidgetType, DataSource, WidgetData } from '../../../api/types/widgetTypes';
 
 interface WidgetSetupProps {
-  widgetType: 'Chart' | 'Number' | 'Progress';
-  onSave: (config: any) => void;
+  widgetType: WidgetType;
+  onSave: (config: WidgetData) => void;
   onCancel: () => void;
 }
 
 export function WidgetSetup({ widgetType, onSave, onCancel }: WidgetSetupProps) {
   const [title, setTitle] = useState<string>('');
   const [dataSource, setDataSource] = useState<string>('');
+  const [dataSources, setDataSources] = useState<DataSource[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const handleSave = () => {
-    // Save widget config
-    onSave({
-      type: widgetType,
-      title,
-      dataSource,
-    });
+  useEffect(() => {
+    const fetchDataSources = async () => {
+      const response = await widgetsApi.getWidgetDataSources(widgetType);
+      if (response.success) {
+        if (response.data) {
+          setDataSources(response.data);
+        }
+      }
+      setLoading(false);
+    };
+    fetchDataSources();
+  }, [widgetType]);
+
+  const handleDataSourceChange = (value: string) => {
+    setDataSource(value);
+  };
+
+  const handleSave = async () => {
+    if (!title || !dataSource) {
+      return;
+    }
+    const selectedSource = dataSources.find(ds => ds.id === dataSource);
+    if (!selectedSource) return;
+
+    const widgetData: WidgetData = {
+      widget_id: widgetType,
+      data_source_type: selectedSource.type as DataSourceType, // Cast to avoid mismatch
+      data_source_id: selectedSource.id,
+      configuration: {
+        title,
+        position: { x: 0, y: 0 },
+      }
+    };
+
+    onSave(widgetData);
   };
 
   return (
@@ -43,20 +75,26 @@ export function WidgetSetup({ widgetType, onSave, onCancel }: WidgetSetupProps) 
         className="border rounded-md p-1"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
-        placeholder="Widget title"/>
+        placeholder="Widget title"
+        required
+        />
 
         <Select
             value={dataSource}
+            onValueChange={handleDataSourceChange}
+            disabled={loading}
             >
         <SelectTrigger>
             <SelectValue placeholder="Select a data source" />
         </SelectTrigger>
-        <SelectContent onChange={(e) => setDataSource((e.target as HTMLSelectElement).value)}>
+        <SelectContent>
             <SelectGroup>
                 <SelectLabel>Data sources</SelectLabel>
-                <SelectItem value="note-category-1">Note Category 1</SelectItem>
-                <SelectItem value="note-category-2">Note Category 2</SelectItem>
-                {/* Add more sources */}
+                {dataSources.map(source => (
+                <SelectItem key={source.id} value={source.id}>
+                    {source.title}
+                </SelectItem>
+                ))}
             </SelectGroup>
         </SelectContent>
         </Select>
@@ -66,7 +104,7 @@ export function WidgetSetup({ widgetType, onSave, onCancel }: WidgetSetupProps) 
         <Button variant="secondary" onClick={onCancel}>
           Cancel
         </Button>
-        <Button onClick={handleSave}>Save</Button>
+        <Button disabled={!title} onClick={handleSave}>Save</Button>
       </div>
     </div>
   );
