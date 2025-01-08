@@ -82,10 +82,7 @@ const WidgetGrid = () => {
           if (!widget || typeof widget !== 'object') return null;
           
           const position = widget.configuration?.position || { x: 0, y: 0 };
-          const columnIndex = Math.min(
-            Math.floor(position.x / (100 / columns.length)),
-            columns.length - 1
-          );
+          const columnIndex = Math.min(position.x, columns.length - 1);
 
           return {
             id: widget.id?.toString(),
@@ -168,7 +165,15 @@ const WidgetGrid = () => {
           <DragOverlay>
             {activeWidget && (
               <div className='relative bg-background rounded-md p-4 shadow'>
-                <div className='opacity-50'>{activeWidget.content}</div>
+                <Widget
+                  id={activeWidget.id}
+                  widgetId={activeWidget.id}
+                  type={activeWidget.type}
+                  title={activeWidget.title}
+                  data={activeWidget.content}
+                  editMode={false}
+                  onRemove={() => {}}
+                />
               </div>
             )}
           </DragOverlay>,

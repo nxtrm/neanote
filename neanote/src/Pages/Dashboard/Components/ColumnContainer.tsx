@@ -49,8 +49,8 @@ const ColumnContainer: React.FC<ColumnContainerProps> = ({
               <Widget
                 id={widget.id}
                 widgetId={widget.id}
-                type = {widget.type}
-                title = {widget.title}
+                type={widget.type}
+                title={widget.title}
                 data={widget.content}
                 editMode={editMode}
                 onRemove={() => removeWidget(widget.id)}

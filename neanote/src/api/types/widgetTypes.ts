@@ -10,7 +10,13 @@ export interface WidgetConfig {
 export interface WidgetT {
   id: string;
   columnId: string;
-  content: React.ReactNode;
+  content: {
+    monthly_data?: Array<{ month: string; completed: number }>;
+    total_milestones?: number;
+    completed_milestones?: number;
+    streak?: number;
+    weekly_completions?: boolean[];
+  };
   order: number;
   type: WidgetType;
   title: string;
