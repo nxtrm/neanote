@@ -4,7 +4,7 @@ import { universalApi } from "../../api/universalApi";
 import { UniversalType } from "../../api/types/ArchiveTypes";
 import { showToast } from "../../../components/Toast";
 import { arrayMove } from "@dnd-kit/sortable";
-import { Widget, WidgetType, DataSourceType } from "../../api/types/widgetTypes";
+import { WidgetT, WidgetType, DataSourceType } from "../../api/types/widgetTypes";
 
 export interface Column {
   id: string;
@@ -16,7 +16,8 @@ interface DashboardState {
   recents: UniversalType[];
   loading: boolean;
   columns: Column[];
-  widgets: Widget[];
+  widgets: WidgetT[];
+  setWidgets: (widgets: WidgetT[]) => void;
   editMode: boolean;
   selectedWidgetType: WidgetType | null;
   widgetConfig: { title: string; dataSource: string } | null;
@@ -50,6 +51,11 @@ export const useDashboard = create<DashboardState>()(
         showToast('error', 'An error occurred while fetching recently accessed notes.');
       }
     },
+    setWidgets: (widgets: WidgetT[]) => {
+      set((state) => {
+        state.widgets = widgets;
+      });
+    },
     addColumn: () => {
       const newColumnId = `column-${Date.now()}`;
       const newColumn: Column = {
@@ -81,6 +87,7 @@ export const useDashboard = create<DashboardState>()(
           content: '',
           dataSourceType,
           dataSourceId,
+          order: state.widgets.length,
         });
       });
     },

@@ -1,16 +1,14 @@
-import React, { useEffect } from 'react'
-import PageContainer from '../../../components/PageContainer/PageContainer'
-import TitleComponent from '../../../components/TitleComponent/TitleComponent'
+import React, { useEffect } from 'react';
 import { FaHistory } from "react-icons/fa";
-import { useDashboard } from './useDashboard';
-import { Label } from '../../../components/@/ui/label';
-import UniversalCard from '../../../components/Universal/UniversalCard';
-import { useNavigate } from "react-router-dom";
 import { MdEdit, MdOutlineCheck, MdSpaceDashboard } from "react-icons/md";
-import WidgetGrid from './Components/WidgetGrid';
-import KanbanBoard from '../../../components/KanBan/KanbanBoard';
-import EditPicker from './Components/EditPicker';
+import { useNavigate } from "react-router-dom";
 import { Button } from '../../../components/@/ui/button';
+import { Label } from '../../../components/@/ui/label';
+import TitleComponent from '../../../components/TitleComponent/TitleComponent';
+import UniversalCard from '../../../components/Universal/UniversalCard';
+import EditPicker from './Components/EditPicker';
+import WidgetGrid from './Components/WidgetGrid';
+import { useDashboard } from './useDashboard';
 
 function Dashboard() {
   const {recents, getRecents, loading, editMode, setEditMode} = useDashboard()

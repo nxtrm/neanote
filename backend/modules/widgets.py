@@ -1,3 +1,4 @@
+from collections import defaultdict
 from datetime import datetime, timedelta
 import json
 import bcrypt
@@ -27,7 +28,7 @@ def widget_routes(app, conn):
         except psycopg2.Error as e:
             return jsonify({'error': str(e)}), 500
 
-    @app.route('/user_widgets', methods=['GET'])
+    @app.route('/api/user_widgets', methods=['GET'])
     @jwt_required()
     @token_required
     def get_user_widgets():
@@ -35,51 +36,119 @@ def widget_routes(app, conn):
             user_id = g.userId
             cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
-            # Fetch widgets with their data
             cur.execute("""
-                SELECT w.*,
-                    CASE
-                        WHEN w.data_source_type = 'habit' THEN (
-                            SELECT json_build_object(
-                                'streak', h.streak,
-                                'completions', (
-                                    SELECT json_agg(completion_date)
-                                    FROM HabitCompletion hc
-                                    WHERE hc.habit_id = h.id
-                                    AND completion_date >= CURRENT_DATE - INTERVAL '7 days'
-                                )
-                            )
-                            FROM Habits h
-                            WHERE h.note_id = w.data_source_id::uuid
-                        )
-                        WHEN w.data_source_type = 'goal' THEN (
-                            SELECT json_build_object(
-                                'total_milestones', COUNT(m.id),
-                                'completed_milestones', COUNT(m.id) FILTER (WHERE m.completed = true)
-                            )
-                            FROM Goals g
-                            LEFT JOIN Milestones m ON g.id = m.goal_id
-                            WHERE g.note_id = w.data_source_id::uuid
-                        )
-                        WHEN w.data_source_type = 'task' THEN (
-                            SELECT json_build_object(
-                                'completed_tasks', COUNT(*) FILTER (WHERE t.completed = true),
-                                'total_tasks', COUNT(*)
-                            )
-                            FROM Tasks t
-                            WHERE t.note_id = w.data_source_id::uuid
-                        )
-                    END as source_data
+                SELECT
+                    w.id,
+                    w.widget_id,
+                    w.title,
+                    w.data_source_type,
+                    w.data_source_id,
+                    w.configuration
                 FROM user_widgets w
                 WHERE w.user_id = %s
             """, (user_id,))
-
             widgets = cur.fetchall()
-            return jsonify(widgets)
-        except Exception as e:
-            return jsonify({'error': str(e)}), 500
-        finally:
+
+            # Convert the result to a list of dictionaries
+            widgets = [dict(widget) for widget in widgets]
+
+            for i in widgets:
+                # Initialize source_data as an empty dictionary
+                i['source_data'] = {}
+
+                if i['widget_id'] == 'Number':
+                    if i['data_source_type'] == 'habit':
+                        cur.execute('SELECT streak FROM habits WHERE note_id = %s', (i['data_source_id'],))
+                        streak = cur.fetchone()
+                        if streak:
+                            i['source_data']['streak'] = streak[0]
+                elif i['widget_id'] == 'Progress':
+                        # Fetch total milestones
+                        cur.execute('SELECT COUNT(*) FROM milestones WHERE goal_id = %s', (i['data_source_id'],))
+                        milestones = cur.fetchone()
+                        if milestones:
+                            i['source_data']['total_milestones'] = int(milestones[0])
+                        else:
+                            i['source_data']['total_milestones'] = 0
+
+                        # Fetch completed milestones
+                        cur.execute('''
+                            SELECT COUNT(*)
+                            FROM milestones m
+                            JOIN goals g ON m.goal_id = g.id
+                            WHERE g.note_id = %s AND m.completed = FALSE
+                        ''', (i['data_source_id'],))
+                        completedmilestones = cur.fetchone()
+                        if completedmilestones:
+                            i['source_data']['completed_milestones'] = int(completedmilestones[0])
+                        else:
+                            i['source_data']['completed_milestones'] = 0
+                elif i['widget_id'] == 'HabitWeek':
+                    cur.execute("""
+                        SELECT completion_date
+                        FROM habitcompletion
+                        WHERE habit_id = %s AND completion_date >= %s
+                        ORDER BY completion_date
+                    """, (i['data_source_id'], datetime.now() - timedelta(days=7)))
+                    completions = cur.fetchall()
+                    habit_week = [False] * 7
+                    for completion in completions:
+                        day_index = (datetime.now() - completion['completion_date']).days
+                        if 0 <= day_index < 7:
+                            habit_week[day_index] = True
+                    i['source_data']['weekly_completions'] = habit_week
+                elif i['widget_id'] == 'Chart':
+                    # Define mapping for different data sources
+                    source_mapping = {
+                        'task': ('tasks', 'completion_timestamp'),
+                        'habit': ('habitcompletion', 'completion_date'),
+                        'goal': ('goals', 'completion_timestamp')
+                    }
+
+                    if i['data_source_type'] in source_mapping:
+                        table, date_column = source_mapping[i['data_source_type']]
+
+                        query = f"""
+                            SELECT t.{date_column}
+                            FROM {table} t, notes n
+                            WHERE t.note_id = n.id AND n.user_id = %s AND t.{date_column} IS NOT NULL
+                            ORDER BY t.{date_column} DESC
+                        """
+
+                        cur.execute(query, (user_id,))
+                        completions = cur.fetchall()
+
+                        # Initialize a dictionary to store the counts
+                        completion_counts = defaultdict(int)
+
+                        # Get the current date and the date 6 months ago
+                        current_date = datetime.now()
+                        six_months_ago = current_date - timedelta(days=6*30)
+
+                        # Process each completion timestamp
+                        for completion in completions:
+                            completion_date = completion[date_column]
+                            if completion_date >= six_months_ago:
+                                month_year = completion_date.strftime('%b %Y')
+                                completion_counts[month_year] += 1
+
+                        # Create the result array
+                        result = []
+                        for j in range(6):
+                            month_date = current_date - timedelta(days=j*30)
+                            month_year = month_date.strftime('%b %Y')
+                            result.append({
+                                'month': month_year,
+                                'completed': completion_counts[month_year]
+                            })
+
+                        result.reverse()
+                        i['source_data']['monthly_data'] = result
+
             cur.close()
+            return jsonify(widgets)
+        except psycopg2.Error as e:
+            return jsonify({'error': str(e)}), 500
 
     @app.route('/api/user_widgets/create', methods=['POST'])
     @jwt_required()
@@ -98,7 +167,7 @@ def widget_routes(app, conn):
                 RETURNING *
                 """,
                 (user_id, data['widget_id'],data['configuration']['title'] , data['data_source_type'],
-                 data.get('data_source_id'), json.dumps(data['configuration']))
+                 data.get('data_source_id') if len(data.get('data_source_id'))>12 else None, json.dumps(data['configuration']))
             )
 
             widget = cur.fetchone()
@@ -176,13 +245,13 @@ def widget_routes(app, conn):
                         'type', type
                     ) as source
                     FROM (
-                        SELECT 'task' as type, COUNT(*) as count FROM Notes 
+                        SELECT 'task' as type, COUNT(*) as count FROM Notes
                         WHERE user_id = %s AND type = 'task'
                         UNION ALL
-                        SELECT 'habit', COUNT(*) FROM Notes 
+                        SELECT 'habit', COUNT(*) FROM Notes
                         WHERE user_id = %s AND type = 'habit'
                         UNION ALL
-                        SELECT 'goal', COUNT(*) FROM Notes 
+                        SELECT 'goal', COUNT(*) FROM Notes
                         WHERE user_id = %s AND type = 'goal'
                     ) as counts
                 """, (user_id, user_id, user_id))

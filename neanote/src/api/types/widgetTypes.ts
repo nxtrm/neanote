@@ -7,12 +7,13 @@ export interface WidgetConfig {
   size?: { width: number; height: number };
 }
 
-export interface Widget {
+export interface WidgetT {
   id: string;
   columnId: string;
+  content: React.ReactNode;
+  order: number;
   type: WidgetType;
   title: string;
-  content: string;
   dataSourceType: DataSourceType;
   dataSourceId?: string;
 }
@@ -32,4 +33,23 @@ export interface DataSource {
 
 export interface DataSourceResponse {
   sources: DataSource[];
+}
+
+export interface WidgetResponse {
+  id: number;
+  widget_id: WidgetType;
+  title: string;
+  data_source_type: DataSourceType;
+  data_source_id: string;
+  configuration: {
+    title: string;
+    position: { x: number; y: number };
+  };
+  source_data: {
+    monthly_data?: Array<{ month: string; completed: number }>;
+    total_milestones?: number;
+    completed_milestones?: number;
+    streak?: number;
+    weekly_completions?: boolean[];
+  };
 }

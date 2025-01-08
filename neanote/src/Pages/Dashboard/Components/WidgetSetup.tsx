@@ -12,7 +12,7 @@ import {
     SelectValue,
   } from "../../../../components/@/ui/select"
 import widgetsApi from '../../../api/widgetsApi';
-import { WidgetType, DataSource, WidgetData } from '../../../api/types/widgetTypes';
+import { WidgetType, DataSource, WidgetData, DataSourceType } from '../../../api/types/widgetTypes';
 
 interface WidgetSetupProps {
   widgetType: WidgetType;
@@ -52,7 +52,7 @@ export function WidgetSetup({ widgetType, onSave, onCancel }: WidgetSetupProps) 
 
     const widgetData: WidgetData = {
       widget_id: widgetType,
-      data_source_type: selectedSource.type as DataSourceType, // Cast to avoid mismatch
+      data_source_type: selectedSource.type as DataSourceType,
       data_source_id: selectedSource.id,
       configuration: {
         title,
