@@ -212,21 +212,38 @@ def widget_routes(app, conn):
         except psycopg2.Error as e:
             return jsonify({'error': str(e)}), 500
 
-    @app.route('/user_widgets/<int:user_widget_id>', methods=['DELETE'])
+    @app.route('/api/user_widgets/<widget_id>', methods=['DELETE'])
     @jwt_required()
     @token_required
-    def delete_user_widget(user_widget_id):
+    def delete_user_widget(widget_id):
         try:
+            user_id = g.userId
             cur = conn.cursor()
-            cur.execute('DELETE FROM user_widgets WHERE id = %s AND user_id = %s RETURNING *', (user_widget_id, g.user['id']))
-            user_widget = cur.fetchone()
+
+            # First verify the widget belongs to the user
+            cur.execute(
+                'SELECT id FROM user_widgets WHERE id = %s AND user_id = %s',
+                (widget_id, user_id)
+            )
+            widget = cur.fetchone()
+
+            if not widget:
+                return jsonify({'error': 'Widget not found or unauthorized'}), 404
+
+            # Delete the widget
+            cur.execute(
+                'DELETE FROM user_widgets WHERE id = %s AND user_id = %s',
+                (widget_id, user_id)
+            )
+
             conn.commit()
-            cur.close()
-            if user_widget:
-                return jsonify({'message': 'User widget deleted'})
-            return jsonify({'error': 'User widget not found'}), 404
-        except psycopg2.Error as e:
+            return jsonify({'success': True, 'message': 'Widget deleted successfully'})
+
+        except Exception as e:
+            conn.rollback()
             return jsonify({'error': str(e)}), 500
+        finally:
+            cur.close()
 
     @app.route('/api/widgets/datasources/<widget_type>', methods=['GET'])
     @jwt_required()

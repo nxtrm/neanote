@@ -5,6 +5,7 @@ import { UniversalType } from "../../api/types/ArchiveTypes";
 import { showToast } from "../../../components/Toast";
 import { arrayMove } from "@dnd-kit/sortable";
 import { WidgetT, WidgetType, DataSourceType } from "../../api/types/widgetTypes";
+import widgetsApi from "../../api/widgetsApi";
 
 export interface Column {
   id: string;
@@ -91,10 +92,20 @@ export const useDashboard = create<DashboardState>()(
         });
       });
     },
-    removeWidget: (id: string) => {
-      set((state) => {
-        state.widgets = state.widgets.filter((widget) => widget.id !== id);
-      });
+    removeWidget: async (id: string) => {
+      try {
+        const response = await widgetsApi.deleteUserWidget(id);
+        if (response.success) {
+          set((state) => {
+            state.widgets = state.widgets.filter((widget) => widget.id !== id);
+          });
+          showToast('success', 'Widget removed successfully');
+        } else {
+          showToast('error', 'Failed to remove widget');
+        }
+      } catch (error) {
+        showToast('error', 'An error occurred while removing the widget');
+      }
     },
     moveWidget: (activeId: string, overId: string, overColumnId: string) => {
       set((state) => {
