@@ -170,7 +170,7 @@ class HabitApi(BaseNote):
                             'completed_today': row['completed'],
                             'tags': row['tags']
                         }
-                        habits.base_note.append(habit)
+                        habits.append(habit)
 
                     self.base_note.conn.commit()
                     return jsonify({
