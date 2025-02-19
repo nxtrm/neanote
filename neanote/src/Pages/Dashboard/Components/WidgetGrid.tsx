@@ -12,13 +12,11 @@ import {
 } from '@dnd-kit/sortable';
 import React, { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { Widget } from '../useDashboard.ts';
 import ColumnContainer from './ColumnContainer';
 
 import { useScreenSize } from '../../../DisplayContext';
 import { useDashboard } from '../useDashboard';
-import { WidgetT } from '../../../api/types/widgetTypes';
-import widgetsApi from '../../../api/widgetsApi';
-import { Widget } from './Widget';
 
 const WidgetGrid = () => {
   const {
@@ -26,7 +24,6 @@ const WidgetGrid = () => {
     widgets,
     addColumn,
     removeColumn,
-    setWidgets,
     addWidget,
     removeWidget,
     moveWidget,
@@ -36,9 +33,8 @@ const WidgetGrid = () => {
   } = useDashboard();
 
 
-  const [activeWidget, setActiveWidget] = useState<WidgetT | null>(null);
+  const [activeWidget, setActiveWidget] = useState<Widget | null>(null);
   const { screenSize } = useScreenSize(); // Get screen size
-  const [loading, setLoading] = useState(true);
 
 
   const sensors = useSensors(
@@ -72,37 +68,6 @@ const WidgetGrid = () => {
 
     determineColumns();
   }, [screenSize, setColumns]);
-
-  useEffect(() => {
-    const fetchWidgets = async () => {
-      setLoading(true);
-      const response = await widgetsApi.getUserWidgets();
-      if (response.success && Array.isArray(response.data)) {
-        const processedWidgets = response.data.map((widget) => {
-          if (!widget || typeof widget !== 'object') return null;
-          
-          const position = widget.configuration?.position || { x: 0, y: 0 };
-          const columnIndex = Math.min(position.x, columns.length - 1);
-
-          return {
-            id: widget.id?.toString(),
-            columnId: `column-${columnIndex + 1}`,
-            type: widget.widget_id,
-            title: widget.title,
-            dataSourceType: widget.data_source_type,
-            dataSourceId: widget.data_source_id,
-            content: widget.source_data,
-            order: position.y || 0
-          };
-        }).filter(Boolean);
-
-        setWidgets(processedWidgets);
-      }
-      setLoading(false);
-    };
-
-    fetchWidgets();
-  }, [columns.length]);
 
   const handleDragEnd = (event: any) => {
     const { active, over } = event;
@@ -165,15 +130,7 @@ const WidgetGrid = () => {
           <DragOverlay>
             {activeWidget && (
               <div className='relative bg-background rounded-md p-4 shadow'>
-                <Widget
-                  id={activeWidget.id}
-                  widgetId={activeWidget.id}
-                  type={activeWidget.type}
-                  title={activeWidget.title}
-                  data={activeWidget.content}
-                  editMode={false}
-                  onRemove={() => {}}
-                />
+                <div className='opacity-50'>{activeWidget.content}</div>
               </div>
             )}
           </DragOverlay>,
