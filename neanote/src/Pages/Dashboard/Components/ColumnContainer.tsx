@@ -3,15 +3,20 @@ import { CSS } from '@dnd-kit/utilities';
 import React from 'react';
 import SortableItem from './SortableItem';
 import { Widget } from './Widget';
-import { WidgetT } from '../../../api/types/widgetTypes';
 
 interface Column {
   id: string;
 }
 
+interface Widget {
+  id: string;
+  columnId: string;
+  content: string;
+}
+
 interface ColumnContainerProps {
   column: Column;
-  widgets: WidgetT[];
+  widgets: Widget[];
   removeWidget: (id: string) => void;
   editMode: boolean;
   removeColumn: (id: string) => void;
@@ -48,12 +53,10 @@ const ColumnContainer: React.FC<ColumnContainerProps> = ({
             <SortableItem key={widget.id} id={widget.id} editMode={editMode}>
               <Widget
                 id={widget.id}
-                widgetId={widget.id}
-                type={widget.type}
-                title={widget.title}
                 data={widget.content}
                 editMode={editMode}
                 onRemove={() => removeWidget(widget.id)}
+                handleEditClick={() => console.log('Edit')}
               />
             </SortableItem>
           ))}
