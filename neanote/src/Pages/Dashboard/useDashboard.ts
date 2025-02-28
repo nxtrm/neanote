@@ -85,7 +85,7 @@ export const useDashboard = create<DashboardState>()(
           columnId,
           type,
           title,
-          content: '',
+          content: {},
           dataSourceType,
           dataSourceId,
           order: state.widgets.length,
@@ -132,6 +132,7 @@ export const useDashboard = create<DashboardState>()(
         state.selectedWidgetType = widgetType;
       });
     },
+    // get widgets is missing???
     setWidgetConfig: (config: { title: string; dataSource: string } | null) => {
       set((state) => {
         state.widgetConfig = config;

@@ -1,4 +1,3 @@
-# modules/tokenization.py
 
 import threading
 import heapq
@@ -38,7 +37,7 @@ class TokenizationTaskManager:
             port=self.db_config.port
         )
         return conn
-    
+
     def delete_note_by_id(self, note_id: str):
         with self.lock:
             self.task_queue = [note for note in self.task_queue if note.note_id != note_id]

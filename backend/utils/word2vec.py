@@ -19,7 +19,6 @@ def load_or_train_model():
     else:
         print("Training new model...")
 
-        # Assuming the text data is in a column named 'text'
         if not os.path.exists(PROCESSED_DATA_PATH):
             df = pd.read_csv(os.path.join('backend/data', 'data.csv'), encoding="utf-8")
             text_data = df['text'].dropna().tolist()
@@ -34,10 +33,10 @@ def load_or_train_model():
                 f.close()
 
         print("Data processed.")
-        # # Train the Word2Vec model
+        # Train the Word2Vec model
         model = Word2Vec(data, vector_size=100, window=5, sg=1)  # Skip Gram
 
-        # # Save the model for future use
+        # Save the model for future use
         model.save(MODEL_PATH)
 
     return model
@@ -65,18 +64,7 @@ def process_text_data(text_data):
 
 
 def combine_strings_to_vector(strings, model, preprocess):
-    """
-    Combines an array of strings into a single vector by averaging the vectors
-    of each string's words after preprocessing the text.
 
-    Args:
-    - strings (list of str): The array of strings to combine (e.g., title, content).
-    - model: The Word2Vec model used to generate word vectors.
-    - preprocess (bool): Flag to indicate whether to preprocess the text.
-
-    Returns:
-    - np.ndarray: The combined vector for all the strings.
-    """
     if preprocess:
         # Preprocess the text data
         processed_data = process_text_data(strings)
@@ -98,4 +86,3 @@ def combine_strings_to_vector(strings, model, preprocess):
     # Return the average vector as a list
     return np.mean(all_word_vectors, axis=0).tolist()
 
-# load_or_train_model()
