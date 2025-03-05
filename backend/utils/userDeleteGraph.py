@@ -12,19 +12,20 @@ import matplotlib.pyplot as plt
 
 # Adjacency matrix
 adj_matrix = np.array([
-    [0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0],  # users
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],  # taskstatistics
-    [1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 1],  # notes
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],  # tags
-    [0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0],  # goals
-    [1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0],  # goalhistory
-    [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0],  # milestones
-    [0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0],  # habits
-    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],  # habitcompletion
-    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0],  # habittasks
-    [0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0],  # tasks
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0],  # subtasks
-    [0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],  # notetags
+    [0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1],  # users
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],  # taskstatistics
+    [1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0],  # notes
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],  # tags
+    [0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0],  # goals
+    [1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],  # goalhistory
+    [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],  # milestones
+    [0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0],  # habits
+    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0],  # habitcompletion
+    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0],  # habittasks
+    [0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0],  # tasks
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],  # subtasks
+    [0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],  # notetags
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],  # user_widgets
 ])
 # Add node labels
 node_labels = {
@@ -41,9 +42,42 @@ node_labels = {
     10: "tasks",
     11: "subtasks",
     12: "notetags",
+    13: "user_widgets"
 }
 
-def delete_user(conn, userId):
+# Define SQL query templates for deletion
+DELETE_QUERIES = {
+    0: "DELETE FROM users WHERE id = %s",
+    1: "DELETE FROM taskstatistics WHERE user_id = %s",
+    2: "DELETE FROM notes WHERE user_id = %s",
+    3: "DELETE FROM tags WHERE user_id = %s",
+    4: "DELETE FROM goals WHERE note_id IN (SELECT id FROM notes WHERE user_id = %s)",
+    5: "DELETE FROM goalhistory WHERE goal_id IN (SELECT id FROM goals WHERE note_id IN (SELECT id FROM notes WHERE user_id = %s))",
+    6: "DELETE FROM milestones WHERE goal_id IN (SELECT id FROM goals WHERE note_id IN (SELECT id FROM notes WHERE user_id = %s))",
+    7: "DELETE FROM habits WHERE note_id IN (SELECT id FROM notes WHERE user_id = %s)",
+    8: "DELETE FROM habitcompletion WHERE habit_id IN (SELECT id FROM habits WHERE note_id IN (SELECT id FROM notes WHERE user_id = %s))",
+    9: "DELETE FROM habittasks WHERE habit_id IN (SELECT id FROM habits WHERE note_id IN (SELECT id FROM notes WHERE user_id = %s))",
+    10: "DELETE FROM tasks WHERE note_id IN (SELECT id FROM notes WHERE user_id = %s)",
+    11: "DELETE FROM subtasks WHERE task_id IN (SELECT id FROM tasks WHERE note_id IN (SELECT id FROM notes WHERE user_id = %s))",
+    12: "DELETE FROM notetags WHERE note_id IN (SELECT id FROM notes WHERE user_id = %s)",
+    13: "DELETE FROM user_widgets WHERE user_id = %s"
+}
+
+# Query templates for note-specific deletion
+NOTE_DELETE_QUERIES = {
+    2: "DELETE FROM notes WHERE id = %s",
+    4: "DELETE FROM goals WHERE note_id = %s",
+    5: "DELETE FROM goalhistory WHERE goal_id IN (SELECT id FROM goals WHERE note_id = %s)",
+    6: "DELETE FROM milestones WHERE goal_id IN (SELECT id FROM goals WHERE note_id = %s)",
+    7: "DELETE FROM habits WHERE note_id = %s",
+    8: "DELETE FROM habitcompletion WHERE habit_id IN (SELECT id FROM habits WHERE note_id = %s)",
+    9: "DELETE FROM habittasks WHERE habit_id IN (SELECT id FROM habits WHERE note_id = %s)",
+    10: "DELETE FROM tasks WHERE note_id = %s",
+    11: "DELETE FROM subtasks WHERE task_id IN (SELECT id FROM tasks WHERE note_id = %s)",
+    12: "DELETE FROM notetags WHERE note_id = %s"
+}
+
+def delete_with_dfs(conn, userId):
     try:
         adjacency_list = {}
         for i in range(len(adj_matrix)):
@@ -76,7 +110,6 @@ def delete_user(conn, userId):
         raise
 
 
-
 def delete_user_data_with_backoff(conn, userId, stack, max_retries=3, backoff_time=1):
     retry_queue = []
     retries = 0
@@ -94,38 +127,15 @@ def delete_user_data_with_backoff(conn, userId, stack, max_retries=3, backoff_ti
         node = stack.pop()
         try:
             with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
-                if node == 0:  # users
-                    cur.execute('''DELETE FROM users WHERE id = %s''', (userId,))
-                elif node == 1:  # taskstatistics
-                    cur.execute('''DELETE FROM taskstatistics WHERE user_id = %s''', (userId,))
-                elif node == 2:  # notes
-                    cur.execute('''DELETE FROM notes WHERE user_id = %s''', (userId,))
-                elif node == 3:  # tags
-                    cur.execute('''DELETE FROM tags WHERE user_id = %s''', (userId,))
-                elif node == 4:  # goals
-                    cur.execute('''DELETE FROM goals WHERE note_id IN (SELECT id FROM notes WHERE user_id = %s)''', (userId,))
-                elif node == 5:  # goalhistory
-                    cur.execute('''DELETE FROM goalhistory WHERE goal_id IN (SELECT id FROM goals WHERE note_id IN (SELECT id FROM notes WHERE user_id = %s))''', (userId,))
-                elif node == 6:  # milestones
-                    cur.execute('''DELETE FROM milestones WHERE goal_id IN (SELECT id FROM goals WHERE note_id IN (SELECT id FROM notes WHERE user_id = %s))''', (userId,))
-                elif node == 7:  # habits
-                    cur.execute('''DELETE FROM habits WHERE note_id IN (SELECT id FROM notes WHERE user_id = %s)''', (userId,))
-                elif node == 8:  # habitcompletion
-                    cur.execute('''DELETE FROM habitcompletion WHERE habit_id IN (SELECT id FROM habits WHERE note_id IN (SELECT id FROM notes WHERE user_id = %s))''', (userId,))
-                elif node == 9:  # habittasks
-                    cur.execute('''DELETE FROM habittasks WHERE habit_id IN (SELECT id FROM habits WHERE note_id IN (SELECT id FROM notes WHERE user_id = %s))''', (userId,))
-                elif node == 10:  # tasks
-                    cur.execute('''DELETE FROM tasks WHERE note_id IN (SELECT id FROM notes WHERE user_id = %s)''', (userId,))
-                elif node == 11:  # subtasks
-                    cur.execute('''DELETE FROM subtasks WHERE task_id IN (SELECT id FROM tasks WHERE note_id IN (SELECT id FROM notes WHERE user_id = %s))''', (userId,))
-                elif node == 12:  # notetags
-                    cur.execute('''DELETE FROM notetags WHERE note_id IN (SELECT id FROM notes WHERE user_id = %s)''', (userId,))
+                if node in DELETE_QUERIES:
+                    cur.execute(DELETE_QUERIES[node], (userId,))
         except Exception as e:
-            print(f"Error deleting node {node}: {e}. Retrying later.")
+            print(f"Error deleting node {node} ({node_labels.get(node, 'unknown')}): {e}. Retrying later.")
             retry_queue.append(node)
             continue
     conn.commit()
     return True
+
 
 def delete_notes_with_backoff(conn, noteId, stack, max_retries=3, backoff_time=1):
     retry_queue = []
@@ -144,28 +154,10 @@ def delete_notes_with_backoff(conn, noteId, stack, max_retries=3, backoff_time=1
         node = stack.pop()
         try:
             with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
-                if node == 2:  # notes
-                    cur.execute('''DELETE FROM notes WHERE id = %s''', (noteId,))
-                elif node == 4:  # goals
-                    cur.execute('''DELETE FROM goals WHERE note_id IN (SELECT id FROM notes WHERE id = %s)''', (noteId,))
-                elif node == 5:  # goalhistory
-                    cur.execute('''DELETE FROM goalhistory WHERE goal_id IN (SELECT id FROM goals WHERE note_id IN (SELECT id FROM notes WHERE id = %s))''', (noteId,))
-                elif node == 6:  # milestones
-                    cur.execute('''DELETE FROM milestones WHERE goal_id IN (SELECT id FROM goals WHERE note_id IN (SELECT id FROM notes WHERE id = %s))''', (noteId,))
-                elif node == 7:  # habits
-                    cur.execute('''DELETE FROM habits WHERE note_id IN (SELECT id FROM notes WHERE id = %s)''', (noteId,))
-                elif node == 8:  # habitcompletion
-                    cur.execute('''DELETE FROM habitcompletion WHERE habit_id IN (SELECT id FROM habits WHERE note_id IN (SELECT id FROM notes WHERE id = %s))''', (noteId,))
-                elif node == 9:  # habittasks
-                    cur.execute('''DELETE FROM habittasks WHERE habit_id IN (SELECT id FROM habits WHERE note_id IN (SELECT id FROM notes WHERE id = %s))''', (noteId,))
-                elif node == 10:  # tasks
-                    cur.execute('''DELETE FROM tasks WHERE note_id IN (SELECT id FROM notes WHERE id = %s)''', (noteId,))
-                elif node == 11:  # subtasks
-                    cur.execute('''DELETE FROM subtasks WHERE task_id IN (SELECT id FROM tasks WHERE note_id IN (SELECT id FROM notes WHERE id = %s))''', (noteId,))
-                elif node == 12:  # notetags
-                    cur.execute('''DELETE FROM notetags WHERE note_id IN (SELECT id FROM notes WHERE id = %s)''', (noteId,))
+                if node in NOTE_DELETE_QUERIES:
+                    cur.execute(NOTE_DELETE_QUERIES[node], (noteId,))
         except Exception as e:
-            print(f"Error deleting node {node}: {e}. Retrying later.")
+            print(f"Error deleting node {node} ({node_labels.get(node, 'unknown')}): {e}. Retrying later.")
             retry_queue.append(node)
             continue
     conn.commit()
@@ -182,4 +174,4 @@ def draw_graph(adj_matrix):
     nx.draw(G, pos, with_labels=True, node_size=3000, node_color="skyblue", font_size=10, font_weight="bold", edge_color="gray")
     plt.title("Graph Visualization from Adjacency Matrix")
     plt.show()
-# draw_graph(adj_matrix)
+draw_graph(adj_matrix)
