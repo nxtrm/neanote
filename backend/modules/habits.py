@@ -10,7 +10,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.
 from modules.universal import BaseNote
 from utils.utils import calculate_gap, token_required, verify_habit_ownership
 
-class HabitApi(BaseNote):
+class HabitApi():
     def __init__(self, app, conn, tokenization_manager, recents_manager):
         super().__init__(app, conn, tokenization_manager, recents_manager)
         self.habit_schema = HabitSchema()

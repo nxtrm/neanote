@@ -164,14 +164,14 @@ def delete_notes_with_backoff(conn, noteId, stack, max_retries=3, backoff_time=1
     return True
 
 #For testing purposes
-def draw_graph(adj_matrix):
-    G = nx.from_numpy_array(adj_matrix)
-    # Relabel nodes
-    G = nx.relabel_nodes(G, node_labels)
-    # Draw the graph
-    plt.figure(figsize=(12, 8))
-    pos = nx.spring_layout(G)  # positions for all nodes
-    nx.draw(G, pos, with_labels=True, node_size=3000, node_color="skyblue", font_size=10, font_weight="bold", edge_color="gray")
-    plt.title("Graph Visualization from Adjacency Matrix")
-    plt.show()
-draw_graph(adj_matrix)
+# def draw_graph(adj_matrix):
+#     G = nx.from_numpy_array(adj_matrix)
+#     # Relabel nodes
+#     G = nx.relabel_nodes(G, node_labels)
+#     # Draw the graph
+#     plt.figure(figsize=(12, 8))
+#     pos = nx.spring_layout(G)  # positions for all nodes
+#     nx.draw(G, pos, with_labels=True, node_size=3000, node_color="skyblue", font_size=10, font_weight="bold", edge_color="gray")
+#     plt.title("Graph Visualization from Adjacency Matrix")
+#     plt.show()
+# draw_graph(adj_matrix)

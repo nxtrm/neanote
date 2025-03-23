@@ -1,7 +1,9 @@
 # KNOWN ISSUES
 
 Habits
-
+1. Tasks buttons not updating
+2.Search nothing throws backend error
+3 Widgets not displayed (no get request)
 2. Add a last week's visualisation of completed streak in EditHabits
 17. Fix date
 
