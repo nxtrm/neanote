@@ -1,0 +1,76 @@
+                3.1.9.7 Processing tokens with the model
+def combine_strings_to_vector(strings, model, preprocess):
+
+    if preprocess:
+        # Preprocess the text data
+        processed_data = process_text_data(strings)
+    else:
+        processed_data = strings
+
+    all_word_vectors = []
+
+    for sentence in processed_data:
+        # Ensure sentence is tokenized into words
+        words = sentence.split() if isinstance(sentence, str) else sentence
+        word_vectors = [model.wv[word] for word in words if word in model.wv]
+        all_word_vectors.extend(word_vectors)
+
+    if len(all_word_vectors) == 0:
+        # Return a zero vector if no valid words found
+        return np.zeros(model.vector_size).tolist()
+
+    # Return the average vector as a list
+    return np.mean(all_word_vectors, axis=0).tolist()
+
+Now that the model is trained and the input data is processed to be used most efficiently, its time to actually use the model to convert whatever is left of user inputs into a note into vectors:
+Firstly, depending on the preprocess flag, input data is preprocessed using the function mentioned above. An empty list storing all the word vectors is also initialised.
+Then, every tokenized sentence is looped through and the model.wv[word] retrieves the vector for the given word from the Word2Vec model, with an inline IF statement, which ensures that the word is indeed in the model dictionary. All the word vectors are added to the all_word_vectors array.
+Finally, the mean of all vectors is returned as a list, utilising the NumPy mean module.
+                3.1.9.8 Looking notes up with cosine similarity
+
+DECLARE
+ dot_product double precision := 0;
+ norm_a double precision := 0;
+ norm_b double precision := 0;
+ i int;
+BEGIN
+ IF vec1 IS NULL OR vec2 IS NULL THEN
+ RETURN 0;
+ END IF;
+
+ FOR i IN array_lower(vec1, 1)..array_upper(vec1, 1) LOOP
+ dot_product := dot_product + (vec1[i] * vec2[i]);
+ norm_a := norm_a + (vec1[i] * vec1[i]);
+ norm_b := norm_b + (vec2[i] * vec2[i]);
+ END LOOP;
+ IF norm_a = 0 OR norm_b = 0 THEN
+ RETURN 0;
+    END IF;
+    RETURN dot_product / (sqrt(norm_a) * sqrt(norm_b));
+END;
+
+This SQL code implements the cosine similarity function, a common metric used to determine how similar two vectors are. 
+dot_product double precision := 0 This variable will store the dot product of the two input vectors (`vec1` and `vec2`). The dot product is a measure of how much the two vectors point in the same direction.
+The next tow variables will store the squared Euclidean norm (magnitude) of the vectors, initialised to zero.
+
+IF vec1 IS NULL OR vec2 IS NULL THEN
+ RETURN 0;
+END IF;
+
+This checks if either of the input vectors is `NULL`. If either vector is `NULL`, it means there's no valid vector representation, and the function returns 0, indicating no similarity.
+
+FOR i IN array_lower(vec1, 1)..array_upper(vec1, 1) LOOP
+ dot_product := dot_product + (vec1[i] * vec2[i]);
+ norm_a := norm_a + (vec1[i] * vec1[i]);
+ norm_b := norm_b + (vec2[i] * vec2[i]);
+END LOOP; 
+IF norm_a = 0 OR norm_b = 0 THEN
+    RETURN 0;
+END IF;
+
+
+This FOR loop iterates through each element of the input vectors, it calculates the product of the corresponding elements of vec1 and vec2 and adds it to the dot_product. Then, the square of each element is calculated and added to the Euclidean norm. Finally, null checks run to ensure that we are not operating with matrices of zeros.
+RETURN dot_product / (sqrt(norm_a) * sqrt(norm_b));
+
+Finally, cosine similarity is calculated. The result, which is a value between -1 and 1, is returned. A value closer to 1 indicates that the vectors are very similar, a value closer to -1 indicates they are not alike.
+This function as a database function, along ID generation functions and is invoked in the SQL queries for the search endpoint. 

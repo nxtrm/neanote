@@ -1,0 +1,58 @@
+Complex data model in database (e.g. several interlinked tables) 	 Cross-table parameterised SQL
+					
+										 Aggregate SQL functions
+											
+										 User/CASE-generated DDL script
+Hash tables, lists, stacks, queues, graphs, trees or structures of equivalent standard
+										
+										 Hash tables
+										 Lists
+										 Stacks
+										 Queues
+										 Graphs
+										 Trees 	 Graph/Tree Traversal
+					
+										 List operations
+											
+										 Linked list maintenance
+											
+										 Stack/Queue Operations
+										
+										 Hashing
+ Files(s) organised for direct access
+ Complex scientific/mathematical/robotics/control/business model 	 Advanced matrix operations
+					
+										 Recursive algorithms
+											
+										 Complex user-defined algorithms (e.g. optimisation, minimisation, scheduling, pattern matching) or equivalent difficulty
+											
+										 Mergesort or similarly efficient sort
+Complex user-defined use of object-orientated programming (OOP) model, e.g. classes, inheritance, composition, polymorphism, interfaces
+										
+										 Classes
+										 Inheritance
+										 Composition
+										 Polymorphism
+										 Interfaces 	 Dynamic generation of objects based on complex user-defined use of OOP model
+Complex client-server model 	 Server-side scripting using request and response objects and server-side extensions for a complex client-server model
+					
+										 Calling parameterised Web service APIs and parsing JSON/XML to service a complex client-server model
+B (0%) 	 Simple data model in database (e.g. two or three interlinked tables) 	 Single table or non-parameterised SQL
+ Multi-dimensional arrays
+					
+										 Dictionaries
+										
+										 Records 	 Bubble sort
+					
+										 Binary search
+ Text files
+					
+										 File(s) organised for sequential access 	 Writing and reading from files
+ Simple scientific/mathematical/robotics/control/business model 	 Simple user defined algorithms (e.g. a range of mathematical/statistical calculations)
+ Simple OOP model 	 Generation of objects based on simple OOP model
+Simple client-server model 	 Server-side scripting using request and response objects and server-side extensions for a simple client-server model
+					
+										 Calling Web service APIs and parsing JSON/XML to service a simple client-server model
+C (0%) 	 Single-dimensional arrays 	 Linear search
+ Appropriate choice of simple data types 	 Simple mathematical calculations (e.g. average)
+ Single table database 	 Non-SQL table access
