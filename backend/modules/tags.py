@@ -153,8 +153,8 @@ def tag_routes(app,conn, model):
                 return jsonify({'message': 'You do not have permission to update this tag'}), 403
 
             # Perform deletion operations
-            cur.execute("DELETE FROM Tags WHERE id = %s AND user_id = %s", (tag_id, userId))
             cur.execute("DELETE FROM NoteTags WHERE tag_id = %s", (tag_id,))
+            cur.execute("DELETE FROM Tags WHERE id = %s AND user_id = %s", (tag_id, userId))
             conn.commit()
 
             return jsonify({'message': 'Tag deleted successfully', 'data': None}), 200

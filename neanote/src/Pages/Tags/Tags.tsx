@@ -99,8 +99,6 @@ const createTagForm = (
   </>
 );
 
-// ...
-
 return (
   <>
     {section === 'all tags' && allTags}
