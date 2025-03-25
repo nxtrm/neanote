@@ -58,6 +58,6 @@ const Tasks: React.FC = () => {
       </div>
     </>
   );
-}; //TODO: pagination per_page
+};
 
 export default Tasks;
