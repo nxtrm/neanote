@@ -8,6 +8,7 @@ import { UUID } from "crypto";
 import { GoalSchema } from "../../formValidation";
 import utilsApi from "../../api/archiveApi";
 import { showToast } from "../../../components/Toast";
+import { quicksort, binarySearch } from "../../../components/utils";
 
 // Function to generate a new current goal object
 const generateNewCurrentGoal = () => {
@@ -84,7 +85,7 @@ export const useGoals = create<GoalState>()(
           if (get().validateGoal()) {
             const { title, content, due_date, milestones } = currentGoal;
             const response = await goalsApi.create(title, selectedTagIds, content, due_date, milestones);
-        
+
             if (response.data && response.success) {
               set((state) => {
                 state.currentGoal = { ...currentGoal, goalid: response.data.goalid, noteid: response.data.noteid };
@@ -117,7 +118,10 @@ export const useGoals = create<GoalState>()(
             if (get().validateGoal()) {
               const { goalid, noteid, title, content, due_date, milestones } = currentGoal;
 
-              const preparedMilestones = currentGoal.milestones.map(milestone => {
+              // Sort milestones by index using quicksort before sending to API
+              const sortedMilestones = quicksort([...milestones], (a, b) => a.index - b.index);
+
+              const preparedMilestones = sortedMilestones.map(milestone => {
                 const { isNew, ...rest } = milestone;
                 if (isNew) {
                   // For new milestones, exclude the milestoneid when sending to the backend
@@ -189,7 +193,12 @@ export const useGoals = create<GoalState>()(
                       index: milestones.length,
                       isNew: true,
                   });
-                  milestones.forEach((ms, idx) => ms.index = idx);
+
+                  // Sort milestones by index using quicksort
+                  state.currentGoal.milestones = quicksort(milestones, (a, b) => a.index - b.index);
+
+                  // Update indices
+                  state.currentGoal.milestones.forEach((ms, idx) => ms.index = idx);
                 }
               }),
 
@@ -295,16 +304,54 @@ export const useGoals = create<GoalState>()(
               get().validateGoal();
             },
 
+        // Add new function to find goal by ID using binary search
+        findGoalById: (goalId: UUID) => {
+            const { goalPreviews } = get();
+
+            // Sort goals by ID for binary search
+            const sortedGoals = quicksort([...goalPreviews], (a, b) =>
+                a.goalid.toString().localeCompare(b.goalid.toString())
+            );
+
+            // Define comparator for binary search
+            const comparator = (goal: Goal, id: UUID) =>
+                goal.goalid.toString().localeCompare(id.toString());
+
+            // Use binary search to find the goal
+            const index = binarySearch(sortedGoals, goalId, comparator);
+
+            return index !== -1 ? sortedGoals[index] : undefined;
+        },
 
         handleDeleteGoal: async (goalid, noteid) => {
               const previousGoals = get().goalPreviews;
+
               set((state) => {
-                state.goalPreviews = state.goalPreviews.filter((goal) => goal.goalid !== goalid);
+                // Use binary search to efficiently find and remove the goal
+                const sortedGoals = quicksort([...state.goalPreviews], (a, b) =>
+                    a.goalid.toString().localeCompare(b.goalid.toString())
+                );
+
+                const comparator = (goal: Goal, id: UUID) =>
+                    goal.goalid.toString().localeCompare(id.toString());
+
+                const index = binarySearch(sortedGoals, goalid, comparator);
+
+                if (index !== -1) {
+                    // Find the actual index in the unsorted array
+                    const foundGoal = sortedGoals[index];
+                    const actualIndex = state.goalPreviews.findIndex(g => g.goalid === foundGoal.goalid);
+
+                    if (actualIndex !== -1) {
+                        state.goalPreviews.splice(actualIndex, 1);
+                    }
+                }
               });
+
               const response = await goalsApi.delete(goalid, noteid);
               if (!response) {
                 // revert deletion
                 set({ goalPreviews: previousGoals });
-            }},
-
+              }
+        },
     })))
