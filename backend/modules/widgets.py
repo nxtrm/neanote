@@ -192,6 +192,7 @@ def widget_routes(app, conn):
                 return jsonify(user_widget)
             return jsonify({'error': 'User widget not found'}), 404
         except psycopg2.Error as e:
+            conn.rollback()
             return jsonify({'error': str(e)}), 500
 
     @app.route('/user_widgets/<int:user_widget_id>', methods=['PUT'])

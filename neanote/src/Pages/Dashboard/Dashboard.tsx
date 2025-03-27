@@ -11,11 +11,12 @@ import WidgetGrid from './Components/WidgetGrid';
 import { useDashboard } from './useDashboard';
 
 function Dashboard() {
-  const {recents, getRecents, loading, editMode, setEditMode} = useDashboard()
+  const {recents, getRecents, loading, editMode, setEditMode, fetchWidgets} = useDashboard()
   const navigate = useNavigate();
 
     useEffect(() => {
       getRecents();
+
   },[getRecents]) 
 
   function handleEditClick(noteId, type) {

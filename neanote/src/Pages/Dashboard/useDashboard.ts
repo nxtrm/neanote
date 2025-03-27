@@ -31,6 +31,7 @@ interface DashboardState {
   setEditMode: (editMode: boolean) => void;
   setSelectedWidgetType: (widgetType: WidgetType | null) => void;
   setWidgetConfig: (config: { title: string; dataSource: string } | null) => void;
+  fetchWidgets: () => void;
 }
 
 export const useDashboard = create<DashboardState>()(
@@ -132,6 +133,28 @@ export const useDashboard = create<DashboardState>()(
         state.selectedWidgetType = widgetType;
       });
     },
+
+    //there is an error at the backend
+    fetchWidgets: async () => {
+      const response = await widgetsApi.getUserWidgets();
+      if (response.success && response.data) {
+        set((state) => {
+          state.widgets = response.data.map((widget) => ({
+            id: widget.id,
+            columnId: 1,
+            type: widget.widget_id,
+            title: widget.title,
+            content: widget.source_data,
+            dataSourceType: widget.data_source_type,
+            dataSourceId: widget.data_source_id,
+            order: 1,
+          }));
+        });
+      } else {
+        showToast('error', 'An error occurred while fetching widgets');
+      }
+    },
+
     // get widgets is missing???
     setWidgetConfig: (config: { title: string; dataSource: string } | null) => {
       set((state) => {

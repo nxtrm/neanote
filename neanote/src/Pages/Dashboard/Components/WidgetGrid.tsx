@@ -30,12 +30,17 @@ const WidgetGrid = () => {
     setColumns,
     editMode,
     setEditMode,
+    fetchWidgets
   } = useDashboard();
 
 
   const [activeWidget, setActiveWidget] = useState<WidgetT | null>(null);
   const { screenSize } = useScreenSize(); // Get screen size
 
+  useEffect(() => {
+    fetchWidgets();
+  }, [fetchWidgets]
+  );
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -102,6 +107,8 @@ const WidgetGrid = () => {
       setActiveWidget(widgets.find(widget => widget.id === active.id) || null);
     }
   };
+
+  //Widgets fetched okay, simplify widget types and ensure they are displayed on the dashboard
 
   return (
     <>
