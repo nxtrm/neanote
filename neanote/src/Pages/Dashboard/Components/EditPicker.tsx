@@ -36,7 +36,6 @@ function EditPicker() {
     try {
       // Create the widget in the backend
       const response = await widgetsApi.createUserWidget(widgetData);
-      
       if (response.success) {
         // Add widget to the grid
         const columnId = columns[0]?.id || 'column-1';
@@ -46,10 +45,11 @@ function EditPicker() {
           widgetData.widget_id,
           widgetData.configuration.title,
           widgetData.data_source_type,
-          widgetData.data_source_id
+          widgetData.data_source_id,
+          response.data.source_data // Pass the source_data as content
         );
         setSelectedWidgetType(null);
-      }
+}
     } catch (error) {
       console.error('Failed to create widget:', error);
     }

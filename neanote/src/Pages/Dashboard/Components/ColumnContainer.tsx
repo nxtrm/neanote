@@ -49,17 +49,20 @@ const ColumnContainer: React.FC<ColumnContainerProps> = ({
 
       <SortableContext items={widgets.map((widget) => widget.id)}>
         <div className='flex flex-grow flex-col gap-2'>
-          {widgets.map((widget) => (
-            <SortableItem key={widget.id} id={widget.id} editMode={editMode}>
-              <Widget
-                id={widget.id}
-                data={widget.content}
-                editMode={editMode}
-                onRemove={() => removeWidget(widget.id)}
-                handleEditClick={() => console.log('Edit')}
-              />
-            </SortableItem>
-          ))}
+            {widgets.map((widget) => (
+              <SortableItem key={widget.id} id={widget.id} editMode={editMode}>
+                <Widget
+                  id={widget.id}
+                  data={widget.content}
+                  type={widget.type}
+                  title={widget.title}
+                  editMode={editMode}
+                  onRemove={() => removeWidget(widget.id)}
+                  handleEditClick={() => console.log('Edit')}
+                />
+              </SortableItem>
+            ))}
+
         </div>
       </SortableContext>
     </div>

@@ -17,6 +17,7 @@ import ColumnContainer from './ColumnContainer';
 import { useScreenSize } from '../../../DisplayContext';
 import { useDashboard } from '../useDashboard';
 import { WidgetT } from '../../../api/types/widgetTypes';
+import { Widget } from './Widget';
 
 const WidgetGrid = () => {
   const {
@@ -133,16 +134,24 @@ const WidgetGrid = () => {
           </SortableContext>
 
         </div>
-        {createPortal(
-          <DragOverlay>
-            {activeWidget && (
-              <div className='relative bg-background rounded-md p-4 shadow'>
-                <div className='opacity-50'>{activeWidget.content}</div>
-              </div>
-            )}
-          </DragOverlay>,
-          document.body
-        )}
+          {createPortal(
+            <DragOverlay>
+              {activeWidget && (
+                <div className='relative bg-background rounded-md p-4 shadow'>
+                  <Widget
+                    id={activeWidget.id}
+                    data={activeWidget.content}
+                    type={activeWidget.type}
+                    title={activeWidget.title}
+                    editMode={false}
+                    onRemove={() => {}}
+                    handleEditClick={() => {}}
+                  />
+                </div>
+              )}
+            </DragOverlay>,
+            document.body
+)}
       </DndContext>
     </>
   );

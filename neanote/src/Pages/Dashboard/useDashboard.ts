@@ -24,7 +24,15 @@ interface DashboardState {
   widgetConfig: { title: string; dataSource: string } | null;
   addColumn: () => void;
   removeColumn: (id: string) => void;
-  addWidget: (columnId: string, widgetId: string, type: WidgetType, title: string, dataSourceType: DataSourceType, dataSourceId?: string) => void;
+  addWidget: (
+    columnId: string,
+    widgetId: string,
+    type: WidgetType,
+    title: string,
+    dataSourceType: DataSourceType,
+    dataSourceId?: string,
+    content?: any
+  ) => void;
   removeWidget: (id: string) => void;
   moveWidget: (activeId: string, overId: string, overColumnId: string) => void;
   setColumns: (columns: Column[]) => void;
@@ -79,14 +87,14 @@ export const useDashboard = create<DashboardState>()(
         state.widgets = state.widgets.filter((widget) => widget.columnId !== id);
       });
     },
-    addWidget: (columnId, widgetId, type, title, dataSourceType, dataSourceId) => {
+    addWidget: (columnId, widgetId, type, title, dataSourceType, dataSourceId, content = {}) => {
       set((state) => {
         state.widgets.push({
           id: widgetId,
           columnId,
           type,
           title,
-          content: {},
+          content,
           dataSourceType,
           dataSourceId,
           order: state.widgets.length,
@@ -141,13 +149,13 @@ export const useDashboard = create<DashboardState>()(
         set((state) => {
           state.widgets = response.data.map((widget) => ({
             id: widget.id,
-            columnId: 1,
+            columnId: widget.configuration?.position?.x || "column-1", // Use default column
             type: widget.widget_id,
-            title: widget.title,
-            content: widget.source_data,
+            title: widget.title || widget.configuration?.title,
+            content: widget.source_data, // Use the source_data as the content
             dataSourceType: widget.data_source_type,
             dataSourceId: widget.data_source_id,
-            order: 1,
+            order: widget.configuration?.position?.y || state.widgets.length,
           }));
         });
       } else {

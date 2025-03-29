@@ -64,7 +64,7 @@ def widget_routes(app, conn):
                             i['source_data']['streak'] = streak[0]
                 elif i['widget_id'] == 'Progress':
                         # Fetch total milestones
-                        cur.execute('SELECT COUNT(*) FROM milestones WHERE goal_id = %s', (i['data_source_id'],))
+                        cur.execute('SELECT COUNT(*) FROM milestones WHERE goal_id IN (SELECT goal_id from notes WHERE id = %s )', (i['data_source_id'],))
                         milestones = cur.fetchone()
                         if milestones:
                             i['source_data']['total_milestones'] = int(milestones[0])
