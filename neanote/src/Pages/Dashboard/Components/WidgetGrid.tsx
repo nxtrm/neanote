@@ -109,8 +109,6 @@ const WidgetGrid = () => {
     }
   };
 
-  //Widgets fetched okay, simplify widget types and ensure they are displayed on the dashboard
-
   return (
     <>
       <DndContext
