@@ -1,13 +1,8 @@
-import { FaEdit, FaTasks } from "react-icons/fa";
-import { UniversalType } from "../../../src/api/types/ArchiveTypes";
-import { MdRepeat } from "react-icons/md";
-import { LuGoal } from "react-icons/lu";
-import TagLabel from "../../TagLabel/TagLabel.tsx"
 import React from "react";
-import { Button } from "../../@/ui/button";
 import { useNavigate } from "react-router-dom";
-import './SearchCard.css';
+import { UniversalType } from "../../../src/api/types/ArchiveTypes";
 import UniversalCard from "../../Universal/UniversalCard.tsx";
+import './SearchCard.css';
 
 function SearchCard({ note, onCloseDialog }: { note: UniversalType, onCloseDialog: () => void }) {
     const navigate = useNavigate();
