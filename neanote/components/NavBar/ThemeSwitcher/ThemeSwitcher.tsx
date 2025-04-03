@@ -4,7 +4,7 @@ import { LuMoon ,LuSun } from "react-icons/lu";
 import { useTheme } from "../../providers/theme-provider"
 
 function ThemeSwitcher() {
-    const [themeIsDark,setThemeIsDark] = React.useState(true)
+  const [themeIsDark,setThemeIsDark] = React.useState( localStorage.getItem('chakra-ui-color-mode') === 'dark' ? true : false)
   const { setTheme } = useTheme()
 return (
 

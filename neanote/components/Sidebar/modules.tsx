@@ -42,7 +42,6 @@ export const modules = [
       ),
       disabled: false,
     },
-    { link: 'events', text: 'Events', disabled: true },
     {
       link: 'archive',
       text: (
