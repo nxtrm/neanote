@@ -57,7 +57,7 @@ def user_routes(app, conn):
             password = result['password']
 
             # Hash the password
-            hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+            hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt(rounds=12)).decode('utf-8')
 
             cur = conn.cursor()
             cur.execute("SELECT * FROM users WHERE username = %s OR email = %s", (username, email))
@@ -192,7 +192,7 @@ def user_routes(app, conn):
                     return jsonify({'message': 'Invalid user credentials'}), 401
                 elif bcrypt.checkpw(password.encode('utf-8'), user[0].encode('utf-8')):
                     delete_user(conn, userId) #Attempt deleting user from the db
-                    return jsonify({'message': 'User deleted successfully'}), 200 #Return success message even if deletion fails (hehehe)
+                    return jsonify({'message': 'User deleted successfully'}), 200
                 else:
                     return jsonify({'message': 'Invalid user credentials'}), 401
         except Exception as e:

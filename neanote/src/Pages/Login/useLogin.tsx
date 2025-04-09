@@ -2,6 +2,7 @@ import Cookies from 'js-cookie';
 import { create } from 'zustand';
 import users from '../../api/users';
 import { useTheme } from '../../../components/providers/theme-provider';
+import { showToast } from '../../../components/Toast';
 
 
 type LoginState = {
@@ -27,6 +28,7 @@ export let useLogin = create<LoginState>((set,get)=>({
         return (response.preferences.theme?response.preferences.theme:'system')
       }
       else {
+        showToast("e", 'Invalid username or password' )
         return false
       }
 

@@ -29,15 +29,16 @@ function Login() {
 
   
   async function onSubmit(values: z.infer<typeof loginFormSchema>) {
-    if (!Cookies.get('token')) {
+
       formHandler(values);
+      console.log("Submitting form", values);
       login().then(loginResult => {
         if (loginResult) {
           setTheme(loginResult)
           navigate("/")
         }
       })
-    }
+
     }
 
 return (
@@ -87,7 +88,7 @@ return (
               <Link to="/register">
                         <p className='text-sm pt-2 text-foreground'>Already have an account? Register</p>
               </Link>
-              <Button type="submit">Submit</Button>
+              <Button type="submit" onClick={()=> console.log("Clicked")}>Submit</Button>
             </form>
             </Form>
           </div>
