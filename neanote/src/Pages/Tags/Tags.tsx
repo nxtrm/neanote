@@ -87,13 +87,13 @@ const createTagForm = (
     </div>
     <div className='flex flex-row gap-3'>
 
-      <Button onClick=
+      <Button disabled={tagTitle.length == 0} onClick=
       {
         section === "create" ? handleSaveTag: handleEditTag
       }>
         Save
       </Button>
-      {section === "edit" && <Button variant={'secondary'} onClick={handleDeleteTag}>Delete</Button>}
+      {section === "edit" && <Button disabled={tagTitle.length == 0} variant={'secondary'} onClick={handleDeleteTag}>Delete</Button>}
         </div>
     
   </>

@@ -149,8 +149,8 @@ def tag_routes(app,conn, model):
             data = request.get_json()
             tag_id = data['tagid']
 
-            if not verify_tag_ownership(userId, tag_id, cur):
-                return jsonify({'message': 'You do not have permission to update this tag'}), 403
+            # if not verify_tag_ownership(userId, tag_id, cur):
+            #     return jsonify({'message': 'You do not have permission to update this tag'}), 403
 
             # Perform deletion operations
             cur.execute("DELETE FROM NoteTags WHERE tag_id = %s", (tag_id,))
