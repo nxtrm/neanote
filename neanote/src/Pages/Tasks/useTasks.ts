@@ -284,7 +284,9 @@ export const useTasks = create<TaskState>()(
       });
       try {
         //call task api to toggle completeness of the whole task
-        await tasksApi.toggleCompleteness(taskId, null);
+        if (all_completed) {
+          await tasksApi.toggleCompleteness(taskId, null);
+        }
         await tasksApi.toggleCompleteness(taskId, subtaskId);
       } catch (error) {
         // Revert subtask completion on failure

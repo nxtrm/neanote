@@ -272,7 +272,7 @@ class TaskApi(BaseNote):
                                 VALUES (%s, %s)
                             """, (userId, 1))
 
-                    if subtaskId and verify_subtask_ownership(userId, subtaskId, cur):
+                    elif subtaskId and verify_subtask_ownership(userId, subtaskId, cur):
                         toggle_subtask_sql = """
                             UPDATE Subtasks
                             SET completed = NOT completed
