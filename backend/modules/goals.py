@@ -7,7 +7,7 @@ from flask import Blueprint, g, jsonify, request
 from flask_jwt_extended import jwt_required
 
 from modules.universal import BaseNote
-from utils.userDeleteGraph import delete_user_data_with_backoff
+from utils.userDeleteGraph import delete_notes_with_backoff, delete_user_data_with_backoff
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
 import psycopg2.extras
@@ -377,7 +377,7 @@ class GoalApi(BaseNote):
                 stack = [6, 5, 4, 12, 2]  # milestones, goalhistory, goals, notetags, notes
                 stack.reverse()
                  # Use the delete_user_data_with_backoff function to delete related data
-                if delete_user_data_with_backoff(self.conn, userId, stack):
+                if delete_notes_with_backoff(self.conn, note_id, stack):
                     self.tokenization_manager.delete_note_by_id(note_id)
                     return jsonify({'message': 'Goal deleted successfully'}), 200
                 else:

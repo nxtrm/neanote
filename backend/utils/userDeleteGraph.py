@@ -1,4 +1,4 @@
-from datetime import time
+import time
 import psycopg2
 import os
 import sys
@@ -52,7 +52,7 @@ DELETE_QUERIES = {
     2: "DELETE FROM notes WHERE user_id = %s",
     3: "DELETE FROM tags WHERE user_id = %s",
     4: "DELETE FROM goals WHERE note_id IN (SELECT id FROM notes WHERE user_id = %s)",
-    5: "DELETE FROM goalhistory WHERE goal_id IN (SELECT id FROM goals WHERE note_id IN (SELECT id FROM notes WHERE user_id = %s))",
+    5:  "DELETE FROM goalhistory WHERE goal_id IN (SELECT id FROM goals WHERE note_id IN (SELECT id FROM notes WHERE user_id = %s))" , #
     6: "DELETE FROM milestones WHERE goal_id IN (SELECT id FROM goals WHERE note_id IN (SELECT id FROM notes WHERE user_id = %s))",
     7: "DELETE FROM habits WHERE note_id IN (SELECT id FROM notes WHERE user_id = %s)",
     8: "DELETE FROM habitcompletion WHERE habit_id IN (SELECT id FROM habits WHERE note_id IN (SELECT id FROM notes WHERE user_id = %s))",

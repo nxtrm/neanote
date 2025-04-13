@@ -209,7 +209,7 @@ export const useGoals = create<GoalState>()(
 
                 const previewsWithFormattedDates = response.data.map(preview => ({
                   ...preview,
-                  due_date: preview.due_date ? new Date(preview.due_date) : undefined,
+                  due_date: preview.due_date ? new Date(preview.due_date + 'Z') : undefined,
                 }));
                 set({ goalPreviews: previewsWithFormattedDates, nextPage: response.nextPage, page: response.page });
               } else{
@@ -224,7 +224,7 @@ export const useGoals = create<GoalState>()(
               useGoals.getState().setLoading(true);
               const response = await goalsApi.getGoal(noteId);
               if (response && response.data) {
-                const dueDate = response.data.due_date ? new Date(response.data.due_date) : undefined;
+                const dueDate = response.data.due_date ? new Date(response.data.due_date + 'Z') : undefined;
                 const goalWithFormattedDate = {
                   ...response.data,
                   due_date: dueDate,
@@ -301,6 +301,7 @@ export const useGoals = create<GoalState>()(
                   state.pendingChanges = true;
                 }
               });
+              // console.log('Current goal updated:', get().currentGoal);
               get().validateGoal();
             },
 
