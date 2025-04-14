@@ -22,7 +22,7 @@ function WidgetPreviewContainer({ description, title, children, type, onClick }:
       onClick={() => onClick(type)}
     >
       <CardHeader>
-        <CardTitle>{title}</CardTitle>
+        <CardTitle className='max-w-[200px] overflow-ellipsis'>{title}</CardTitle>
         <CardDescription>{description}</CardDescription>
       </CardHeader>
       <CardContent>

@@ -53,13 +53,13 @@ export const Widget: React.FC<WidgetProps> = ({
         return (
           <NumberWidget
             caption={title}
-            number={data?.value || 0}
+            number={data?.streak +1 || 0}
           />
         );
       case 'HabitWeek':
         return (
-          <HabitWeek
-            data={data?.days || [false, false, false, false, false, false, false]}
+          <HabitWeek title={title}
+            data={data?.weekly_completions || [false, false, false, false, false, false, false]}
           />
         );
       default:

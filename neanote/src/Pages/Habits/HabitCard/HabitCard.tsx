@@ -37,7 +37,7 @@ function HabitCard({habit}: {habit: HabitPreview}) {
           <h3 className='habit-title'>{habit.title}</h3>
         </div>
         <div className='flex flex-row items-center gap-1'>
-          <StreakLabel streak={habit.streak} completed_today={habit.completed_today} />
+          <StreakLabel streak={habit.streak+1} completed_today={habit.completed_today} />
           {habit.tags.map((tag, index) => (
             <TagLabel key={index} name={tag.name} color={tag.color} compressed={isTagCompressed}/>
           ))}

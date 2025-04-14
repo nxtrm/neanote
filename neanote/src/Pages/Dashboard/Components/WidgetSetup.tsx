@@ -72,6 +72,8 @@ export function WidgetSetup({ widgetType, onSave, onCancel }: WidgetSetupProps) 
         </Label>
       <div className='flex flex-row gap-2'>
         <Input
+        minLength={3}
+        maxLength={50}
         className="border rounded-md p-1"
         value={title}
         onChange={(e) => setTitle(e.target.value)}

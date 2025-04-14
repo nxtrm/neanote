@@ -64,19 +64,23 @@ def widget_routes(app, conn):
                             i['source_data']['streak'] = streak[0]
                 elif i['widget_id'] == 'Progress':
                         # Fetch total milestones
-                        cur.execute('SELECT COUNT(*) FROM milestones WHERE goal_id = %s', (i['data_source_id'],))
-                        milestones = cur.fetchone()
-                        if milestones:
-                            i['source_data']['total_milestones'] = int(milestones[0])
-                        else:
+                        # Ensure data_source_id is valid and log its value for debugging
+                        if not i['data_source_id']:
                             i['source_data']['total_milestones'] = 0
+                        else:
+                            cur.execute('SELECT COUNT(*) FROM milestones WHERE goal_id IN (SELECT id FROM goals WHERE note_id = %s)', (i['data_source_id'],))
+                            milestones = cur.fetchone()
+                            if milestones and milestones[0] is not None:
+                                i['source_data']['total_milestones'] = int(milestones[0])
+                            else:
+                                i['source_data']['total_milestones'] = 0
 
                         # Fetch completed milestones
                         cur.execute('''
                             SELECT COUNT(*)
                             FROM milestones m
                             JOIN goals g ON m.goal_id = g.id
-                            WHERE g.note_id = %s AND m.completed = FALSE
+                            WHERE g.note_id = %s AND m.completed = TRUE
                         ''', (i['data_source_id'],))
                         completedmilestones = cur.fetchone()
                         if completedmilestones:
@@ -87,16 +91,19 @@ def widget_routes(app, conn):
                     cur.execute("""
                         SELECT completion_date
                         FROM habitcompletion
-                        WHERE habit_id = %s AND completion_date >= %s
+                        WHERE habit_id IN (SELECT id FROM habits WHERE note_id = %s) AND completion_date >= %s
                         ORDER BY completion_date
                     """, (i['data_source_id'], datetime.now() - timedelta(days=7)))
                     completions = cur.fetchall()
                     habit_week = [False] * 7
                     for completion in completions:
-                        day_index = (datetime.now() - completion['completion_date']).days
+                        completion_date = completion['completion_date']
+                        if isinstance(completion_date, datetime):
+                            completion_date = completion_date.date()
+                        day_index = (datetime.now().date() - completion_date).days
                         if 0 <= day_index < 7:
                             habit_week[day_index] = True
-                    i['source_data']['weekly_completions'] = habit_week
+                    i['source_data']['weekly_completions'] = habit_week[::-1]
                 elif i['widget_id'] == 'Chart':
                     # Define mapping for different data sources
                     source_mapping = {
