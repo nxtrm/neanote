@@ -30,9 +30,9 @@ function DayCard({ day, year, month, handleDateClick, secondary, notes}: Props) 
           <CardHeader>{day}</CardHeader>
           <CardContent>
           {notes?.map(note => (
-            <div key={note.noteid} className={`border flex flex-row  items-center p-2 gap-1 rounded-xl border-l-[5px]`}>
-              {note.title}
-              <Button variant="ghost" onClick={() => handleEditClick(note.noteid, note.type)} size="icon">
+            <div key={note.noteid} className={`border flex flex-row overflow-clip justify-between items-center p-2 gap-1 rounded-xl border-l-[5px]`}>
+              <p className={'max-w-20'}>{note.title}</p>
+              <Button onClick={() => handleEditClick(note.noteid, note.type)} size="icon">
                   <FaEdit />
               </Button>
             </div>
