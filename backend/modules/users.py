@@ -12,6 +12,7 @@ import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
 from formsValidation import LoginSchema, TagSchema, UserSchema
 from utils.utils import token_required, verify_tag_ownership
+from utils.userDeleteGraph import delete_with_dfs  # Import with a different name
 
 def user_routes(app, conn):
     @app.route('/api/login', methods=['POST'])
@@ -191,7 +192,7 @@ def user_routes(app, conn):
                 if not user:
                     return jsonify({'message': 'Invalid user credentials'}), 401
                 elif bcrypt.checkpw(password.encode('utf-8'), user[0].encode('utf-8')):
-                    delete_user(conn, userId) #Attempt deleting user from the db
+                    delete_with_dfs(conn, userId)  # Use the imported function with its new name
                     return jsonify({'message': 'User deleted successfully'}), 200
                 else:
                     return jsonify({'message': 'Invalid user credentials'}), 401
